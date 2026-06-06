@@ -1,4 +1,4 @@
-# Prompt — Create User Stories and Acceptance Criteria
+# Prompt 05 — Create User Stories and Acceptance Criteria
 
 Recommended environment:
 - Microsoft 365 Copilot, ChatGPT, or another approved LLM
@@ -97,3 +97,20 @@ Acceptance criteria
 ```
 
 Do not create stories for requirements that are still unclear. Add open questions instead.
+
+## Mandatory use of architecture alignment
+
+If this file exists, read it:
+
+```text
+features/<feature-name>/business-intake/brs-architecture-alignment.md
+```
+
+Use it to:
+- avoid creating unrealistic or unsupported user stories
+- avoid inventing acceptance criteria for unresolved architecture decisions
+- add open questions to affected stories
+- identify stories blocked by architecture decisions
+- include relevant architecture constraints in notes
+
+Do not hide alignment issues inside user stories.

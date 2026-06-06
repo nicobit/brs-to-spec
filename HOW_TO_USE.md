@@ -1,3 +1,33 @@
+# Canonical Business Intake Sequence
+
+Run the business intake prompts in this order:
+
+```text
+00a-extract-brs-from-word.md
+00b-extract-architecture-from-word.md
+01-summarize-brs.md
+02-extract-requirements.md
+03-review-brs-and-requirements-against-architecture.md
+04-create-delivery-structure.md
+05-create-user-stories.md
+06-find-gaps-and-questions.md
+07-create-business-test-expectations.md
+```
+
+The critical order is:
+
+```text
+02-extract-requirements.md
+  ↓
+03-review-brs-and-requirements-against-architecture.md
+  ↓
+04-create-delivery-structure.md
+  ↓
+05-create-user-stories.md
+```
+
+Do not create the delivery structure before reviewing the BRS and extracted requirements against the architecture draft, unless no architecture input exists and the change is explicitly classified as small/no-architecture-impact.
+
 # How to Use This Project
 
 ## 1. Create a feature
@@ -25,9 +55,9 @@ features/my-feature/input/architecture-draft.md
 Use:
 
 ```text
-prompts/01-business-intake/01-extract-business-requirements.md
-prompts/01-business-intake/02-create-user-stories.md
-prompts/01-business-intake/03-find-gaps-and-questions.md
+prompts/01-business-intake/02-extract-requirements.md
+prompts/01-business-intake/05-create-user-stories.md
+prompts/01-business-intake/06-find-gaps-and-questions.md
 ```
 
 Review:
@@ -189,7 +219,7 @@ prompts/05-reviewers/*
 After extracting requirements, run:
 
 ```text
-prompts/01-business-intake/02a-create-epics-and-features.md
+prompts/01-business-intake/04-create-delivery-structure.md
 ```
 
 This creates:
@@ -201,7 +231,7 @@ features/<feature-name>/business-intake/epics-and-features.md
 Then run:
 
 ```text
-prompts/01-business-intake/02-create-user-stories.md
+prompts/01-business-intake/05-create-user-stories.md
 ```
 
 The user stories should reference:
@@ -235,10 +265,10 @@ Use when the change is low risk and clear.
 Run:
 
 ```text
-prompts/01-business-intake/01-extract-business-requirements.md
-prompts/01-business-intake/02a-create-epics-and-features.md
-prompts/01-business-intake/02-create-user-stories.md
-prompts/01-business-intake/03-find-gaps-and-questions.md
+prompts/01-business-intake/02-extract-requirements.md
+prompts/01-business-intake/04-create-delivery-structure.md
+prompts/01-business-intake/05-create-user-stories.md
+prompts/01-business-intake/06-find-gaps-and-questions.md
 
 prompts/02-engineering-contracts/01-create-technical-spec.md
 
@@ -286,12 +316,12 @@ Use for security-sensitive, audit-heavy, cross-system, regulated, or high-impact
 Run the full chain:
 
 ```text
-prompts/01-business-intake/00-business-brs-summary.md
-prompts/01-business-intake/01-extract-business-requirements.md
-prompts/01-business-intake/02a-create-epics-and-features.md
-prompts/01-business-intake/02-create-user-stories.md
-prompts/01-business-intake/03-find-gaps-and-questions.md
-prompts/01-business-intake/04-create-business-test-expectations.md
+prompts/01-business-intake/01-summarize-brs.md
+prompts/01-business-intake/02-extract-requirements.md
+prompts/01-business-intake/04-create-delivery-structure.md
+prompts/01-business-intake/05-create-user-stories.md
+prompts/01-business-intake/06-find-gaps-and-questions.md
+prompts/01-business-intake/07-create-business-test-expectations.md
 
 prompts/02-engineering-contracts/01-create-technical-spec.md
 prompts/02-engineering-contracts/02-create-bdd-scenarios.md
@@ -340,14 +370,14 @@ This step preserves the original BRS structure in Markdown.
 
 Do not create user stories or technical design during this step.
 
-# How to Use 02a and 02
+# How to Use 04 and 02
 
-## First use 02a
+## First use 04
 
 Run:
 
 ```text
-prompts/01-business-intake/02a-create-epics-and-features.md
+prompts/01-business-intake/04-create-delivery-structure.md
 ```
 
 Input:
@@ -374,7 +404,7 @@ Group requirements into business objectives, epics, and features/capabilities.
 Run:
 
 ```text
-prompts/01-business-intake/02-create-user-stories.md
+prompts/01-business-intake/05-create-user-stories.md
 ```
 
 Input:
@@ -405,3 +435,207 @@ requirements.md
 ```
 
 Do not skip `epics-and-features.md` for medium or large changes.
+
+# Optional Architecture Document Extraction
+
+If you also have a Word architecture document, run:
+
+```text
+prompts/01-business-intake/00b-extract-architecture-from-word.md
+```
+
+Output:
+
+```text
+features/<feature-name>/input/architecture-draft.md
+```
+
+This step preserves the architecture draft in Markdown.
+
+# Review BRS and Requirements Against Architecture
+
+After extracting the BRS and architecture draft, run:
+
+```text
+prompts/01-business-intake/03-review-brs-and-requirements-against-architecture.md
+```
+
+Output:
+
+```text
+features/<feature-name>/business-intake/brs-architecture-alignment.md
+```
+
+Use this to identify:
+
+```text
+BRS/requirements vs architecture contradictions
+missing architecture decisions
+integration gaps
+data gaps
+security gaps
+audit/logging gaps
+deployment/environment gaps
+questions for business and architecture
+```
+
+# Updated early order
+
+Recommended order when both BRS and architecture documents exist:
+
+```text
+00a-extract-brs-from-word.md
+00b-extract-architecture-from-word.md
+01-summarize-brs.md
+02-extract-requirements.md
+03-review-brs-and-requirements-against-architecture.md
+04-create-delivery-structure.md
+05-create-user-stories.md
+06-find-gaps-and-questions.md
+```
+
+# Updated Business Intake Sequence
+
+Use this sequence now:
+
+```text
+prompts/01-business-intake/00a-extract-brs-from-word.md
+prompts/01-business-intake/00b-extract-architecture-from-word.md
+prompts/01-business-intake/01-summarize-brs.md
+prompts/01-business-intake/02-extract-requirements.md
+prompts/01-business-intake/03-review-brs-and-requirements-against-architecture.md
+prompts/01-business-intake/04-create-delivery-structure.md
+prompts/01-business-intake/05-create-user-stories.md
+prompts/01-business-intake/06-find-gaps-and-questions.md
+prompts/01-business-intake/07-create-business-test-expectations.md
+```
+
+The old confusing `02a` step has been renamed to:
+
+```text
+04-create-delivery-structure.md
+```
+
+Use it before user stories to organize requirements into:
+
+```text
+Business Objective → Epic → Feature / Capability
+```
+
+Then run:
+
+```text
+05-create-user-stories.md
+```
+
+# Optional Enablement Track
+
+Use the Enablement Track when the feature requires infrastructure, CI/CD, environment, observability, release, rollback, or operational work.
+
+## Step 1 — Identify enablement scope
+
+```text
+prompts/08-enablement/01-identify-enablement-scope.md
+```
+
+Output:
+
+```text
+features/<feature-name>/enablement/enablement-scope.md
+```
+
+## Step 2 — Create enablement structure
+
+```text
+prompts/08-enablement/02-create-enablement-structure.md
+```
+
+Output:
+
+```text
+features/<feature-name>/enablement/enablement-structure.md
+```
+
+## Step 3 — Create technical stories
+
+```text
+prompts/08-enablement/03-create-technical-stories.md
+```
+
+Output:
+
+```text
+features/<feature-name>/enablement/technical-stories.md
+```
+
+## Step 4 — Create infrastructure / CI-CD / operational specs as needed
+
+```text
+prompts/08-enablement/04-create-infrastructure-spec.md
+prompts/08-enablement/05-create-cicd-spec.md
+prompts/08-enablement/06-create-operational-readiness.md
+```
+
+Outputs:
+
+```text
+features/<feature-name>/enablement/infrastructure-spec.md
+features/<feature-name>/enablement/cicd-spec.md
+features/<feature-name>/enablement/observability-spec.md
+features/<feature-name>/enablement/release-rollback-plan.md
+features/<feature-name>/enablement/operational-readiness.md
+```
+
+## Step 5 — Add enablement tasks to OpenSpec
+
+```text
+prompts/08-enablement/07-create-iac-cicd-openspec-tasks.md
+```
+
+Output:
+
+```text
+features/<feature-name>/openspec-change/tasks.md
+```
+
+## Rule
+
+Keep business user stories and technical stories separate.
+
+```text
+Business user stories → product behavior
+Technical stories → infrastructure, CI/CD, observability, release, operations
+```
+
+# Architecture Alignment Usage
+
+After running:
+
+```text
+prompts/01-business-intake/03-review-brs-and-requirements-against-architecture.md
+```
+
+you get:
+
+```text
+business-intake/brs-architecture-alignment.md
+```
+
+Do not treat this as an archive-only document.
+
+Use it as input for:
+
+```text
+04-create-delivery-structure.md
+05-create-user-stories.md
+06-find-gaps-and-questions.md
+01-create-technical-spec.md
+OpenSpec proposal/design/tasks
+Enablement scope, if needed
+```
+
+Purpose:
+
+```text
+Prevent BRS/requirements/architecture mismatches from being lost.
+```

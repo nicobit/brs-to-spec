@@ -63,3 +63,34 @@ Also use:
 - `features/<feature-name>/business-intake/epics-and-features.md`
 
 The technical specification should explicitly state which epics/features are affected and whether the technical design supports the proposed delivery slicing.
+
+Also read if available:
+
+```text
+features/<feature-name>/business-intake/brs-architecture-alignment.md
+```
+
+Use it to ensure that the technical specification resolves or explicitly carries forward:
+- architecture constraints
+- contradictions
+- missing decisions
+- data/integration gaps
+- security gaps
+- audit/logging gaps
+- deployment/environment gaps
+
+## Mandatory use of architecture alignment
+
+If this file exists, read it:
+
+```text
+features/<feature-name>/business-intake/brs-architecture-alignment.md
+```
+
+The technical spec must explicitly address alignment findings.
+
+For each relevant finding, either:
+- resolve it in the design,
+- mark it as an explicit assumption,
+- carry it as an open decision with owner,
+- or exclude it with justification.

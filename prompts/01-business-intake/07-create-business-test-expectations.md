@@ -1,4 +1,4 @@
-# Prompt — Create Business Test Expectations
+# Prompt 07 — Create Business Test Expectations
 
 Recommended environment:
 - Microsoft 365 Copilot, ChatGPT, or another approved LLM

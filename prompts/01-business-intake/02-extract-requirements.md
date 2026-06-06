@@ -1,4 +1,4 @@
-# Prompt — Extract Business Requirements
+# Prompt 02 — Extract Requirements
 
 Recommended environment:
 - Microsoft 365 Copilot, ChatGPT, or another approved LLM
@@ -60,3 +60,28 @@ Priority: Must / Should / Could
 Source section from BRS if available
 Acceptance criteria where possible
 ```
+
+## Optional architecture input
+
+If available, also read:
+
+```text
+features/<feature-name>/input/architecture-draft.md
+```
+
+Use the architecture document only to identify:
+
+```text
+technical constraints
+dependencies
+integration implications
+data implications
+security implications
+audit/logging implications
+non-functional implications
+architecture assumptions
+```
+
+Do not create business requirements from architecture unless they are explicitly stated as business needs.
+
+If architecture creates a constraint or question, record it as an assumption, constraint, or open question.

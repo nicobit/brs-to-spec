@@ -183,3 +183,65 @@ Start with:
 ```
 
 Then adjust the artifact set based on what actually helped.
+
+## Architecture document impact
+
+If a draft architecture exists, use it during change classification.
+
+The change may become Medium or Large/Risky if the architecture shows:
+
+```text
+new integration
+database migration
+security boundary change
+audit/compliance implications
+new service/component
+deployment/environment change
+cross-system dependency
+performance/availability impact
+```
+
+For medium and large/risky changes, run:
+
+```text
+prompts/01-business-intake/03-review-brs-and-requirements-against-architecture.md
+```
+
+# Enablement Track Decision
+
+Use the Enablement Track if any of these are needed:
+
+```text
+new infrastructure
+new Azure/cloud resources
+database/storage changes
+new queue/topic/event stream
+network/private endpoint changes
+identity or managed identity changes
+Key Vault/secrets/certificates
+CI/CD pipeline changes
+environment configuration
+observability / dashboards / alerts
+release or rollback procedure
+operational readiness or runbook
+```
+
+## By change size
+
+### Small change
+
+Usually skip Enablement Track unless pipeline/configuration is affected.
+
+### Medium change
+
+Run at least:
+
+```text
+prompts/08-enablement/01-identify-enablement-scope.md
+```
+
+Then decide whether technical stories are needed.
+
+### Large/risky change
+
+Run the full Enablement Track.

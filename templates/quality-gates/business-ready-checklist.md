@@ -41,3 +41,13 @@ Do not proceed to engineering contract creation until this is complete.
 - [ ] User stories reference parent epic and feature/capability.
 - [ ] Orphan requirements are identified.
 - [ ] Features without requirements are justified or removed.
+
+## Architecture alignment
+
+- [ ] Architecture draft exists or is explicitly not applicable.
+- [ ] BRS/requirements vs architecture alignment review completed for medium/large changes.
+- [ ] Contradictions between BRS and architecture are resolved or owned.
+- [ ] Missing architecture decisions are identified.
+- [ ] Data/integration gaps are identified.
+- [ ] Security/authorization gaps are identified.
+- [ ] Audit/logging gaps are identified.

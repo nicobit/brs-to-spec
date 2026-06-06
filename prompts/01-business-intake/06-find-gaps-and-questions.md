@@ -1,4 +1,4 @@
-# Prompt — Find Gaps and Questions
+# Prompt 06 — Find Gaps and Questions
 
 Recommended environment:
 - Microsoft 365 Copilot, ChatGPT, or another approved LLM
@@ -42,3 +42,41 @@ Additional check:
 - Identify orphan requirements that do not map to any feature.
 - Identify features that do not map to requirements.
 - Identify user stories that do not map to a feature or epic.
+
+Also read if available:
+
+```text
+features/<feature-name>/input/architecture-draft.md
+features/<feature-name>/business-intake/brs-architecture-alignment.md
+```
+
+Additional architecture-related checks:
+- BRS and architecture contradictions
+- architecture decisions missing for business requirements
+- unclear integration boundaries
+- unclear data ownership
+- unclear authorization boundaries
+- missing audit/logging support
+- deployment/environment assumptions
+- NFRs implied by architecture but missing from requirements
+
+## Mandatory use of architecture alignment
+
+If this file exists, read it:
+
+```text
+features/<feature-name>/business-intake/brs-architecture-alignment.md
+```
+
+Merge its findings into `gaps-and-questions.md`.
+
+The final gaps file should include:
+- business gaps
+- requirement extraction gaps
+- BRS/architecture contradictions
+- missing architecture decisions
+- data/integration gaps
+- security/authorization gaps
+- audit/logging gaps
+- deployment/environment gaps
+- enablement-related gaps

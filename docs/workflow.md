@@ -220,3 +220,108 @@ Full business intake
 ## Governance principle
 
 Use the smallest flow that controls the real risk.
+
+# Architecture Draft in the Early Workflow
+
+The architecture draft is now used earlier in the process.
+
+```text
+BRS
+  → requirements
+
+Architecture draft
+  → constraints / assumptions / dependencies / risks
+
+BRS + architecture draft
+  → alignment review
+  → improved gaps/questions
+  → better delivery slicing
+  → stronger technical spec
+```
+
+Important:
+
+```text
+Architecture is not the source of business scope.
+Architecture is a constraint and validation input.
+```
+
+If BRS and architecture conflict, record a contradiction or open question.
+
+# Optional Enablement Track in the Workflow
+
+The Enablement Track runs in parallel to the product delivery track.
+
+```text
+Product Delivery Track
+  delivery structure
+  user stories
+  acceptance criteria
+
+Enablement Track
+  enablement structure
+  technical stories
+  infrastructure spec
+  CI/CD spec
+  operational readiness
+
+Both feed into:
+  OpenSpec proposal / design / tasks
+```
+
+Use it when application delivery requires platform, infrastructure, CI/CD, observability, release, rollback, or operational work.
+
+# Architecture Alignment Consumption
+
+The alignment artifact is consumed downstream.
+
+```text
+BRS + requirements + architecture draft
+  ↓
+brs-architecture-alignment.md
+  ↓
+delivery structure
+user stories
+gaps/questions
+technical spec
+OpenSpec proposal/design/tasks
+enablement scope
+```
+
+It should not be created and forgotten.
+
+# Corrected Business Intake Sequence
+
+The business intake phase must follow this order:
+
+```text
+00a-extract-brs-from-word.md
+00b-extract-architecture-from-word.md
+01-summarize-brs.md
+02-extract-requirements.md
+03-review-brs-and-requirements-against-architecture.md
+04-create-delivery-structure.md
+05-create-user-stories.md
+06-find-gaps-and-questions.md
+07-create-business-test-expectations.md
+```
+
+Step 03 is intentionally before step 04 because delivery structure must consider:
+- extracted requirements,
+- original BRS content that may have been missed,
+- architecture constraints,
+- missing architecture decisions,
+- contradictions,
+- downstream enablement implications.
+
+Critical order:
+
+```text
+02-extract-requirements.md
+  ↓
+03-review-brs-and-requirements-against-architecture.md
+  ↓
+04-create-delivery-structure.md
+  ↓
+05-create-user-stories.md
+```

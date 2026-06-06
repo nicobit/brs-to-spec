@@ -32,3 +32,10 @@ Do not proceed to OpenSpec tasks or Copilot implementation until this is complet
 - [ ] Design is clear.
 - [ ] Tasks are small.
 - [ ] Each task has tests and Definition of Done.
+
+## BRS and architecture alignment
+
+- [ ] `brs-architecture-alignment.md` reviewed if available.
+- [ ] Architecture constraints are reflected in the technical spec.
+- [ ] Open architecture decisions have owners.
+- [ ] BRS/architecture contradictions are resolved or explicitly deferred.

@@ -1,4 +1,4 @@
-# Prompt — Create Epics and Features
+# Prompt 04 — Create Delivery Structure
 
 Recommended environment:
 - Microsoft 365 Copilot, ChatGPT, or another approved LLM
@@ -116,13 +116,13 @@ Suggest a sensible delivery order, for example:
 Run this after:
 
 ```text
-01-extract-business-requirements.md
+02-extract-requirements.md
 ```
 
 and before:
 
 ```text
-02-create-user-stories.md
+05-create-user-stories.md
 ```
 
 This prompt creates the delivery structure. It should not create full user stories.
@@ -139,3 +139,73 @@ User stories describe user-centered increments.
 For a small change, the output may contain only one epic and one feature.
 
 For medium and large/risky changes, use this step to identify multiple features/capabilities and a sensible delivery slicing.
+
+## Optional architecture and alignment input
+
+If available, also read:
+
+```text
+features/<feature-name>/input/architecture-draft.md
+features/<feature-name>/business-intake/brs-architecture-alignment.md
+```
+
+Use architecture information only to improve:
+
+```text
+delivery slicing
+dependencies
+feature boundaries
+implementation sequencing
+risk identification
+```
+
+Do not change business scope based only on architecture.
+
+## What this prompt does
+
+This prompt replaces the old confusing `04-create-delivery-structure.md`.
+
+It creates the delivery structure between requirements and user stories:
+
+```text
+Requirements
+  ↓
+Business Objectives
+  ↓
+Epics
+  ↓
+Features / Capabilities
+  ↓
+User Stories
+```
+
+Use it to answer:
+
+```text
+What are the business objectives?
+What epics group the work?
+What features or capabilities should be delivered?
+Which requirements belong to each feature?
+What is the recommended delivery slicing?
+```
+
+For small changes, keep the output minimal.
+For medium and large/risky changes, use it fully.
+
+## Mandatory use of architecture alignment
+
+If this file exists, read it:
+
+```text
+features/<feature-name>/business-intake/brs-architecture-alignment.md
+```
+
+Use it to:
+- identify blocked or risky features
+- improve feature boundaries
+- identify architecture-dependent features
+- improve delivery slicing
+- carry forward contradictions and missing architecture decisions
+
+Do not ignore unresolved alignment findings.
+Do not change business scope based only on architecture.

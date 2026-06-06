@@ -11,7 +11,7 @@ Word BRS
   ↓
 01 Extract Business Requirements
   ↓
-02a Create Epics and Features
+04 Create Epics and Features
   ↓
 02 Create User Stories
   ↓
@@ -53,7 +53,7 @@ Do not create user stories, epics, technical design, or implementation tasks her
 Prompt:
 
 ```text
-prompts/01-business-intake/00-business-brs-summary.md
+prompts/01-business-intake/01-summarize-brs.md
 ```
 
 Purpose:
@@ -73,7 +73,7 @@ This helps reviewers understand the business context before detailed requirement
 Prompt:
 
 ```text
-prompts/01-business-intake/01-extract-business-requirements.md
+prompts/01-business-intake/02-extract-requirements.md
 ```
 
 Purpose:
@@ -104,12 +104,12 @@ Requirements are not implementation tasks.
 Requirements are obligations, rules, behaviors, constraints, and qualities.
 ```
 
-## Step 02a — Create Epics and Features
+## Step 04 — Create Epics and Features
 
 Prompt:
 
 ```text
-prompts/01-business-intake/02a-create-epics-and-features.md
+prompts/01-business-intake/04-create-delivery-structure.md
 ```
 
 Purpose:
@@ -195,7 +195,7 @@ Requirement mapping:
 Prompt:
 
 ```text
-prompts/01-business-intake/02-create-user-stories.md
+prompts/01-business-intake/05-create-user-stories.md
 ```
 
 Purpose:
@@ -323,3 +323,47 @@ business-intake/user-stories.md
 business-intake/gaps-and-questions.md
 business-intake/business-test-expectations.md
 ```
+
+# Architecture Input in Business Intake
+
+If an architecture document exists, extract it before creating epics/features and user stories.
+
+## Step 00b — Extract Architecture from Word
+
+Prompt:
+
+```text
+prompts/01-business-intake/00b-extract-architecture-from-word.md
+```
+
+Output:
+
+```text
+features/<feature-name>/input/architecture-draft.md
+```
+
+This is an extraction step, not a final design step.
+
+## Step 01a — Review BRS and Requirements Against Architecture
+
+Prompt:
+
+```text
+prompts/01-business-intake/03-review-brs-and-requirements-against-architecture.md
+```
+
+Output:
+
+```text
+features/<feature-name>/business-intake/brs-architecture-alignment.md
+```
+
+Use it to compare:
+
+```text
+BRS business intent
+vs
+architecture constraints and assumptions
+```
+
+The goal is to find contradictions, missing decisions, data/integration gaps, security gaps, audit/logging gaps, and questions for business, architecture, QA, and security.

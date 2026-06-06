@@ -1,3 +1,38 @@
+# Canonical Business Intake Sequence
+
+Use this exact order for business intake:
+
+```text
+00a-extract-brs-from-word.md
+00b-extract-architecture-from-word.md
+01-summarize-brs.md
+02-extract-requirements.md
+03-review-brs-and-requirements-against-architecture.md
+04-create-delivery-structure.md
+05-create-user-stories.md
+06-find-gaps-and-questions.md
+07-create-business-test-expectations.md
+```
+
+The critical order is:
+
+```text
+02-extract-requirements.md
+  ↓
+03-review-brs-and-requirements-against-architecture.md
+  ↓
+04-create-delivery-structure.md
+  ↓
+05-create-user-stories.md
+```
+
+Reason:
+`02-extract-requirements.md` creates structured requirements.  
+`03-review-brs-and-requirements-against-architecture.md` checks the original BRS and extracted requirements against the architecture draft.  
+`04-create-delivery-structure.md` must use the alignment findings before creating epics/features/capabilities.
+
+Do not jump directly from requirements extraction to delivery structure when an architecture draft exists.
+
 # Enterprise SDD + OpenSpec + Copilot Delivery Kit
 
 A practical project template for moving from a **Business Requirements Specification (BRS)** and a draft architecture to **safe, traceable AI-assisted implementation with GitHub Copilot**.
@@ -195,7 +230,7 @@ business-intake/epics-and-features.md
 The new prompt is:
 
 ```text
-prompts/01-business-intake/02a-create-epics-and-features.md
+prompts/01-business-intake/04-create-delivery-structure.md
 ```
 
 Read:
@@ -350,13 +385,15 @@ Word BRS
   ↓
 00a-extract-brs-from-word.md
   ↓
-00-business-brs-summary.md
+01-summarize-brs.md
   ↓
-01-extract-business-requirements.md
+02-extract-requirements.md
   ↓
-02a-create-epics-and-features.md
+03-review-brs-and-requirements-against-architecture.md
   ↓
-02-create-user-stories.md
+04-create-delivery-structure.md
+  ↓
+05-create-user-stories.md
 ```
 
 The relationship is:
@@ -371,4 +408,187 @@ Read:
 
 ```text
 docs/business-intake-step-guide.md
+```
+
+# Architecture Draft Extraction and Early Alignment
+
+The framework now supports architecture input earlier in the flow.
+
+New prompt to extract an architecture document from Word:
+
+```text
+prompts/01-business-intake/00b-extract-architecture-from-word.md
+```
+
+New prompt to compare BRS and architecture:
+
+```text
+prompts/01-business-intake/03-review-brs-and-requirements-against-architecture.md
+```
+
+New output artifact:
+
+```text
+business-intake/brs-architecture-alignment.md
+```
+
+Updated early flow when both BRS and architecture documents exist:
+
+```text
+Word BRS
+  ↓
+00a-extract-brs-from-word.md
+  ↓
+Word Architecture Draft
+  ↓
+00b-extract-architecture-from-word.md
+  ↓
+01-summarize-brs.md
+  ↓
+02-extract-requirements.md
+  ↓
+03-review-brs-and-requirements-against-architecture.md
+  ↓
+04-create-delivery-structure.md
+  ↓
+05-create-user-stories.md
+```
+
+Important principle:
+
+```text
+BRS = business intent
+Architecture draft = constraints, dependencies, feasibility, and risk input
+```
+
+The architecture document should not silently override the BRS.
+If they conflict, create a question or contradiction.
+
+# Clear Business Intake Prompt Numbering
+
+The old `02a-create-epics-and-features.md` step has been renamed.
+
+Use this clear sequence instead:
+
+```text
+00a-extract-brs-from-word.md
+00b-extract-architecture-from-word.md
+01-summarize-brs.md
+02-extract-requirements.md
+03-review-brs-and-requirements-against-architecture.md
+04-create-delivery-structure.md
+05-create-user-stories.md
+06-find-gaps-and-questions.md
+07-create-business-test-expectations.md
+```
+
+The key step is:
+
+```text
+04-create-delivery-structure.md
+```
+
+It creates:
+
+```text
+Business Objectives
+Epics
+Features / Capabilities
+Requirement-to-feature mapping
+Delivery slicing recommendations
+```
+
+Then:
+
+```text
+05-create-user-stories.md
+```
+
+creates user stories under the correct epic and feature.
+
+Read:
+
+```text
+docs/business-intake-prompt-sequence.md
+```
+
+# Optional Enablement Track
+
+The project now includes an optional Enablement Track for infrastructure, CI/CD, environments, observability, release/rollback, and operational readiness.
+
+Use it when a feature needs:
+
+```text
+new infrastructure
+new Azure/cloud resources
+new database/storage
+new queue/topic/event stream
+pipeline changes
+environment configuration
+secret management
+monitoring/alerting
+release/rollback procedure
+operational readiness
+SRE/support handover
+```
+
+New prompt folder:
+
+```text
+prompts/08-enablement/
+```
+
+New template folder:
+
+```text
+templates/enablement/
+```
+
+Main enablement prompts:
+
+```text
+01-identify-enablement-scope.md
+02-create-enablement-structure.md
+03-create-technical-stories.md
+04-create-infrastructure-spec.md
+05-create-cicd-spec.md
+06-create-operational-readiness.md
+07-create-iac-cicd-openspec-tasks.md
+```
+
+Read:
+
+```text
+docs/enablement-track.md
+```
+
+The Enablement Track does not replace business user stories. It adds technical stories for platform, deployment, SRE, infrastructure, CI/CD, and operations.
+
+# Architecture Alignment Is a Control Artifact
+
+`business-intake/brs-architecture-alignment.md` is now explicitly used downstream.
+
+It is produced by:
+
+```text
+prompts/01-business-intake/03-review-brs-and-requirements-against-architecture.md
+```
+
+It is consumed by:
+
+```text
+04-create-delivery-structure.md
+05-create-user-stories.md
+06-find-gaps-and-questions.md
+02-engineering-contracts/01-create-technical-spec.md
+03-openspec-handoff/01-create-openspec-proposal.md
+03-openspec-handoff/02-create-openspec-design.md
+03-openspec-handoff/03-create-openspec-tasks.md
+08-enablement/01-identify-enablement-scope.md
+```
+
+Read:
+
+```text
+docs/architecture-alignment-usage.md
 ```

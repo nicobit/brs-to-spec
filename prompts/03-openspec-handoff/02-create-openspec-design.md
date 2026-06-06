@@ -50,3 +50,22 @@ Structure:
 ## Open Decisions
 ## Diagrams
 ```
+
+Also read if available:
+
+```text
+features/<feature-name>/business-intake/brs-architecture-alignment.md
+```
+
+The design should explicitly address or defer the alignment findings.
+
+## Mandatory use of architecture alignment
+
+If this file exists, read it:
+
+```text
+features/<feature-name>/business-intake/brs-architecture-alignment.md
+```
+
+The design must explicitly address or defer the alignment findings.
+Do not let unresolved alignment issues disappear.

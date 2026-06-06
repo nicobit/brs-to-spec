@@ -45,9 +45,9 @@ features/<feature-name>/input/architecture-draft.md
 Run these prompts:
 
 ```text
-prompts/01-business-intake/01-extract-business-requirements.md
-prompts/01-business-intake/02-create-user-stories.md
-prompts/01-business-intake/03-find-gaps-and-questions.md
+prompts/01-business-intake/02-extract-requirements.md
+prompts/01-business-intake/05-create-user-stories.md
+prompts/01-business-intake/06-find-gaps-and-questions.md
 ```
 
 Review with the Business PO.
@@ -124,12 +124,13 @@ The pilot is successful if:
 For the first pilot, run the business prompts in this order:
 
 ```text
-00-business-brs-summary.md
-01-extract-business-requirements.md
-02a-create-epics-and-features.md
-02-create-user-stories.md
-03-find-gaps-and-questions.md
-04-create-business-test-expectations.md
+01-summarize-brs.md
+02-extract-requirements.md
+03-review-brs-and-requirements-against-architecture.md
+04-create-delivery-structure.md
+05-create-user-stories.md
+06-find-gaps-and-questions.md
+07-create-business-test-expectations.md
 ```
 
 The minimum business intake package is now:
@@ -222,8 +223,22 @@ prompts/01-business-intake/00a-extract-brs-from-word.md
 Then continue with:
 
 ```text
-00-business-brs-summary.md
-01-extract-business-requirements.md
-02a-create-epics-and-features.md
-02-create-user-stories.md
+01-summarize-brs.md
+02-extract-requirements.md
+03-review-brs-and-requirements-against-architecture.md
+04-create-delivery-structure.md
+05-create-user-stories.md
 ```
+
+## If an architecture draft exists
+
+Run:
+
+```text
+prompts/01-business-intake/00b-extract-architecture-from-word.md
+prompts/01-business-intake/03-review-brs-and-requirements-against-architecture.md
+```
+
+For small changes, the alignment review can be lightweight.
+
+For medium and large/risky changes, it is strongly recommended.

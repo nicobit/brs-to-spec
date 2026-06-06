@@ -37,12 +37,17 @@ def main():
         (feature_dir / "input" / "brs-original.md").write_text(brs_template.read_text(encoding="utf-8"), encoding="utf-8")
     else:
         (feature_dir / "input" / "brs-original.md").write_text("# Original BRS\n\nPaste converted Word BRS here.\n", encoding="utf-8")
-    (feature_dir / "input" / "architecture-draft.md").write_text("# Architecture Draft\n\nPaste draft architecture here.\n", encoding="utf-8")
+    arch_template = ROOT / "templates" / "input" / "architecture-draft.md"
+    if arch_template.exists():
+        (feature_dir / "input" / "architecture-draft.md").write_text(arch_template.read_text(encoding="utf-8"), encoding="utf-8")
+    else:
+        (feature_dir / "input" / "architecture-draft.md").write_text("# Architecture Draft\n\nPaste draft architecture here.\n", encoding="utf-8")
 
     copy_tree(ROOT / "templates" / "business-intake", feature_dir / "business-intake")
     copy_tree(ROOT / "templates" / "engineering-contracts", feature_dir / "engineering-contracts")
     copy_tree(ROOT / "templates" / "openspec-change", feature_dir / "openspec-change")
     copy_tree(ROOT / "templates" / "quality-gates", feature_dir / "quality-gates")
+    copy_tree(ROOT / "templates" / "enablement", feature_dir / "enablement")
     copy_tree(ROOT / "templates" / "reviews", feature_dir / "reviews")
 
     print(f"Created feature package: {feature_dir}")

@@ -242,3 +242,99 @@ It creates:
 ```text
 features/<feature-name>/input/brs-original.md
 ```
+
+## Architecture extraction prompt
+
+Prompt:
+
+```text
+prompts/01-business-intake/00b-extract-architecture-from-word.md
+```
+
+Recommended tools:
+
+```text
+Microsoft 365 Copilot
+ChatGPT
+another approved LLM
+GitHub Copilot Chat if the document is already in the repository
+```
+
+Owner:
+
+```text
+Architect / Tech Lead
+```
+
+Business can assist with extraction, but architecture must review the result.
+
+It creates:
+
+```text
+features/<feature-name>/input/architecture-draft.md
+```
+
+## BRS/requirements vs architecture alignment prompt
+
+Prompt:
+
+```text
+prompts/01-business-intake/03-review-brs-and-requirements-against-architecture.md
+```
+
+Recommended tools:
+
+```text
+VS Code Copilot Chat
+ChatGPT or another approved LLM with both documents
+Microsoft 365 Copilot if both documents are in SharePoint/Word
+```
+
+Owner:
+
+```text
+Architect / Tech Lead
+```
+
+It creates:
+
+```text
+features/<feature-name>/business-intake/brs-architecture-alignment.md
+```
+
+## Enablement prompts
+
+Prompt folder:
+
+```text
+prompts/08-enablement/
+```
+
+Recommended tools:
+
+```text
+VS Code Copilot Chat
+Approved engineering LLM with repository context
+```
+
+Owners:
+
+```text
+Architect
+Tech Lead
+Platform Engineer
+Cloud Engineer
+DevOps Engineer
+SRE
+Deployment Manager
+```
+
+Repository access is strongly recommended because these prompts often need to inspect:
+
+```text
+IaC files
+pipeline files
+deployment scripts
+configuration files
+monitoring/alerting setup
+```

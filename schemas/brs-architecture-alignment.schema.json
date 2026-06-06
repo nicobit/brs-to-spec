@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BRSRequirementsArchitectureAlignment",
+  "type": "object",
+  "properties": {
+    "summary": {
+      "type": "string"
+    },
+    "missingFromRequirements": {
+      "type": "array"
+    },
+    "constraints": {
+      "type": "array"
+    },
+    "supportedRequirements": {
+      "type": "array"
+    },
+    "unsupportedRequirements": {
+      "type": "array"
+    },
+    "contradictions": {
+      "type": "array"
+    },
+    "missingDecisions": {
+      "type": "array"
+    },
+    "questionsForBusiness": {
+      "type": "array"
+    },
+    "questionsForArchitecture": {
+      "type": "array"
+    },
+    "questionsForQA": {
+      "type": "array"
+    },
+    "questionsForPlatformSREDeployment": {
+      "type": "array"
+    }
+  }
+}

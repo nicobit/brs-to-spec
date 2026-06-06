@@ -112,3 +112,47 @@ quality-gates/ready-for-copilot-checklist.md
 | External integration | Large |
 | New service / architecture change | Large |
 | Client-data-impacting change | Large |
+
+## Architecture-related artifacts
+
+Use these when an architecture draft exists:
+
+```text
+input/architecture-draft.md
+business-intake/brs-architecture-alignment.md
+```
+
+For small changes:
+- optional, lightweight
+
+For medium changes:
+- recommended
+
+For large/risky changes:
+- required
+
+# Enablement Artifacts
+
+Use these only when infrastructure, CI/CD, environment, observability, release, or operations work is needed.
+
+## Minimal enablement
+
+```text
+enablement/enablement-scope.md
+enablement/enablement-structure.md
+enablement/technical-stories.md
+```
+
+## Full enablement
+
+```text
+enablement/enablement-scope.md
+enablement/enablement-structure.md
+enablement/technical-stories.md
+enablement/infrastructure-spec.md
+enablement/cicd-spec.md
+enablement/environment-strategy.md
+enablement/observability-spec.md
+enablement/release-rollback-plan.md
+enablement/operational-readiness.md
+```

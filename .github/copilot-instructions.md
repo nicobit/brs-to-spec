@@ -82,3 +82,15 @@ Every implementation summary must include:
 - No architecture invention.
 - No new dependency without approval.
 - No bypassing tests.
+
+## Enablement Work
+
+Some tasks may be enablement tasks, such as infrastructure, CI/CD, environment configuration, observability, release/rollback, or operational readiness.
+
+For enablement tasks:
+- Read the relevant files under `features/<feature-name>/enablement/`.
+- Inspect existing IaC, pipeline, deployment, and configuration patterns before changing anything.
+- Do not create new cloud resources or pipeline stages without following existing standards.
+- Do not store secrets in code or pipeline files.
+- Add validation steps for IaC, pipeline, deployment, monitoring, or rollback as appropriate.
+- Keep enablement changes separate from application code changes when possible.

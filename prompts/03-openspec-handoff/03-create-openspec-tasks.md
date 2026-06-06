@@ -70,3 +70,48 @@ Each OpenSpec task should include:
 - Parent feature/capability
 - Requirements covered
 - User stories / acceptance criteria covered
+
+## Enablement tasks
+
+If enablement artifacts exist under:
+
+```text
+features/<feature-name>/enablement/
+```
+
+then include both application and enablement tasks.
+
+Enablement task types include:
+
+```text
+Infrastructure
+CI-CD
+Environment
+Observability
+Release
+Operations
+```
+
+Each enablement task must reference:
+- Parent enablement epic
+- Parent enablement feature/capability
+- Technical stories covered
+- INFRA/CICD/ENV/OPS/OBS/REL requirements covered
+- IaC/pipeline/configuration areas to inspect
+- validation required
+
+## Mandatory use of architecture alignment
+
+If this file exists, read it:
+
+```text
+features/<feature-name>/business-intake/brs-architecture-alignment.md
+```
+
+If an alignment finding implies implementation or validation work, create or update a task for it.
+
+Examples:
+- missing audit payload definition → task to define/implement audit payload
+- missing infrastructure decision → enablement task
+- unclear authorization boundary → task to implement/validate authorization
+- unsupported integration flow → task or open decision before implementation

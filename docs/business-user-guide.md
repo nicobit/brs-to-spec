@@ -64,7 +64,7 @@ features/<feature-name>/input/brs-original.md
 Use:
 
 ```text
-prompts/01-business-intake/00-business-brs-summary.md
+prompts/01-business-intake/01-summarize-brs.md
 ```
 
 Output:
@@ -78,7 +78,7 @@ business-intake/brs-summary.md
 Use:
 
 ```text
-prompts/01-business-intake/01-extract-business-requirements.md
+prompts/01-business-intake/02-extract-requirements.md
 ```
 
 Output:
@@ -92,7 +92,7 @@ business-intake/requirements.md
 Use:
 
 ```text
-prompts/01-business-intake/02-create-user-stories.md
+prompts/01-business-intake/05-create-user-stories.md
 ```
 
 Output:
@@ -106,7 +106,7 @@ business-intake/user-stories.md
 Use:
 
 ```text
-prompts/01-business-intake/03-find-gaps-and-questions.md
+prompts/01-business-intake/06-find-gaps-and-questions.md
 ```
 
 Output:
@@ -120,7 +120,7 @@ business-intake/gaps-and-questions.md
 Use:
 
 ```text
-prompts/01-business-intake/04-create-business-test-expectations.md
+prompts/01-business-intake/07-create-business-test-expectations.md
 ```
 
 Output:
@@ -159,7 +159,7 @@ If the LLM invented something that is not in the BRS or not agreed by business, 
 After extracting requirements, create the delivery structure:
 
 ```text
-prompts/01-business-intake/02a-create-epics-and-features.md
+prompts/01-business-intake/04-create-delivery-structure.md
 ```
 
 This produces:
@@ -205,15 +205,16 @@ This is not a summarization step. It is a faithful extraction step.
 After that, continue with:
 
 ```text
-00-business-brs-summary.md
-01-extract-business-requirements.md
-02a-create-epics-and-features.md
-02-create-user-stories.md
+01-summarize-brs.md
+02-extract-requirements.md
+03-review-brs-and-requirements-against-architecture.md
+04-create-delivery-structure.md
+05-create-user-stories.md
 ```
 
-## How to use 02a
+## How to use 04
 
-`02a-create-epics-and-features.md` groups requirements into:
+`04-create-delivery-structure.md` groups requirements into:
 
 ```text
 Business objectives
@@ -227,7 +228,7 @@ Use it after requirements and before user stories.
 
 ## How to use 02
 
-`02-create-user-stories.md` creates user stories under the features from `epics-and-features.md`.
+`05-create-user-stories.md` creates user stories under the features from `epics-and-features.md`.
 
 Each story should have:
 

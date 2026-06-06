@@ -57,3 +57,21 @@ The proposal must identify:
 - Business objectives
 - Epics
 - Features/capabilities included in this change
+
+Also read if available:
+
+```text
+features/<feature-name>/business-intake/brs-architecture-alignment.md
+```
+
+Include relevant architecture constraints, risks, and unresolved decisions in the proposal.
+
+## Mandatory use of architecture alignment
+
+If this file exists, read it:
+
+```text
+features/<feature-name>/business-intake/brs-architecture-alignment.md
+```
+
+Include major constraints, contradictions, risks, and unresolved decisions in the proposal.

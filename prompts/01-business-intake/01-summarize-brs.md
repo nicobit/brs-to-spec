@@ -1,4 +1,4 @@
-# Prompt — Summarize BRS for Business Intake
+# Prompt 01 — Summarize BRS for Business Intake
 
 Recommended environment:
 - Microsoft 365 Copilot if the BRS is in Word or SharePoint
