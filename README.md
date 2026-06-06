@@ -785,3 +785,37 @@ Read:
 ```text
 docs/large-feature-planning.md
 ```
+
+# Business Copilot Intake Prompts
+
+The project includes a parallel business-facing prompt set for Microsoft 365 Copilot and Copilot Studio.
+
+These prompts are wrappers of the canonical business-intake framework prompts. They do not replace the framework prompts.
+
+New folder:
+
+```text
+prompts/12-business-copilot-intake/
+```
+
+Prompts:
+
+```text
+01-create-brs-business-summary.md
+02-extract-business-objectives.md
+03-extract-business-requirements-for-review.md
+04-identify-business-gaps-and-questions.md
+05-create-business-delivery-slicing.md
+06-select-next-increment-for-business-review.md
+07-create-business-acceptance-expectations.md
+08-create-business-approval-checklist.md
+```
+
+Dedicated guides:
+
+```text
+docs/business-copilot-intake.md
+docs/copilot/how-to-run-business-intake-in-m365-copilot.md
+docs/copilot/how-to-create-m365-copilot-agent.md
+docs/copilot/copilot-studio-agent-design.md
+```

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BusinessCopilotIntake",
+  "type": "object",
+  "properties": {
+    "businessSummary": {
+      "type": "string"
+    },
+    "businessObjectives": {
+      "type": "array"
+    },
+    "requirements": {
+      "type": "array"
+    },
+    "gapsAndQuestions": {
+      "type": "array"
+    },
+    "deliverySlicing": {
+      "type": "object"
+    },
+    "nextIncrement": {
+      "type": "object"
+    },
+    "approvalStatus": {
+      "type": "string"
+    }
+  }
+}

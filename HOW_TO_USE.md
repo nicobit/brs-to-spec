@@ -884,3 +884,35 @@ prompts/09-architecture-contracts/
 prompts/10-handoff/
 prompts/11-downstream-adapters/
 ```
+
+# Business-Led Intake with Microsoft 365 Copilot
+
+For business users, use the parallel prompt set:
+
+```text
+prompts/12-business-copilot-intake/
+```
+
+Recommended order:
+
+```text
+01-create-brs-business-summary.md
+02-extract-business-objectives.md
+03-extract-business-requirements-for-review.md
+04-identify-business-gaps-and-questions.md
+05-create-business-delivery-slicing.md
+06-select-next-increment-for-business-review.md
+07-create-business-acceptance-expectations.md
+08-create-business-approval-checklist.md
+```
+
+Outputs should be saved in SharePoint first.
+
+IT/engineering later maps approved outputs into repository artifacts.
+
+Read:
+
+```text
+docs/copilot/how-to-run-business-intake-in-m365-copilot.md
+docs/copilot/how-to-create-m365-copilot-agent.md
+```

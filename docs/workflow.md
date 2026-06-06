@@ -404,3 +404,21 @@ Final handoff or standalone execution
 ```
 
 Do not create detailed stories for the entire multi-quarter BRS unless explicitly required.
+
+# Business Copilot Intake Entry Point
+
+Business users can start the framework using Microsoft 365 Copilot or Copilot Studio.
+
+```text
+Business user
+  ↓
+Microsoft 365 Copilot / Copilot Studio
+  ↓
+prompts/12-business-copilot-intake/
+  ↓
+SharePoint business outputs
+  ↓
+Business review / approval
+  ↓
+IT imports or maps outputs into repository framework artifacts
+```

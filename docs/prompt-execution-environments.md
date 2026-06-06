@@ -435,3 +435,31 @@ Engineering Lead
 QA Lead
 Platform/SRE Lead where relevant
 ```
+
+## Business Copilot Intake prompts
+
+Prompt folder:
+
+```text
+prompts/12-business-copilot-intake/
+```
+
+Recommended environments:
+
+```text
+Microsoft 365 Copilot
+Microsoft 365 Copilot Agent Builder
+Copilot Studio
+Word
+SharePoint
+Teams
+```
+
+Owners:
+
+```text
+Business Product Owner
+Business Analyst
+Business stakeholders
+IT lead / Architect for review when needed
+```

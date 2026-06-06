@@ -5,6 +5,14 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 
 REQUIRED_TOP_LEVEL = [
+    "schemas/business-copilot-intake.schema.json",
+    "templates/business-copilot-intake/business-requirements-table.md",
+    "prompts/12-business-copilot-intake/08-create-business-approval-checklist.md",
+    "prompts/12-business-copilot-intake/01-create-brs-business-summary.md",
+    "docs/copilot/copilot-studio-agent-design.md",
+    "docs/copilot/how-to-create-m365-copilot-agent.md",
+    "docs/copilot/how-to-run-business-intake-in-m365-copilot.md",
+    "docs/business-copilot-intake.md",
     "schemas/next-increment-scope.schema.json",
     "schemas/delivery-slicing.schema.json",
     "templates/planning/increment-handoff.md",
