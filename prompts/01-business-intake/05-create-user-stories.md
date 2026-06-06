@@ -114,3 +114,23 @@ Use it to:
 - include relevant architecture constraints in notes
 
 Do not hide alignment issues inside user stories.
+
+## Large BRS / multi-quarter scope rule
+
+If the feature has a planning folder, especially:
+
+```text
+features/<feature-name>/planning/next-increment-scope.md
+features/<feature-name>/planning/increment-handoff.md
+```
+
+then create detailed user stories only for the selected increment.
+
+Do not create detailed user stories for the entire multi-quarter BRS unless explicitly requested.
+
+Use the planning artifacts to determine:
+- which requirements are included,
+- which features are included,
+- which requirements are deferred,
+- which architecture blockers affect stories,
+- which stories are candidates for the next increment.

@@ -222,3 +222,17 @@ The mandatory alignment position is:
 
 Reason:
 The delivery structure must be informed by both the structured requirements and the architecture alignment findings.
+
+# Relationship with Architecture & Contract Extensions
+
+Architecture alignment findings may trigger optional architecture-contract artifacts.
+
+| Alignment finding | Possible artifact |
+|---|---|
+| Missing architecture decision | ADR |
+| API behavior unclear | API contract / OpenAPI |
+| Business rules unclear | Domain model |
+| Audit event payload unclear | Event contract |
+| Database persistence unclear | Data model |
+| Vague NFR | Quality attribute scenario |
+| Security/authorization gap | Threat model |

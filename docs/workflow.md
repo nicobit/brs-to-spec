@@ -325,3 +325,82 @@ Critical order:
   ↓
 05-create-user-stories.md
 ```
+
+# Optional Architecture & Contract Extensions in the Workflow
+
+```text
+Business intake
+  ↓
+Architecture alignment
+  ↓
+Delivery structure
+  ↓
+User stories
+  ↓
+Technical spec
+  ↓
+Optional Architecture & Contract Extensions
+      ADRs
+      API contract / OpenAPI
+      Domain model / DDD
+      Data model
+      Event contracts
+      Quality attribute scenarios
+      Threat model
+  ↓
+OpenSpec proposal / design / tasks
+  ↓
+Copilot implementation
+```
+
+This track is conditional. Do not make all artifacts mandatory.
+
+# Handoff Boundary in the Workflow
+
+```text
+Enterprise preparation
+  ↓
+spec-driven-handoff.md
+  ↓
+OpenSpec / GitHub Spec Kit / Kiro / Standalone
+```
+
+## Handoff mode
+
+```text
+Business intake → architecture alignment → delivery structure → user stories → technical spec → optional enablement/contracts → handoff package → downstream framework
+```
+
+## Standalone mode
+
+```text
+Business intake → architecture alignment → delivery structure → user stories → technical spec → optional enablement/contracts → OpenSpec-like proposal/design/tasks → Copilot implementation → reviews
+```
+
+# Large Feature / Multi-Quarter Planning Flow
+
+For large BRS-driven initiatives, use this flow:
+
+```text
+Whole BRS
+  ↓
+Requirements extraction
+  ↓
+Architecture alignment
+  ↓
+Delivery structure
+  ↓
+Delivery slicing / roadmap
+  ↓
+Next increment scope
+  ↓
+Increment handoff
+  ↓
+Detailed user stories for selected increment
+  ↓
+Technical spec / contracts / enablement for selected increment
+  ↓
+Final handoff or standalone execution
+```
+
+Do not create detailed stories for the entire multi-quarter BRS unless explicitly required.

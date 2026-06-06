@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SpecDrivenHandoff",
+  "type": "object",
+  "properties": {
+    "featureSummary": {
+      "type": "string"
+    },
+    "recommendedDownstreamMode": {
+      "type": "string",
+      "enum": [
+        "OpenSpec",
+        "GitHub Spec Kit",
+        "Kiro",
+        "Standalone",
+        "gstack",
+        "Other"
+      ]
+    },
+    "blockingIssues": {
+      "type": "array"
+    },
+    "sourceArtifacts": {
+      "type": "array"
+    }
+  }
+}

@@ -245,3 +245,53 @@ Then decide whether technical stories are needed.
 ### Large/risky change
 
 Run the full Enablement Track.
+
+# Architecture & Contract Extensions by Change Size
+
+## Small change
+
+Usually skip architecture-contract artifacts.
+
+Possible exception:
+- A small API change may still need a lightweight API contract update.
+
+## Medium change
+
+Consider:
+- API contract for API changes
+- Data model for database changes
+- ADR for important decisions
+- Event contract for event/message changes
+
+## Large/risky change
+
+Run:
+
+```text
+prompts/09-architecture-contracts/00-decide-architecture-contract-artifacts.md
+```
+
+Then create only the required artifacts.
+
+# Handoff by Change Size
+
+## Small change
+Usually use standalone mode unless the team already uses a downstream framework.
+
+## Medium change
+Create a lightweight handoff package if another team/tool owns implementation.
+
+## Large/risky change
+Create the full handoff package and readiness assessment before downstream execution.
+
+# Large / Multi-Quarter BRS Decision
+
+If the BRS may span more than one quarter, classify it as a large initiative and use:
+
+```text
+prompts/06-planning/01-create-delivery-slicing-and-roadmap.md
+prompts/06-planning/02-select-next-increment-scope.md
+prompts/06-planning/03-create-increment-handoff.md
+```
+
+This planning track should run before detailed user-story generation for implementation.

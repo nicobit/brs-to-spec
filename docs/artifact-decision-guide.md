@@ -156,3 +156,45 @@ enablement/observability-spec.md
 enablement/release-rollback-plan.md
 enablement/operational-readiness.md
 ```
+
+# Architecture & Contract Extension Artifacts
+
+These are optional artifacts used when engineering ambiguity or risk is high.
+
+| Artifact | Use when |
+|---|---|
+| `architecture-contracts/artifact-decision.md` | You need to decide which optional architecture/contract artifacts are required |
+| `architecture-contracts/architecture-decisions.md` | Important architecture decisions exist |
+| `architecture-contracts/adr/ADR-xxx.md` | A formal architecture decision is needed |
+| `architecture-contracts/api-contract.md` | REST API endpoints are added or changed |
+| `architecture-contracts/openapi.yaml` | API contract-first implementation or validation is needed |
+| `architecture-contracts/domain-model.md` | Domain rules/workflows/state transitions are complex |
+| `architecture-contracts/data-model.md` | Database schema or migration changes are needed |
+| `architecture-contracts/event-contracts.md` | Events/messages/audit payloads are added or changed |
+| `architecture-contracts/quality-attribute-scenarios.md` | NFRs need measurable validation |
+| `architecture-contracts/threat-model.md` | Security-sensitive change |
+
+# Handoff Artifacts
+
+| Artifact | Use when |
+|---|---|
+| `handoff/spec-driven-handoff.md` | You want to pass enterprise-ready context to OpenSpec, Spec Kit, Kiro, or standalone execution |
+| `handoff/handoff-readiness.md` | You want to verify whether the feature is ready for downstream engineering |
+| `handoff/spec-kit-input.md` | GitHub Spec Kit will own downstream workflow |
+| `handoff/kiro-spec-input.md` | Kiro will own downstream workflow |
+| `openspec-change/*` | OpenSpec or standalone OpenSpec-like execution is used |
+
+# gstack Handoff Artifacts
+
+| Artifact | Use when |
+|---|---|
+| `handoff/gstack-brief.md` | gstack will be used for execution, review, QA, security, documentation, or shipping |
+| `handoff/gstack-review-plan.md` | You want a role-based review plan for gstack |
+
+# Planning Artifacts
+
+| Artifact | Use when |
+|---|---|
+| `planning/delivery-slicing.md` | Large BRS must be split into MVP, quarters, increments, or releases |
+| `planning/next-increment-scope.md` | You need to select what will be detailed next |
+| `planning/increment-handoff.md` | You need a scope-controlled input for user stories, technical spec, contracts, enablement, and final handoff |

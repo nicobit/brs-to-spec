@@ -639,3 +639,248 @@ Purpose:
 ```text
 Prevent BRS/requirements/architecture mismatches from being lost.
 ```
+
+# Optional Architecture & Contract Extensions
+
+Use this track after user stories / technical spec and before OpenSpec tasks when extra architecture precision is needed.
+
+## Step 1 — Decide which artifacts are needed
+
+Run:
+
+```text
+prompts/09-architecture-contracts/00-decide-architecture-contract-artifacts.md
+```
+
+Output:
+
+```text
+features/<feature-name>/architecture-contracts/artifact-decision.md
+```
+
+## Step 2 — Create only the required artifacts
+
+Possible prompts:
+
+```text
+prompts/09-architecture-contracts/01-create-architecture-decisions.md
+prompts/09-architecture-contracts/02-create-api-contract.md
+prompts/09-architecture-contracts/03-create-openapi-contract.md
+prompts/09-architecture-contracts/04-create-domain-model.md
+prompts/09-architecture-contracts/05-create-data-model.md
+prompts/09-architecture-contracts/06-create-event-contracts.md
+prompts/09-architecture-contracts/07-create-quality-attribute-scenarios.md
+prompts/09-architecture-contracts/08-create-threat-model.md
+```
+
+## Step 3 — Update OpenSpec
+
+Run:
+
+```text
+prompts/09-architecture-contracts/09-update-openspec-from-architecture-contracts.md
+```
+
+This ensures that ADRs, API contracts, OpenAPI, domain model, data model, event contracts, quality scenarios, and threat model findings are reflected in:
+
+```text
+openspec-change/proposal.md
+openspec-change/design.md
+openspec-change/tasks.md
+```
+
+## Important rule
+
+Do not use all artifacts for every change.
+
+Use the smallest set that reduces implementation ambiguity or risk.
+
+# Handoff Mode vs Standalone Mode
+
+After business intake, technical spec, enablement, and optional architecture contracts, choose one mode.
+
+## Mode A — Handoff to OpenSpec / Spec Kit / Kiro
+
+Create the handoff package:
+
+```text
+prompts/10-handoff/01-create-spec-driven-handoff.md
+```
+
+Output:
+
+```text
+features/<feature-name>/handoff/spec-driven-handoff.md
+```
+
+Then assess readiness:
+
+```text
+prompts/10-handoff/02-assess-handoff-readiness.md
+```
+
+Then use one adapter:
+
+```text
+prompts/11-downstream-adapters/openspec/01-create-openspec-from-handoff.md
+prompts/11-downstream-adapters/spec-kit/01-create-speckit-input-from-handoff.md
+prompts/11-downstream-adapters/kiro/01-create-kiro-spec-input-from-handoff.md
+```
+
+After this point, the downstream framework should own engineering execution.
+
+## Mode B — Standalone mode
+
+Use this when no downstream framework is used.
+
+Continue with:
+
+```text
+prompts/03-openspec-handoff/
+prompts/04-copilot-implementation/
+prompts/05-reviewers/
+```
+
+In standalone mode, this repository remains the source of truth for engineering execution.
+
+## Important rule
+
+Do not maintain two competing implementation task plans.
+
+# Using gstack as a Downstream Adapter
+
+After creating:
+
+```text
+features/<feature-name>/handoff/spec-driven-handoff.md
+```
+
+you can create a gstack-specific brief:
+
+```text
+prompts/11-downstream-adapters/gstack/01-create-gstack-brief-from-handoff.md
+```
+
+Output:
+
+```text
+features/<feature-name>/handoff/gstack-brief.md
+```
+
+Then create a role-based review plan:
+
+```text
+prompts/11-downstream-adapters/gstack/02-create-gstack-review-plan.md
+```
+
+Output:
+
+```text
+features/<feature-name>/handoff/gstack-review-plan.md
+```
+
+Recommended usage:
+
+```text
+Use gstack to review/challenge:
+- plan
+- engineering design
+- UX/design
+- QA
+- security
+- release/shipping
+- documentation
+```
+
+Important:
+
+```text
+If gstack becomes the execution layer, do not maintain a second competing task plan.
+If gstack is used only for review, keep OpenSpec / Spec Kit / Kiro / standalone mode as the execution source of truth.
+```
+
+# Large Feature / Multi-Quarter Planning
+
+Use this track when the BRS describes a big feature or initiative that may span more than one quarter.
+
+## Correct principle
+
+```text
+Do not create detailed user stories for the entire large BRS too early.
+```
+
+Instead:
+
+```text
+Decompose the whole BRS.
+Align the whole BRS with architecture.
+Create delivery structure.
+Create delivery slicing / roadmap.
+Select the next increment.
+Create detailed stories only for the selected increment.
+```
+
+## Step 1 — Create delivery slicing and roadmap
+
+Run:
+
+```text
+prompts/06-planning/01-create-delivery-slicing-and-roadmap.md
+```
+
+Output:
+
+```text
+features/<feature-name>/planning/delivery-slicing.md
+```
+
+## Step 2 — Select next increment scope
+
+Run:
+
+```text
+prompts/06-planning/02-select-next-increment-scope.md
+```
+
+Output:
+
+```text
+features/<feature-name>/planning/next-increment-scope.md
+```
+
+## Step 3 — Create increment handoff
+
+Run:
+
+```text
+prompts/06-planning/03-create-increment-handoff.md
+```
+
+Output:
+
+```text
+features/<feature-name>/planning/increment-handoff.md
+```
+
+## Step 4 — Detail only the selected increment
+
+Then run:
+
+```text
+prompts/01-business-intake/05-create-user-stories.md
+prompts/01-business-intake/07-create-business-test-expectations.md
+prompts/02-engineering-contracts/01-create-technical-spec.md
+```
+
+using the increment handoff as scope control.
+
+## Step 5 — Continue with optional tracks
+
+For the selected increment only, use as needed:
+
+```text
+prompts/08-enablement/
+prompts/09-architecture-contracts/
+prompts/10-handoff/
+prompts/11-downstream-adapters/
+```

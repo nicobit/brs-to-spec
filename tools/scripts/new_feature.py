@@ -48,6 +48,10 @@ def main():
     copy_tree(ROOT / "templates" / "openspec-change", feature_dir / "openspec-change")
     copy_tree(ROOT / "templates" / "quality-gates", feature_dir / "quality-gates")
     copy_tree(ROOT / "templates" / "enablement", feature_dir / "enablement")
+    copy_tree(ROOT / "templates" / "architecture-contracts", feature_dir / "architecture-contracts")
+    copy_tree(ROOT / "templates" / "downstream-adapters", feature_dir / "downstream-adapters")
+    copy_tree(ROOT / "templates" / "planning", feature_dir / "planning")
+    copy_tree(ROOT / "templates" / "handoff", feature_dir / "handoff")
     copy_tree(ROOT / "templates" / "reviews", feature_dir / "reviews")
 
     print(f"Created feature package: {feature_dir}")

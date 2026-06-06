@@ -94,3 +94,15 @@ For enablement tasks:
 - Do not store secrets in code or pipeline files.
 - Add validation steps for IaC, pipeline, deployment, monitoring, or rollback as appropriate.
 - Keep enablement changes separate from application code changes when possible.
+
+## Architecture & Contract Extensions
+
+For features with `architecture-contracts/`, align code with API contracts, OpenAPI, domain model, data model, event contracts, threat model mitigations, quality scenarios, and ADRs.
+
+## Handoff Boundary
+
+Some features may use `handoff/spec-driven-handoff.md`.
+
+If a downstream framework is selected, treat the downstream framework artifacts as the engineering source of truth after handoff.
+
+If standalone mode is selected, continue using the repository prompts and generated artifacts as the source of truth.

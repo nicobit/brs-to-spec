@@ -94,3 +94,16 @@ For each relevant finding, either:
 - mark it as an explicit assumption,
 - carry it as an open decision with owner,
 - or exclude it with justification.
+
+## Large BRS / increment scope rule
+
+If these files exist:
+
+```text
+features/<feature-name>/planning/next-increment-scope.md
+features/<feature-name>/planning/increment-handoff.md
+```
+
+then create the technical spec for the selected increment only.
+
+Do not create a technical spec for the entire multi-quarter BRS unless explicitly requested.

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DeliverySlicing",
+  "type": "object",
+  "properties": {
+    "summary": {
+      "type": "string"
+    },
+    "increments": {
+      "type": "array"
+    },
+    "dependencies": {
+      "type": "array"
+    },
+    "risks": {
+      "type": "array"
+    }
+  }
+}

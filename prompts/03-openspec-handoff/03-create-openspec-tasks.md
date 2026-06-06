@@ -115,3 +115,21 @@ Examples:
 - missing infrastructure decision → enablement task
 - unclear authorization boundary → task to implement/validate authorization
 - unsupported integration flow → task or open decision before implementation
+
+## Architecture & Contract Extensions
+
+Create tasks for API/OpenAPI implementation, data migrations, event producer/consumer implementation, domain rules, threat mitigations, and quality scenario validation when architecture-contract files exist.
+
+## Boundary note
+
+This prompt can be used in two ways:
+
+```text
+1. Standalone mode
+   This project remains the source of truth for engineering execution.
+
+2. Adapter mode
+   Use this only to create OpenSpec-native or OpenSpec-like artifacts from the handoff package.
+```
+
+If an external downstream framework is used, avoid maintaining a second competing task plan in this repository.

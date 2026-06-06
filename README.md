@@ -592,3 +592,196 @@ Read:
 ```text
 docs/architecture-alignment-usage.md
 ```
+
+# Optional Architecture & Contract Extensions
+
+The project includes an optional Architecture & Contract Extensions track.
+
+Use it when the feature needs stronger engineering contracts before OpenSpec and Copilot implementation.
+
+New prompt folder:
+
+```text
+prompts/09-architecture-contracts/
+```
+
+New template folder:
+
+```text
+templates/architecture-contracts/
+```
+
+Main optional artifacts:
+
+```text
+architecture-contracts/artifact-decision.md
+architecture-contracts/architecture-decisions.md
+architecture-contracts/adr/ADR-001-<decision>.md
+architecture-contracts/api-contract.md
+architecture-contracts/openapi.yaml
+architecture-contracts/domain-model.md
+architecture-contracts/data-model.md
+architecture-contracts/event-contracts.md
+architecture-contracts/quality-attribute-scenarios.md
+architecture-contracts/threat-model.md
+```
+
+Use the decision prompt first:
+
+```text
+prompts/09-architecture-contracts/00-decide-architecture-contract-artifacts.md
+```
+
+Then run only the needed prompts.
+
+Decision rule:
+
+| Situation | Artifact |
+|---|---|
+| Important technical choice | ADR / architecture decisions |
+| REST API change | API contract / OpenAPI |
+| Complex business rules or workflow | Domain model / DDD |
+| Database changes | Data model |
+| Event-driven integration or audit events | Event contracts |
+| Important NFRs | Quality attribute scenarios |
+| Security-sensitive change | Threat model |
+
+Read:
+
+```text
+docs/architecture-contract-extensions.md
+```
+
+# Handoff Boundary and Standalone Fallback
+
+The framework supports two usage modes:
+
+```text
+Mode A — Handoff mode
+Prepare enterprise-grade inputs, then hand over to OpenSpec, GitHub Spec Kit, Kiro, or another downstream framework.
+
+Mode B — Standalone mode
+Continue using the existing OpenSpec-like, Copilot implementation, review, enablement, and contract prompts when no downstream framework is used.
+```
+
+Recommended stop point for handoff mode:
+
+```text
+features/<feature-name>/handoff/spec-driven-handoff.md
+```
+
+New handoff prompts:
+
+```text
+prompts/10-handoff/01-create-spec-driven-handoff.md
+prompts/10-handoff/02-assess-handoff-readiness.md
+```
+
+New downstream adapter prompts:
+
+```text
+prompts/11-downstream-adapters/openspec/01-create-openspec-from-handoff.md
+prompts/11-downstream-adapters/spec-kit/01-create-speckit-input-from-handoff.md
+prompts/11-downstream-adapters/kiro/01-create-kiro-spec-input-from-handoff.md
+```
+
+Standalone fallback remains available:
+
+```text
+prompts/03-openspec-handoff/
+prompts/04-copilot-implementation/
+prompts/05-reviewers/
+```
+
+Read:
+
+```text
+docs/framework-boundary-and-handoff.md
+docs/downstream-framework-selection.md
+```
+
+# gstack Adapter
+
+The project now includes gstack as an additional downstream adapter.
+
+gstack is treated differently from OpenSpec, GitHub Spec Kit, and Kiro:
+
+```text
+OpenSpec / Spec Kit / Kiro
+  → downstream specification and task frameworks
+
+gstack
+  → role-based execution, review, QA, security, documentation, and shipping support
+```
+
+New files:
+
+```text
+docs/gstack-adapter.md
+
+prompts/11-downstream-adapters/gstack/
+  01-create-gstack-brief-from-handoff.md
+  02-create-gstack-review-plan.md
+
+templates/downstream-adapters/gstack/
+  gstack-brief.md
+  gstack-review-plan.md
+```
+
+Use gstack in two ways:
+
+```text
+Option A — gstack as downstream execution/review layer
+
+Option B — gstack as reviewer around OpenSpec / Spec Kit / Kiro / standalone mode
+```
+
+Read:
+
+```text
+docs/gstack-adapter.md
+```
+
+# Large Feature / Multi-Quarter Planning
+
+The framework now includes a planning track for large BRS-driven initiatives that may span more than one quarter.
+
+Use it when a BRS is too large to turn directly into detailed user stories.
+
+New prompt folder:
+
+```text
+prompts/06-planning/
+```
+
+New templates:
+
+```text
+templates/planning/
+  delivery-slicing.md
+  next-increment-scope.md
+  increment-handoff.md
+```
+
+Recommended large BRS approach:
+
+```text
+Decompose the whole BRS.
+Align the whole BRS with architecture.
+Plan and slice the whole BRS.
+Detail only the next increment.
+```
+
+New prompts:
+
+```text
+prompts/06-planning/01-create-delivery-slicing-and-roadmap.md
+prompts/06-planning/02-select-next-increment-scope.md
+prompts/06-planning/03-create-increment-handoff.md
+```
+
+Read:
+
+```text
+docs/large-feature-planning.md
+```

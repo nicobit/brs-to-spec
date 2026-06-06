@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ArchitectureContractArtifactDecision",
+  "type": "object",
+  "properties": {
+    "summary": {
+      "type": "string"
+    },
+    "artifacts": {
+      "type": "array"
+    }
+  }
+}

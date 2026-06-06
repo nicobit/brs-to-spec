@@ -75,3 +75,21 @@ features/<feature-name>/business-intake/brs-architecture-alignment.md
 ```
 
 Include major constraints, contradictions, risks, and unresolved decisions in the proposal.
+
+## Architecture & Contract Extensions
+
+Include relevant architecture-contract findings: ADRs, API/OpenAPI changes, domain model, data model, event contracts, quality scenarios, and threat model risks.
+
+## Boundary note
+
+This prompt can be used in two ways:
+
+```text
+1. Standalone mode
+   This project remains the source of truth for engineering execution.
+
+2. Adapter mode
+   Use this only to create OpenSpec-native or OpenSpec-like artifacts from the handoff package.
+```
+
+If an external downstream framework is used, avoid maintaining a second competing task plan in this repository.

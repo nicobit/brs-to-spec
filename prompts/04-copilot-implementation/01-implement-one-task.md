@@ -47,3 +47,7 @@ Then:
    - tests added
    - risks
    - remaining open questions
+
+## Architecture & Contract Extensions
+
+Before implementing a task, read relevant files under `features/<feature-name>/architecture-contracts/` such as API contract, OpenAPI, domain model, data model, event contracts, threat model, quality scenarios, and ADRs.

@@ -338,3 +338,100 @@ deployment scripts
 configuration files
 monitoring/alerting setup
 ```
+
+## Architecture & Contract Extension prompts
+
+Prompt folder:
+
+```text
+prompts/09-architecture-contracts/
+```
+
+Recommended tools:
+
+```text
+VS Code Copilot Chat
+Approved engineering LLM with repository context
+```
+
+Owners:
+
+```text
+Architect
+Tech Lead
+Backend Lead
+Frontend Lead
+DB Lead
+Security Expert
+QA
+SRE
+```
+
+## Handoff and downstream adapter prompts
+
+Prompt folders:
+
+```text
+prompts/10-handoff/
+prompts/11-downstream-adapters/
+```
+
+Recommended tools:
+
+```text
+VS Code Copilot Chat
+Approved LLM with repository context
+```
+
+## gstack adapter prompts
+
+Prompt folder:
+
+```text
+prompts/11-downstream-adapters/gstack/
+```
+
+Recommended environment:
+
+```text
+Claude Code / gstack if available
+VS Code Copilot Chat or approved LLM for preparing the brief
+```
+
+Owners:
+
+```text
+Tech Lead
+Architect
+Engineering Lead
+QA Lead
+Security Expert
+Release/Deployment Manager
+```
+
+## Large Feature / Multi-Quarter Planning prompts
+
+Prompt folder:
+
+```text
+prompts/06-planning/
+```
+
+Recommended tools:
+
+```text
+VS Code Copilot Chat
+Approved LLM with access to BRS, architecture, requirements, alignment, and delivery structure
+```
+
+Owners:
+
+```text
+Product Owner
+Business Analyst
+Architect
+Tech Lead
+Engineering Lead
+QA Lead
+Platform/SRE Lead where relevant
+```
