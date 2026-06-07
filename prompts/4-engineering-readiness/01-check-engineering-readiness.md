@@ -49,6 +49,7 @@ A good output must:
 - apply trigger rules strictly
 - mark triggered gates as required
 - include evidence for each decision
+- trigger API, data, and event contracts when governed boundaries exist
 - assign owner and required-before stage for each action
 - return Not ready if critical inputs are missing
 - avoid treating modular-only artifacts as mandatory for non-modular paths
@@ -59,6 +60,7 @@ Do not produce outputs that:
 
 - call quality gates optional
 - mark Ready without evidence
+- mark API, data, or event contracts not needed when a governed boundary is clearly created or changed without explicit justification
 - ignore architecture constraints
 - skip gates because they are inconvenient
 - use generic text such as 'security should be considered'
@@ -74,6 +76,8 @@ Do not produce outputs that:
 Before finalizing, verify:
 
 - [ ] Every triggered gate has trigger evidence.
+- [ ] Governed service/API, data, and event boundaries were assessed explicitly.
+- [ ] Contract gates align with the governed boundary assessment.
 - [ ] Every risk has an owner or accepted-risk decision.
 - [ ] Readiness decision is justified.
 - [ ] Required-before stages are clear.

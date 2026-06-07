@@ -5,8 +5,10 @@
 | Field | Value |
 |---|---|
 | Active deliverable |  |
+| Governed boundary |  |
 | API owner |  |
 | Review date |  |
+| Trigger reason from readiness |  |
 
 ## API Summary
 

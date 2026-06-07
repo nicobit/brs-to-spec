@@ -44,6 +44,7 @@ A good output must:
 
 - respect the initial architecture constraints
 - keep business traceability visible
+- make governed service/API, data, and event boundaries explicit where they exist
 - mark conflicts instead of resolving them silently
 - assign owners for gaps and decisions
 - avoid creating low-level implementation tasks
@@ -55,6 +56,7 @@ Do not produce outputs that:
 - invent architecture not present in the inputs
 - slice work only by technical layer
 - create tasks for all future deliverables
+- hide governed boundary changes inside generic capability names
 - ignore architecture conflicts
 - produce a table without evidence or owner
 
@@ -70,6 +72,7 @@ Before finalizing, verify:
 
 - [ ] Architecture constraints are referenced.
 - [ ] Business requirements remain traceable.
+- [ ] Governed service/API, data, and event boundaries are visible where relevant.
 - [ ] Open decisions include owners.
 - [ ] Risks and gaps are visible.
 - [ ] The output supports the next workflow step.

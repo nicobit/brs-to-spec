@@ -5,8 +5,10 @@
 | Field | Value |
 |---|---|
 | Active deliverable |  |
+| Governed boundary |  |
 | Data owner |  |
 | Review date |  |
+| Trigger reason from readiness |  |
 
 ## Data Entities
 

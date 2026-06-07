@@ -180,6 +180,12 @@ These gate artifacts are pre-implementation or pre-release governance artifacts.
 
 They are not the same as downstream implementation review prompts.
 
+If the initiative creates or changes a governed boundary, the corresponding contract gate should normally be triggered:
+
+- governed service or API boundary -> `API contract`
+- governed data ownership or schema boundary -> `Data contract`
+- governed asynchronous event boundary -> `Event contract`
+
 ## Step 7A - OpenSpec handoff
 
 Run:

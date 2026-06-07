@@ -33,11 +33,27 @@
 | Initial architecture reviewed |  |  |  |  |  | Handoff |
 | Architecture constraints applied |  |  |  |  |  | Implementation |
 | Architecture conflicts resolved or accepted |  |  |  |  |  | Implementation |
+| Governed service / API boundaries identified |  |  |  |  |  | Handoff |
+| Governed data boundaries identified |  |  |  |  |  | Handoff |
+| Governed event boundaries identified |  |  |  |  |  | Handoff |
 | Impacted modules known |  |  |  |  |  | Implementation |
 | Acceptance expectations clear |  |  |  |  |  | Implementation |
 | Validation approach clear |  |  |  |  |  | Implementation |
 | Dependencies known |  |  |  |  |  | Implementation |
 | Open questions assigned |  |  |  |  |  | Handoff |
+
+## Governed Boundary Assessment
+
+| Boundary ID | Boundary type | Producer / Owner | Consumer(s) | Created / Changed? | External or cross-team? | Governed contract needed? | Expected gate |
+|---|---|---|---|---|---|---|---|
+
+Use this section to make contract boundaries explicit.
+
+Typical expectation:
+
+- governed service / API boundary -> `API contract`
+- governed data ownership or schema boundary -> `Data contract`
+- governed asynchronous event boundary -> `Event contract`
 
 ## Conditional Quality Gates
 
@@ -54,6 +70,8 @@
 | Event contract |  |  |  |  | Engineering | Implementation | `quality-gates/event-contract.md` |
 | Threat model |  |  |  |  | Security/Architect | Implementation | `quality-gates/threat-model.md` |
 | Observability plan |  |  |  |  | SRE/Engineering | Release | `quality-gates/observability-plan.md` |
+
+When a governed boundary exists in the section above, the matching contract gate should normally be triggered unless an explicit justification says otherwise.
 
 ## Blocking Issues
 

@@ -68,6 +68,12 @@ one or more BRS inputs + optional architecture inputs
 
 The framework is designed so generated artifacts are evidence-based, traceable, decision-oriented, and ready for structured review.
 
+An important governance rule is that governed boundaries must be made explicit:
+
+- governed service or API boundary -> usually trigger `API contract`
+- governed data ownership or schema boundary -> usually trigger `Data contract`
+- governed asynchronous event boundary -> usually trigger `Event contract`
+
 Prompts consistently define:
 
 ```text
