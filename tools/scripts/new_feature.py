@@ -1,60 +1,42 @@
-#!/usr/bin/env python3
 from pathlib import Path
-import shutil
-import sys
+import argparse
 
-ROOT = Path(__file__).resolve().parents[2]
-
-def copy_tree(src: Path, dst: Path):
-    dst.mkdir(parents=True, exist_ok=True)
-    for item in src.iterdir():
-        target = dst / item.name
-        if item.is_dir():
-            copy_tree(item, target)
-        else:
-            text = item.read_text(encoding="utf-8")
-            text = text.replace("<feature name>", dst.parents[0].name if dst.name != "openspec-change" else dst.parent.name)
-            target.write_text(text, encoding="utf-8")
+def write_if_missing(path: Path, content: str):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if not path.exists():
+        path.write_text(content.strip() + "\n", encoding="utf-8")
 
 def main():
-    if len(sys.argv) != 2:
-        print("Usage: python tools/scripts/new_feature.py <feature-name>")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description="Create a new BRS-to-OpenSpec workspace.")
+    parser.add_argument("name", help="Initiative or feature name")
+    parser.add_argument("--mode", choices=["standard", "enterprise", "enterprise-modular"], default="standard")
+    args = parser.parse_args()
 
-    feature = sys.argv[1].strip()
-    if not feature:
-        print("Feature name is required")
-        sys.exit(1)
+    root = Path(args.name)
 
-    feature_dir = ROOT / "features" / feature
-    if feature_dir.exists():
-        print(f"Feature already exists: {feature_dir}")
-        sys.exit(1)
+    write_if_missing(root / "input" / "brs.md", "# BRS\n")
+    write_if_missing(root / "input" / "initial-architecture.md", "# Initial Architecture\n\nNo initial architecture document provided.\n")
+    write_if_missing(root / "input" / "input-package.md", "# Input Package\n")
+    write_if_missing(root / "routing" / "delivery-mode-decision.md", "# Delivery Mode Decision\n")
+    write_if_missing(root / "business-intake" / "business-intake-summary.md", "# Business Intake Summary\n")
 
-    (feature_dir / "input").mkdir(parents=True)
-    brs_template = ROOT / "templates" / "input" / "brs-original.md"
-    if brs_template.exists():
-        (feature_dir / "input" / "brs-original.md").write_text(brs_template.read_text(encoding="utf-8"), encoding="utf-8")
-    else:
-        (feature_dir / "input" / "brs-original.md").write_text("# Original BRS\n\nPaste converted Word BRS here.\n", encoding="utf-8")
-    arch_template = ROOT / "templates" / "input" / "architecture-draft.md"
-    if arch_template.exists():
-        (feature_dir / "input" / "architecture-draft.md").write_text(arch_template.read_text(encoding="utf-8"), encoding="utf-8")
-    else:
-        (feature_dir / "input" / "architecture-draft.md").write_text("# Architecture Draft\n\nPaste draft architecture here.\n", encoding="utf-8")
+    if args.mode in ["enterprise", "enterprise-modular"]:
+        write_if_missing(root / "planning" / "delivery-structure.md", "# Delivery Structure\n")
+        write_if_missing(root / "architecture" / "initial-architecture-review.md", "# Initial Architecture Review\n")
+        write_if_missing(root / "architecture" / "global-architecture-rules.md", "# Global Architecture Rules\n")
+        write_if_missing(root / "engineering-readiness" / "readiness-check.md", "# Engineering Readiness Check\n")
 
-    copy_tree(ROOT / "templates" / "business-intake", feature_dir / "business-intake")
-    copy_tree(ROOT / "templates" / "engineering-contracts", feature_dir / "engineering-contracts")
-    copy_tree(ROOT / "templates" / "openspec-change", feature_dir / "openspec-change")
-    copy_tree(ROOT / "templates" / "quality-gates", feature_dir / "quality-gates")
-    copy_tree(ROOT / "templates" / "enablement", feature_dir / "enablement")
-    copy_tree(ROOT / "templates" / "architecture-contracts", feature_dir / "architecture-contracts")
-    copy_tree(ROOT / "templates" / "downstream-adapters", feature_dir / "downstream-adapters")
-    copy_tree(ROOT / "templates" / "planning", feature_dir / "planning")
-    copy_tree(ROOT / "templates" / "handoff", feature_dir / "handoff")
-    copy_tree(ROOT / "templates" / "reviews", feature_dir / "reviews")
+    if args.mode == "enterprise-modular":
+        write_if_missing(root / "modules" / "software-modules.md", "# Software Modules\n")
+        write_if_missing(root / "planning" / "capability-module-map.md", "# Capability to Module Map\n")
+        write_if_missing(root / "planning" / "delivery-increments.md", "# Delivery Increments\n")
+        write_if_missing(root / "planning" / "traceability-matrix.md", "# Traceability Matrix\n")
 
-    print(f"Created feature package: {feature_dir}")
+    write_if_missing(root / "openspec" / "changes" / "D1-active-deliverable" / "proposal.md", "# Proposal\n")
+    write_if_missing(root / "openspec" / "changes" / "D1-active-deliverable" / "design.md", "# Design\n")
+    write_if_missing(root / "openspec" / "changes" / "D1-active-deliverable" / "tasks.md", "# Tasks\n")
+
+    print(f"Created workspace: {root}")
 
 if __name__ == "__main__":
     main()

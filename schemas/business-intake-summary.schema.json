@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BusinessIntakeSummary",
+  "type": "object",
+  "properties": {
+    "objectives": {
+      "type": "array"
+    },
+    "requirements": {
+      "type": "array"
+    },
+    "capabilities": {
+      "type": "array"
+    },
+    "gapsAndQuestions": {
+      "type": "array"
+    }
+  }
+}

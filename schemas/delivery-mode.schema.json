@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DeliveryModeDecision",
+  "type": "object",
+  "properties": {
+    "recommendedMode": {
+      "enum": [
+        "Fast Path",
+        "Standard Path",
+        "Enterprise Path",
+        "Enterprise + Modular Delivery"
+      ]
+    },
+    "rationale": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "recommendedMode",
+    "rationale"
+  ]
+}
