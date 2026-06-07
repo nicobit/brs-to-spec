@@ -1,38 +1,100 @@
 # Prompt — Map Capabilities to Modules
 
+## Role
+
+You are a business/solution architect mapping capabilities to modules.
+
+## Context
+
+This prompt is part of architecture-aware planning. It must not create implementation tasks for the whole BRS.
+
 ## Purpose
 
-Create traceability from requirements and business capabilities to software modules.
+Map requirements and capabilities to modules and constraints.
 
 ## Inputs
 
-Use:
+Use these inputs when available:
+
+- `input/brs.md`
+- `input/initial-architecture.md`
 - `business-intake/business-intake-summary.md`
-- `planning/delivery-structure.md`
-- `modules/software-modules.md`
+- `architecture/initial-architecture-review.md`
 - `architecture/global-architecture-rules.md`
 
-## Output file
+## Output path
 
 ```text
 planning/capability-module-map.md
 ```
 
-## Output structure
+## Required output structure
 
 ```markdown
-# Capability to Module Map
+# Artifact
 
-| Requirement ID | Capability | Primary module | Supporting modules | Architecture constraints | Notes |
-|---|---|---|---|---|---|
+## Summary
 
-## Cross-Module Concerns
+## Key Decisions
 
-## Traceability Risks
+| Decision ID | Decision | Evidence | Risk | Owner |
+|---|---|---|---|---|
+
+## Main Table
+
+| ID | Item | Source | Impact | Evidence | Risk / Gap | Owner |
+|---|---|---|---|---|---|---|
+
+## Architecture Constraints Applied
+
+| Constraint ID | Constraint | Applied how? | Evidence | Gap |
+|---|---|---|---|---|
+
+## Traceability
+
+| Requirement ID | Capability | Module / Component | Deliverable | Validation |
+|---|---|---|---|---|
+
+## Conflicts / Open Decisions
+
+| ID | Conflict / Decision | Impact | Owner | Required before |
+|---|---|---|---|---|
+
+## Recommendations
 ```
 
-## Rules
+## Quality bar
 
-- Do not lose business traceability.
-- Every high-priority requirement must map to at least one module.
-- Every module must map to business value, architecture need, or platform need.
+A good output must:
+
+- respect the initial architecture constraints
+- keep business traceability visible
+- mark conflicts instead of resolving them silently
+- assign owners for gaps and decisions
+- avoid creating low-level implementation tasks
+
+## Anti-patterns to avoid
+
+Do not produce outputs that:
+
+- invent architecture not present in the inputs
+- slice work only by technical layer
+- create tasks for all future deliverables
+- ignore architecture conflicts
+- produce a table without evidence or owner
+
+## Stop conditions
+
+- If required inputs are missing, do not invent content.
+- List missing inputs and explain the impact.
+- Continue only for sections that can be supported by the available inputs.
+
+## Self-review checklist
+
+Before finalizing, verify:
+
+- [ ] Architecture constraints are referenced.
+- [ ] Business requirements remain traceable.
+- [ ] Open decisions include owners.
+- [ ] Risks and gaps are visible.
+- [ ] The output supports the next workflow step.

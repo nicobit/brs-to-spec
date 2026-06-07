@@ -2,7 +2,13 @@
 
 ## Step 0 — Prepare inputs
 
-If your source documents are Word, SharePoint exports, Confluence pages, or unstructured text, first normalize them.
+Create normalized inputs:
+
+```text
+input/brs.md
+input/initial-architecture.md
+input/input-package.md
+```
 
 Run:
 
@@ -12,135 +18,105 @@ prompts/0-input-preparation/02-convert-architecture-word-to-markdown.md
 prompts/0-input-preparation/03-normalize-input-package.md
 ```
 
+## Step 1 — Select delivery and execution mode
+
+Run:
+
+```text
+prompts/1-routing/01-select-delivery-and-execution-mode.md
+```
+
+Output:
+
+```text
+routing/delivery-and-execution-mode-decision.md
+```
+
+## Step 2 — Create business intake summary
+
+Run:
+
+```text
+prompts/2-business-intake/01-create-business-intake-summary.md
+```
+
+Output:
+
+```text
+business-intake/business-intake-summary.md
+```
+
+This is the main Product Owner review artifact.
+
+## Step 3 — Review initial architecture
+
+Run:
+
+```text
+prompts/3-planning-and-modular-delivery/02-review-initial-architecture.md
+prompts/3-planning-and-modular-delivery/03-create-global-architecture-rules.md
+```
+
 Outputs:
 
 ```text
-input/brs.md
-input/initial-architecture.md
-input/input-package.md
-```
-
-If no architecture document exists, create `input/initial-architecture.md` and mark it as:
-
-```text
-No initial architecture document provided.
-```
-
-## Step 1 — Select delivery mode
-
-Run:
-
-```text
-prompts/1-routing/01-select-delivery-mode.md
-```
-
-The output recommends:
-
-```text
-Fast Path
-Standard Path
-Enterprise Path
-Enterprise + Modular Delivery
-```
-
-## Fast Path
-
-Use when the change is already clear and engineering-ready.
-
-```text
-request
-  ↓
-OpenSpec directly
-```
-
-Skip the rest of the framework.
-
-## Standard Path
-
-Use when the change needs light business clarification.
-
-Run:
-
-```text
-0-input-preparation if needed
-2-business-intake/01-create-business-intake-summary.md
-5-handoff-to-openspec/01-create-openspec-change-for-active-deliverable.md
-```
-
-## Enterprise Path
-
-Use when there is a formal BRS, business approval, or architecture impact.
-
-Run:
-
-```text
-0-input-preparation/*
-1-routing/01-select-delivery-mode.md
-2-business-intake/01-create-business-intake-summary.md
-3-planning-and-modular-delivery/01-create-delivery-structure.md
-3-planning-and-modular-delivery/02-review-initial-architecture.md
-3-planning-and-modular-delivery/03-create-global-architecture-rules.md
-4-engineering-readiness/01-check-engineering-readiness.md
-5-handoff-to-openspec/01-create-openspec-change-for-active-deliverable.md
-```
-
-## Enterprise + Modular Delivery
-
-Use only when needed:
-- 12-15+ person-months,
-- multi-quarter delivery,
-- multiple systems or teams,
-- high AI context saturation risk,
-- complex architecture impact.
-
-Run:
-
-```text
-0-input-preparation/*
-1-routing/01-select-delivery-mode.md
-2-business-intake/01-create-business-intake-summary.md
-3-planning-and-modular-delivery/01-create-delivery-structure.md
-3-planning-and-modular-delivery/02-review-initial-architecture.md
-3-planning-and-modular-delivery/03-create-global-architecture-rules.md
-3-planning-and-modular-delivery/04-identify-software-modules.md
-3-planning-and-modular-delivery/05-map-capabilities-to-modules.md
-3-planning-and-modular-delivery/06-define-delivery-increments.md
-3-planning-and-modular-delivery/07-create-traceability-matrix.md
-4-engineering-readiness/01-check-engineering-readiness.md
-5-handoff-to-openspec/01-create-openspec-change-for-active-deliverable.md
-```
-
-## Product Owner experience
-
-The Product Owner should primarily review:
-
-```text
-business-intake/business-intake-summary.md
-```
-
-The PO should not manage:
-- module technical specs,
-- API contracts,
-- implementation tasks,
-- OpenSpec tasks,
-- low-level test automation.
-
-## Engineering experience
-
-Engineering should receive a compact package:
-
-```text
-input/brs.md
-input/initial-architecture.md
-business-intake/business-intake-summary.md
 architecture/initial-architecture-review.md
 architecture/global-architecture-rules.md
-planning/delivery-increments.md
-planning/traceability-matrix.md
+```
+
+## Step 4 — Plan delivery
+
+For Enterprise Path, run:
+
+```text
+prompts/3-planning-and-modular-delivery/01-create-delivery-structure.md
+prompts/3-planning-and-modular-delivery/07-create-traceability-matrix.md
+```
+
+For Enterprise + Modular Delivery, also run:
+
+```text
+prompts/3-planning-and-modular-delivery/04-identify-software-modules.md
+prompts/3-planning-and-modular-delivery/05-map-capabilities-to-modules.md
+prompts/3-planning-and-modular-delivery/06-define-delivery-increments.md
+```
+
+## Step 5 — Check engineering readiness
+
+Run:
+
+```text
+prompts/4-engineering-readiness/01-check-engineering-readiness.md
+```
+
+Output:
+
+```text
 engineering-readiness/readiness-check.md
 ```
 
-Then engineering creates or reviews:
+The readiness check decides whether the active deliverable is ready and which quality gates are triggered.
+
+## Step 6 — Run required Conditional Quality Gates
+
+Run only gates where:
+
+```text
+Triggered = Yes
+Required = Yes
+```
+
+Quality gates are not optional. They are conditional.
+
+## Step 7A — OpenSpec handoff
+
+Run:
+
+```text
+prompts/5-handoff/01-create-openspec-change-for-active-deliverable.md
+```
+
+Output:
 
 ```text
 openspec/changes/D1-<deliverable-name>/
@@ -149,27 +125,77 @@ openspec/changes/D1-<deliverable-name>/
   tasks.md
 ```
 
-## Important rules
+## Step 7B — Standalone handoff
 
-- Do not generate tasks for all deliverables at once.
-- Do not create a second task system outside OpenSpec.
-- Do not ignore the initial architecture document.
-- Do not use Modular Delivery for small changes.
-- Use advanced governance only when the readiness check requires it.
-
-## Optional advanced reviews
-
-After `engineering-readiness/readiness-check.md`, run advanced review prompts only if needed.
-
-Examples:
+Run:
 
 ```text
-prompts/4-engineering-readiness/advanced/create-bdd-scenarios.md
-prompts/4-engineering-readiness/advanced/create-test-strategy.md
-prompts/4-engineering-readiness/advanced/create-qa-review.md
-prompts/4-engineering-readiness/advanced/create-architecture-review.md
-prompts/4-engineering-readiness/advanced/create-security-review.md
-prompts/4-engineering-readiness/advanced/create-release-readiness-review.md
+prompts/5-handoff/02-create-standalone-delivery-package.md
 ```
 
-Do not run all of them by default.
+Output:
+
+```text
+standalone-delivery/D1-<deliverable-name>/
+  delivery-spec.md
+  implementation-plan.md
+  tasks.md
+  validation-plan.md
+  review-checklist.md
+```
+
+## Step 8 — Review template quality
+
+For every generated artifact, check:
+
+```text
+Decision clear?
+Evidence included?
+Risk stated?
+Owner assigned?
+Required-before stage clear?
+Traceability preserved?
+```
+
+If an artifact does not answer these questions, regenerate it using the same prompt and the template as a stricter quality bar.
+
+## Important rules
+
+Do not generate tasks for the whole BRS.
+
+Do not skip architecture constraints.
+
+Do not call triggered quality gates optional.
+
+Do not force Product Owners to review low-level engineering details.
+
+Do not use standalone mode as a lower-quality version of OpenSpec.
+
+
+## Step 9 — Create GitLab Planning View
+
+Use this only when the delivery team plans and tracks work in GitLab, Jira, Azure DevOps or a similar planning tool.
+
+Run after delivery increments and preferably after readiness check:
+
+```text
+prompts/7-perspectives/agile-planning/01-create-gitlab-planning-view.md
+```
+
+Output:
+
+```text
+perspectives/agile-planning/gitlab-planning-view.md
+```
+
+This file is a **planning projection**, not the source of truth.
+
+Do not edit the planning view to change scope, requirements, architecture constraints, quality gates or implementation tasks.
+
+If something changes, update the source artifacts and regenerate the view.
+
+To refresh the view after readiness or quality gates change, run:
+
+```text
+prompts/7-perspectives/agile-planning/02-refresh-gitlab-planning-view.md
+```

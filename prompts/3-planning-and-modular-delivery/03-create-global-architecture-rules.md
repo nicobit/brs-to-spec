@@ -1,47 +1,100 @@
 # Prompt — Create Global Architecture Rules
 
+## Role
+
+You are a solution architect converting architecture constraints into delivery rules.
+
+## Context
+
+This prompt is part of architecture-aware planning. It must not create implementation tasks for the whole BRS.
+
 ## Purpose
 
-Create global architecture rules that every module and deliverable must respect.
+Create architecture rules that all modules and deliverables inherit.
 
 ## Inputs
 
-Use:
-- `input/initial-architecture.md`
-- `architecture/initial-architecture-review.md`
-- `business-intake/business-intake-summary.md`
-- `planning/delivery-structure.md`
+Use these inputs when available:
 
-## Output file
+- `input/brs.md`
+- `input/initial-architecture.md`
+- `business-intake/business-intake-summary.md`
+- `architecture/initial-architecture-review.md`
+- `architecture/global-architecture-rules.md`
+
+## Output path
 
 ```text
 architecture/global-architecture-rules.md
 ```
 
-## Output structure
+## Required output structure
 
 ```markdown
-# Global Architecture Rules
+# Artifact
 
-## 1. System Context
-## 2. Architectural Principles
-## 3. Technology Stack
-## 4. Module Boundary Rules
-## 5. API Rules
-## 6. Data Ownership Rules
-## 7. Authentication and Authorization Rules
-## 8. Audit and Compliance Rules
-## 9. Error Handling Rules
-## 10. Observability Rules
-## 11. Security Rules
-## 12. Performance and Resilience Rules
-## 13. Deployment and Environment Rules
-## 14. Decisions and Open Questions
+## Summary
+
+## Key Decisions
+
+| Decision ID | Decision | Evidence | Risk | Owner |
+|---|---|---|---|---|
+
+## Main Table
+
+| ID | Item | Source | Impact | Evidence | Risk / Gap | Owner |
+|---|---|---|---|---|---|---|
+
+## Architecture Constraints Applied
+
+| Constraint ID | Constraint | Applied how? | Evidence | Gap |
+|---|---|---|---|---|
+
+## Traceability
+
+| Requirement ID | Capability | Module / Component | Deliverable | Validation |
+|---|---|---|---|---|
+
+## Conflicts / Open Decisions
+
+| ID | Conflict / Decision | Impact | Owner | Required before |
+|---|---|---|---|---|
+
+## Recommendations
 ```
 
-## Rules
+## Quality bar
 
-- Derive rules from the initial architecture review when available.
-- Do not invent architecture that conflicts with `input/initial-architecture.md`.
-- Keep this document stable.
-- Mark unresolved decisions clearly.
+A good output must:
+
+- respect the initial architecture constraints
+- keep business traceability visible
+- mark conflicts instead of resolving them silently
+- assign owners for gaps and decisions
+- avoid creating low-level implementation tasks
+
+## Anti-patterns to avoid
+
+Do not produce outputs that:
+
+- invent architecture not present in the inputs
+- slice work only by technical layer
+- create tasks for all future deliverables
+- ignore architecture conflicts
+- produce a table without evidence or owner
+
+## Stop conditions
+
+- If required inputs are missing, do not invent content.
+- List missing inputs and explain the impact.
+- Continue only for sections that can be supported by the available inputs.
+
+## Self-review checklist
+
+Before finalizing, verify:
+
+- [ ] Architecture constraints are referenced.
+- [ ] Business requirements remain traceable.
+- [ ] Open decisions include owners.
+- [ ] Risks and gaps are visible.
+- [ ] The output supports the next workflow step.

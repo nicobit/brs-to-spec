@@ -1,20 +1,20 @@
-# Advanced Prompt — Create Module Technical Spec
+# Prompt — Create Module Technical Spec
 
 ## Purpose
 
-Create a technical specification for one selected software module.
+Create a technical specification for one selected module only.
 
-Use this only when the engineering readiness check says it is needed.
+## Official Inputs
 
-## Inputs
+Use normalized artifacts when available:
 
-Use:
-- `architecture/initial-architecture-review.md`
-- `architecture/global-architecture-rules.md`
-- `modules/software-modules.md`
-- selected module.
+```text
+input/brs.md
+input/initial-architecture.md
+input/input-package.md
+```
 
-## Output file
+## Output
 
 ```text
 specs/modules/<module-name>/technical_spec.md
@@ -22,6 +22,6 @@ specs/modules/<module-name>/technical_spec.md
 
 ## Rules
 
-- Create the spec for one module only.
-- Do not create implementation tasks here.
-- Respect all architecture constraints.
+- Use only when required.
+- Respect global architecture rules.
+- Do not create implementation tasks.

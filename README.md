@@ -1,79 +1,93 @@
-# Enterprise BRS to OpenSpec Readiness Framework
+# Enterprise BRS to Delivery Readiness Framework
 
-**Purpose:** transform a raw enterprise BRS and an optional initial architecture document into **business-approved, architecture-aligned, OpenSpec-ready delivery increments**.
+This framework transforms a raw **Business Requirements Specification (BRS)** and an optional **initial architecture document** into business-approved, architecture-aligned, delivery-ready increments.
 
-This framework is intentionally **not** a replacement for OpenSpec.
+OpenSpec is the default engineering downstream, but it is not mandatory. The framework also supports standalone execution and Microsoft 365 Copilot / Copilot Studio business intake.
 
-Use OpenSpec directly for clear engineering changes. Use this framework when the input is still business-heavy, ambiguous, multi-stakeholder, architecture-sensitive, or too large for a single AI coding context.
+## Why this framework exists
 
-## What this framework does
+Do not ask an AI coding agent to implement directly from a large Word BRS.
+
+A real enterprise BRS usually contains ambiguity, implicit assumptions, architecture constraints, regulatory expectations, dependencies, and hidden delivery risks. This framework creates a controlled path from business intent to delivery-ready work.
+
+## What this framework is
+
+It is an adaptive front door for enterprise delivery.
 
 ```text
-Word / SharePoint / Confluence BRS
-+
-Initial Architecture Document
-  ↓
-0. Input Preparation
-  ↓
-1. Routing
-  ↓
-2. Business Intake
-  ↓
-3. Planning and Modular Delivery
-  ↓
-4. Engineering Readiness
-  ↓
-5. Handoff to OpenSpec
+BRS + initial architecture
+  -> normalized inputs
+  -> business intake summary
+  -> architecture-aware planning
+  -> traceability
+  -> engineering readiness
+  -> conditional quality gates
+  -> planning projection when needed
+  -> OpenSpec change or standalone delivery package
 ```
 
-## What this framework does not do
+The framework is designed so generated artifacts are evidence-based, traceable, decision-oriented, and ready for structured review.
 
-This framework does not:
-- replace OpenSpec,
-- replace engineering judgment,
-- require dozens of artifacts for every change,
-- generate tasks for the whole BRS at once,
-- let AI invent architecture that conflicts with the initial architecture document.
+Prompts consistently define:
+
+```text
+role
+context
+purpose
+inputs
+output path
+required structure
+quality bar
+anti-patterns
+stop conditions
+self-review checklist
+```
+
+Templates and review artifacts consistently capture:
+
+```text
+evidence
+risk
+owner
+required-before stage
+decision status
+traceability
+review outcome
+acceptance and exit criteria
+```
+
+## What this framework is not
+
+It is not:
+
+- a replacement for OpenSpec
+- a coding-agent framework
+- a replacement for Product Owners, architects, QA, security, or SRE
+- a mandatory process for every small change
+- a way to generate implementation directly from a raw BRS
 
 ## Core principle
 
-Use the smallest path that gives enough control.
+Use the smallest workflow that gives enough control.
 
-```text
-Fast Path
-  → OpenSpec directly
+## Delivery modes
 
-Standard Path
-  → input preparation + business intake summary + OpenSpec
+| Delivery mode | Use when | Typical output |
+|---|---|---|
+| Fast Path | The change is already clear and engineering-ready | OpenSpec directly or small standalone package |
+| Standard Path | Some clarification is needed | Business intake + readiness + handoff |
+| Enterprise Path | Formal BRS, architecture impact, compliance, multiple stakeholders | Intake + architecture + traceability + gates |
+| Enterprise + Modular Delivery | Large/multi-team/multi-quarter work or AI context saturation risk | Modules + increments + active-deliverable handoff |
 
-Enterprise Path
-  → BRS + initial architecture + readiness + OpenSpec
+## Execution modes
 
-Enterprise + Modular Delivery
-  → modules + vertical deliverables + OpenSpec change for active deliverable
-```
+| Execution mode | Use when | Output |
+|---|---|---|
+| OpenSpec | OpenSpec is available and should be the engineering source of truth | `openspec/changes/D1-<name>/` |
+| Standalone | OpenSpec is not used | `standalone-delivery/D1-<name>/` |
+| Business Copilot | Business users work in Microsoft 365 / SharePoint / Word / Teams | SharePoint/Word review outputs |
 
-## Final project structure
-
-```text
-docs/
-prompts/
-  0-input-preparation/
-  1-routing/
-  2-business-intake/
-  3-planning-and-modular-delivery/
-  4-engineering-readiness/
-  5-handoff-to-openspec/
-  6-business-copilot/
-templates/
-examples/
-schemas/
-tools/scripts/
-```
-
-## Official input artifacts
-
-The framework normalizes source documents into:
+## Official normalized inputs
 
 ```text
 input/brs.md
@@ -81,90 +95,75 @@ input/initial-architecture.md
 input/input-package.md
 ```
 
-All downstream prompts should use these normalized inputs.
+## Conditional quality gates
 
-## Architecture-aware rule
+Quality gates are not optional.
 
-If the initial architecture document defines a constraint, do not override it unless explicitly marked as a conflict or open decision.
+They are not always required, but when triggered by the readiness check, they become mandatory before the relevant implementation, merge, or release step.
 
-This rule applies to:
-- global architecture rules,
-- software modules,
-- delivery increments,
-- engineering readiness,
-- OpenSpec proposal/design/tasks.
+## Planning view
 
-## Main workflow
+The framework can generate an Agile / GitLab planning view as a read-only projection.
+
+It does not create a second source of truth. The source of truth remains:
 
 ```text
-0. Prepare inputs
-1. Select delivery mode
-2. Create business intake summary
-3. Review initial architecture
-4. Create delivery structure
-5. Create global architecture rules
-6. Use modular delivery only if needed
-7. Create traceability matrix
-8. Check engineering readiness
-9. Create OpenSpec change for the active deliverable
+business-intake/business-intake-summary.md
+planning/delivery-increments.md
+planning/traceability-matrix.md
+engineering-readiness/readiness-check.md
+quality-gates/*.md
+openspec/changes/... or standalone-delivery/...
 ```
 
-## Default downstream
-
-The default downstream execution layer is:
+The planning view maps those artifacts into the language used by delivery teams:
 
 ```text
-OpenSpec
+Epic
+Feature / Issue
+User Story
+Task / Checklist
+Milestone
+Labels
 ```
 
-The final engineering output should normally be:
+Generated output:
 
 ```text
-openspec/changes/D1-<deliverable-name>/
-  proposal.md
-  design.md
-  tasks.md
+perspectives/agile-planning/gitlab-planning-view.md
 ```
 
-## Business Copilot
+If scope, requirements, architecture constraints, quality gates, or implementation tasks change, update the source artifacts first and regenerate the planning view.
 
-Business users can run the early intake in:
-- Microsoft 365 Copilot,
-- Word,
-- SharePoint,
-- Teams,
-- Copilot Studio.
+## Template quality rule
 
-Use:
+Every important review artifact should answer:
 
 ```text
-prompts/6-business-copilot/
-docs/04-business-copilot/
+What decision was made?
+What evidence supports it?
+What risk remains?
+Who owns the action?
+By when / before which stage is it required?
+Which requirement or architecture constraint is affected?
 ```
 
-## Recommended sentence
+## Recommended use
 
-Use OpenSpec directly for clear engineering changes.  
-Use this framework when a raw BRS and initial architecture document must be transformed into business-approved, architecture-aligned, OpenSpec-ready delivery increments.
+For OpenSpec mode:
 
-## Advanced optional governance pack
-
-The simplified framework keeps the main path small, but includes optional enterprise review prompts when needed:
-
-```text
-BDD scenarios
-test strategy
-QA review
-architecture review
-security review
-release readiness review
+```bash
+python tools/scripts/new_feature.py my-project --mode enterprise --execution-mode openspec
 ```
 
-These are under:
+For standalone mode:
 
-```text
-prompts/4-engineering-readiness/advanced/
-templates/advanced-governance/
+```bash
+python tools/scripts/new_feature.py my-project --mode enterprise --execution-mode standalone
 ```
 
-They are not part of the default workflow. Use them only when `engineering-readiness/readiness-check.md` requires them.
+For large initiatives:
+
+```bash
+python tools/scripts/new_feature.py my-project --mode enterprise-modular --execution-mode openspec
+```

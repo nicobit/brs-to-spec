@@ -1,52 +1,100 @@
 # Prompt — Create Delivery Structure
 
+## Role
+
+You are a delivery architect structuring business scope into deliverable units.
+
+## Context
+
+This prompt is part of architecture-aware planning. It must not create implementation tasks for the whole BRS.
+
 ## Purpose
 
-Create a delivery structure that preserves the business view and prepares for modular delivery when needed.
+Create a delivery structure connecting objectives, capabilities, candidate increments and architecture impact.
 
 ## Inputs
 
-Use:
-- `input/brs.md`
-- `input/initial-architecture.md` if available
-- `business-intake/business-intake-summary.md`
+Use these inputs when available:
 
-## Output file
+- `input/brs.md`
+- `input/initial-architecture.md`
+- `business-intake/business-intake-summary.md`
+- `architecture/initial-architecture-review.md`
+- `architecture/global-architecture-rules.md`
+
+## Output path
 
 ```text
 planning/delivery-structure.md
 ```
 
-## Output structure
+## Required output structure
 
 ```markdown
-# Delivery Structure
+# Artifact
 
-## 1. Delivery Mode Assumption
+## Summary
 
-## 2. Business Capabilities
+## Key Decisions
 
-| Capability ID | Capability | Business value | Related requirements | Priority | Notes |
-|---|---|---|---|---|---|
+| Decision ID | Decision | Evidence | Risk | Owner |
+|---|---|---|---|---|
 
-## 3. Candidate Software Modules
+## Main Table
 
-| Module ID | Module name | Responsibility | Module type | Related capabilities | Architecture source/constraint |
-|---|---|---|---|---|---|
+| ID | Item | Source | Impact | Evidence | Risk / Gap | Owner |
+|---|---|---|---|---|---|---|
 
-## 4. Capability-to-Module Map
+## Architecture Constraints Applied
 
-## 5. Candidate Delivery Slices
+| Constraint ID | Constraint | Applied how? | Evidence | Gap |
+|---|---|---|---|---|
 
-## 6. Items Requiring Architecture Alignment
+## Traceability
 
-## 7. Recommendation
+| Requirement ID | Capability | Module / Component | Deliverable | Validation |
+|---|---|---|---|---|
+
+## Conflicts / Open Decisions
+
+| ID | Conflict / Decision | Impact | Owner | Required before |
+|---|---|---|---|---|
+
+## Recommendations
 ```
 
-## Rules
+## Quality bar
 
-- Do not jump directly from BRS to detailed user stories.
-- Preserve the business capability view.
-- Use software modules as a bridge to engineering execution.
-- Do not contradict the initial architecture document.
-- If a candidate module conflicts with the initial architecture, mark it as an architecture decision.
+A good output must:
+
+- respect the initial architecture constraints
+- keep business traceability visible
+- mark conflicts instead of resolving them silently
+- assign owners for gaps and decisions
+- avoid creating low-level implementation tasks
+
+## Anti-patterns to avoid
+
+Do not produce outputs that:
+
+- invent architecture not present in the inputs
+- slice work only by technical layer
+- create tasks for all future deliverables
+- ignore architecture conflicts
+- produce a table without evidence or owner
+
+## Stop conditions
+
+- If required inputs are missing, do not invent content.
+- List missing inputs and explain the impact.
+- Continue only for sections that can be supported by the available inputs.
+
+## Self-review checklist
+
+Before finalizing, verify:
+
+- [ ] Architecture constraints are referenced.
+- [ ] Business requirements remain traceable.
+- [ ] Open decisions include owners.
+- [ ] Risks and gaps are visible.
+- [ ] The output supports the next workflow step.

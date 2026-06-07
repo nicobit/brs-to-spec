@@ -1,74 +1,100 @@
 # Prompt — Define Delivery Increments
 
+## Role
+
+You are a delivery architect slicing the initiative into vertical increments.
+
+## Context
+
+This prompt is part of architecture-aware planning. It must not create implementation tasks for the whole BRS.
+
 ## Purpose
 
-Group capabilities and module work into vertical, testable delivery increments.
+Create vertical, testable delivery increments for one-at-a-time execution.
 
 ## Inputs
 
-Use:
+Use these inputs when available:
+
+- `input/brs.md`
+- `input/initial-architecture.md`
 - `business-intake/business-intake-summary.md`
 - `architecture/initial-architecture-review.md`
 - `architecture/global-architecture-rules.md`
-- `modules/software-modules.md`
-- `planning/capability-module-map.md`
 
-## Output file
+## Output path
 
 ```text
 planning/delivery-increments.md
 ```
 
-## Output structure
+## Required output structure
 
 ```markdown
-# Delivery Increments
+# Artifact
 
-## 1. Increment Overview
+## Summary
 
-| Deliverable ID | Name | Goal | Business value | Estimated size | Modules involved | Status |
+## Key Decisions
+
+| Decision ID | Decision | Evidence | Risk | Owner |
+|---|---|---|---|---|
+
+## Main Table
+
+| ID | Item | Source | Impact | Evidence | Risk / Gap | Owner |
 |---|---|---|---|---|---|---|
 
-## 2. Deliverables
+## Architecture Constraints Applied
 
-### D1 — <Deliverable Name>
+| Constraint ID | Constraint | Applied how? | Evidence | Gap |
+|---|---|---|---|---|
 
-#### Goal
-#### Business Value
-#### Included Capabilities
-#### Included Requirements
-#### Modules Involved
+## Traceability
 
-| Module | Work needed in this deliverable |
-|---|---|
+| Requirement ID | Capability | Module / Component | Deliverable | Validation |
+|---|---|---|---|---|
 
-#### Architecture Constraints Applied
+## Conflicts / Open Decisions
 
-| Constraint | Source | Impact |
-|---|---|---|
+| ID | Conflict / Decision | Impact | Owner | Required before |
+|---|---|---|---|---|
 
-#### Scope
-
-##### In Scope
-##### Out of Scope
-
-#### Acceptance Criteria
-
-Use Given/When/Then where possible.
-
-#### Automated Validation Criteria
-
-#### Dependencies
-
-#### Risks / Open Questions
-
-#### OpenSpec Change Recommendation
+## Recommendations
 ```
 
-## Rules
+## Quality bar
 
-- Create vertical deliverables, not theoretical epics.
-- Each deliverable should be testable and demonstrable.
-- Include architecture constraints applied to each deliverable.
-- Do not generate implementation tasks for all deliverables.
-- Only the active deliverable should be converted into an OpenSpec change.
+A good output must:
+
+- respect the initial architecture constraints
+- keep business traceability visible
+- mark conflicts instead of resolving them silently
+- assign owners for gaps and decisions
+- avoid creating low-level implementation tasks
+
+## Anti-patterns to avoid
+
+Do not produce outputs that:
+
+- invent architecture not present in the inputs
+- slice work only by technical layer
+- create tasks for all future deliverables
+- ignore architecture conflicts
+- produce a table without evidence or owner
+
+## Stop conditions
+
+- If required inputs are missing, do not invent content.
+- List missing inputs and explain the impact.
+- Continue only for sections that can be supported by the available inputs.
+
+## Self-review checklist
+
+Before finalizing, verify:
+
+- [ ] Architecture constraints are referenced.
+- [ ] Business requirements remain traceable.
+- [ ] Open decisions include owners.
+- [ ] Risks and gaps are visible.
+- [ ] The output supports the next workflow step.

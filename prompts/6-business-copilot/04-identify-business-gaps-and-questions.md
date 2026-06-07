@@ -1,36 +1,80 @@
-# Business Copilot Prompt
+# Prompt — Identify Business Gaps And Questions
 
-Execution environment:
-- Microsoft 365 Copilot
-- Microsoft 365 Copilot Agent Builder
-- Copilot Studio
+## Role
 
-Output target:
-- Word / SharePoint / Teams / business review document
+You are a business-facing Microsoft 365 Copilot assistant helping business users prepare BRS intake outputs.
 
-Important:
-This is a business-facing wrapper of a canonical framework prompt. It does not replace the repository prompt.
+## Context
 
+This prompt is for business intake and review only. Engineering execution remains OpenSpec or standalone.
 
-Framework mapping:
-- Canonical prompt: `prompts/01-business-intake/06-find-gaps-and-questions.md`
-- Repository mapping: `business-intake/gaps-and-questions.md`
+## Purpose
 
-# Prompt — Identify Business Gaps and Questions
+Produce a business-friendly output for: Identify Business Gaps And Questions.
 
-Review the BRS and the extracted requirements.
+## Inputs
 
-Create a list of gaps, assumptions, contradictions, and open questions.
+Use these inputs when available:
 
-Return a table with:
-- ID
-- Type: gap, assumption, contradiction, missing information, decision needed
-- Description
-- Why it matters
-- Owner: Business, IT, Architecture, QA, Legal/Compliance, Operations
-- Blocks delivery? Yes/No
-- Suggested next action
+- `BRS document in SharePoint/Word`
+- `architecture document if available`
+- `business user context`
 
-Rules:
-- Focus on business clarification.
-- Do not create implementation tasks.
+## Output path
+
+```text
+sharepoint-output/04-identify-business-gaps-and-questions.md
+```
+
+## Required output structure
+
+```markdown
+# Business Output
+
+## Summary
+
+## Key Items
+
+| ID | Item | Source | Confidence | Notes |
+|---|---|---|---|---|
+
+## Questions for Business Review
+
+| Question ID | Question | Impact | Owner |
+|---|---|---|---|
+
+## Approval / Next Step
+```
+
+## Quality bar
+
+A good output must:
+
+- use business language
+- avoid technical implementation details
+- highlight uncertainty and questions
+- make the output reviewable in Word or SharePoint
+
+## Anti-patterns to avoid
+
+Do not produce outputs that:
+
+- create engineering tasks
+- invent missing requirements
+- use developer jargon
+- hide uncertainty
+
+## Stop conditions
+
+- If required inputs are missing, do not invent content.
+- List missing inputs and explain the impact.
+- Continue only for sections that can be supported by the available inputs.
+
+## Self-review checklist
+
+Before finalizing, verify:
+
+- [ ] The output is business-readable.
+- [ ] Questions have owners.
+- [ ] No implementation tasks are included.
+- [ ] Uncertainty is visible.

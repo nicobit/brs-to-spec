@@ -1,28 +1,15 @@
 # Business Intake Summary
 
-## 1. Executive Summary
+## Executive Summary
 
-## 2. Business Objectives
+## Objectives
 
-| Objective ID | Objective | Business value | Stakeholder | Notes |
-|---|---|---|---|---|
+## Scope
 
-## 3. Scope
+## Requirements
 
-### In Scope
-### Out of Scope
+## Capabilities
 
-## 4. High-Level Requirements
+## Gaps and Questions
 
-| Requirement ID | Requirement | Type | Priority if known | Source / evidence | Clarification needed |
-|---|---|---|---|---|---|
-
-## 5. Business Capabilities
-
-| Capability ID | Capability | Description | Related requirements | Business value |
-|---|---|---|---|---|
-
-## 6. Gaps and Questions
-## 7. Risks and Assumptions
-## 8. Initial Delivery Considerations
-## 9. PO Review Checklist
+## PO Review Checklist

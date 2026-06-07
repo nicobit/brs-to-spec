@@ -1,13 +1,5 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "TraceabilityMatrix",
-  "type": "object",
-  "properties": {
-    "mappings": {
-      "type": "array"
-    },
-    "architectureConstraints": {
-      "type": "array"
-    }
-  }
+  "type": "object"
 }

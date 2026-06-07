@@ -1,46 +1,34 @@
+
 from pathlib import Path
-
 ROOT = Path(__file__).resolve().parents[2]
-
 REQUIRED = [
-    "templates/advanced-governance/security-review.md",
-    "templates/advanced-governance/architecture-review.md",
-    "templates/advanced-governance/qa-review.md",
-    "templates/advanced-governance/test-strategy.md",
-    "templates/advanced-governance/bdd-scenarios.md",
-    "prompts/4-engineering-readiness/advanced/create-security-review.md",
-    "prompts/4-engineering-readiness/advanced/create-architecture-review.md",
-    "prompts/4-engineering-readiness/advanced/create-qa-review.md",
-    "prompts/4-engineering-readiness/advanced/create-test-strategy.md",
-    "prompts/4-engineering-readiness/advanced/create-bdd-scenarios.md",
     "README.md",
     "HOW_TO_USE.md",
-    "docs/00-input-preparation.md",
-    "docs/01-overview.md",
-    "docs/07-architecture-aware-flow.md",
-    "prompts/0-input-preparation/01-convert-brs-word-to-markdown.md",
-    "prompts/0-input-preparation/02-convert-architecture-word-to-markdown.md",
-    "prompts/0-input-preparation/03-normalize-input-package.md",
-    "prompts/1-routing/01-select-delivery-mode.md",
-    "prompts/2-business-intake/01-create-business-intake-summary.md",
-    "prompts/3-planning-and-modular-delivery/02-review-initial-architecture.md",
-    "prompts/3-planning-and-modular-delivery/07-create-traceability-matrix.md",
+    "docs/14-agile-planning-view.md",
+    "prompts/7-perspectives/agile-planning/README.md",
+    "prompts/7-perspectives/agile-planning/01-create-gitlab-planning-view.md",
+    "prompts/7-perspectives/agile-planning/02-refresh-gitlab-planning-view.md",
+    "templates/perspectives/agile-planning/gitlab-planning-view.md",
+    "templates/perspectives/agile-planning/gitlab-refresh-report.md",
+    "examples/real-project-end-to-end/perspectives/agile-planning/gitlab-planning-view.md",
     "prompts/4-engineering-readiness/01-check-engineering-readiness.md",
-    "prompts/5-handoff-to-openspec/01-create-openspec-change-for-active-deliverable.md",
-    "prompts/6-business-copilot/01-create-brs-business-summary.md",
-    "templates/input-preparation/brs.md",
-    "templates/input-preparation/initial-architecture.md",
-    "templates/planning-and-modular-delivery/initial-architecture-review.md",
-    "templates/planning-and-modular-delivery/traceability-matrix.md",
-    "schemas/input-package.schema.json",
-    "schemas/traceability-matrix.schema.json",
+    "templates/engineering-readiness/readiness-check.md",
 ]
-
-missing = [p for p in REQUIRED if not (ROOT / p).exists()]
+missing=[p for p in REQUIRED if not (ROOT/p).exists()]
 if missing:
     print("Missing required files:")
-    for p in missing:
-        print(f" - {p}")
+    for p in missing: print(f" - {p}")
     raise SystemExit(1)
-
+checks={
+    "README.md":["v1.0.4","planning projection","source of truth"],
+    "docs/14-agile-planning-view.md":["projection","source of truth","GitLab"],
+    "prompts/7-perspectives/agile-planning/01-create-gitlab-planning-view.md":["## Role","## Context","## Quality bar","not the source of truth","Do Not Duplicate"],
+    "templates/perspectives/agile-planning/gitlab-planning-view.md":["planning projection","Source Artifact Map","Do Not Duplicate"],
+}
+for file,terms in checks.items():
+    text=(ROOT/file).read_text(encoding="utf-8", errors="ignore")
+    for term in terms:
+        if term not in text:
+            print(f"Content check failed: {file} missing {term!r}")
+            raise SystemExit(1)
 print("Validation passed.")

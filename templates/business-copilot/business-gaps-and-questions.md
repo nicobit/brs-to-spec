@@ -1,4 +1,4 @@
-# Business Gaps and Questions
+# Business Gaps And Questions
 
-| ID | Type | Description | Why it matters | Owner | Blocks delivery? | Suggested next action |
-|---|---|---|---|---|---|---|
+| Item | Value | Notes |
+|---|---|---|

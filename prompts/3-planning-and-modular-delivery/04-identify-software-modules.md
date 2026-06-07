@@ -1,58 +1,100 @@
 # Prompt — Identify Software Modules
 
+## Role
+
+You are a software architect decomposing a large initiative into coherent modules.
+
+## Context
+
+This prompt is part of architecture-aware planning. It must not create implementation tasks for the whole BRS.
+
 ## Purpose
 
-Decompose a large initiative into isolated software modules.
+Identify modules while preserving business traceability and architecture constraints.
 
 ## Inputs
 
-Use:
+Use these inputs when available:
+
+- `input/brs.md`
+- `input/initial-architecture.md`
 - `business-intake/business-intake-summary.md`
-- `planning/delivery-structure.md`
 - `architecture/initial-architecture-review.md`
 - `architecture/global-architecture-rules.md`
 
-## Output file
+## Output path
 
 ```text
 modules/software-modules.md
 ```
 
-## Output structure
+## Required output structure
 
 ```markdown
-# Software Modules
+# Artifact
 
-## 1. Module Overview
+## Summary
 
-| Module ID | Module Name | Type | Responsibility | Owner | Related capabilities | Architecture constraint |
+## Key Decisions
+
+| Decision ID | Decision | Evidence | Risk | Owner |
+|---|---|---|---|---|
+
+## Main Table
+
+| ID | Item | Source | Impact | Evidence | Risk / Gap | Owner |
 |---|---|---|---|---|---|---|
 
-## 2. Module Details
+## Architecture Constraints Applied
 
-### MOD-001 — <Module Name>
+| Constraint ID | Constraint | Applied how? | Evidence | Gap |
+|---|---|---|---|---|
 
-#### Responsibility
-#### In Scope
-#### Out of Scope
-#### Owned Data
-#### Exposed APIs / Interfaces
-#### Consumed APIs / Interfaces
-#### Events Produced
-#### Events Consumed
-#### Dependencies
-#### Architecture Constraints Applied
-#### Risks / Open Questions
+## Traceability
 
-## 3. Module Dependency Map
+| Requirement ID | Capability | Module / Component | Deliverable | Validation |
+|---|---|---|---|---|
 
-## 4. Module Isolation Risks
+## Conflicts / Open Decisions
+
+| ID | Conflict / Decision | Impact | Owner | Required before |
+|---|---|---|---|---|
+
+## Recommendations
 ```
 
-## Rules
+## Quality bar
 
-- Respect the initial architecture review.
-- Respect global architecture rules.
-- Avoid generic layers unless they represent meaningful delivery boundaries.
-- Do not call every module a bounded context.
-- If a needed module conflicts with architecture, mark it as an open architecture decision.
+A good output must:
+
+- respect the initial architecture constraints
+- keep business traceability visible
+- mark conflicts instead of resolving them silently
+- assign owners for gaps and decisions
+- avoid creating low-level implementation tasks
+
+## Anti-patterns to avoid
+
+Do not produce outputs that:
+
+- invent architecture not present in the inputs
+- slice work only by technical layer
+- create tasks for all future deliverables
+- ignore architecture conflicts
+- produce a table without evidence or owner
+
+## Stop conditions
+
+- If required inputs are missing, do not invent content.
+- List missing inputs and explain the impact.
+- Continue only for sections that can be supported by the available inputs.
+
+## Self-review checklist
+
+Before finalizing, verify:
+
+- [ ] Architecture constraints are referenced.
+- [ ] Business requirements remain traceable.
+- [ ] Open decisions include owners.
+- [ ] Risks and gaps are visible.
+- [ ] The output supports the next workflow step.

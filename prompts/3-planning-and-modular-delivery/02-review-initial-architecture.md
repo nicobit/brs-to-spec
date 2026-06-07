@@ -1,67 +1,100 @@
 # Prompt — Review Initial Architecture
 
+## Role
+
+You are a solution architect reviewing whether the initial architecture supports the BRS.
+
+## Context
+
+This prompt is part of architecture-aware planning. It must not create implementation tasks for the whole BRS.
+
 ## Purpose
 
-Review the initial architecture document against the BRS and business intake summary.
-
-This creates the bridge between the given architecture and all downstream planning.
+Review architecture constraints, conflicts, missing decisions and delivery impact.
 
 ## Inputs
 
-Use:
+Use these inputs when available:
+
 - `input/brs.md`
 - `input/initial-architecture.md`
 - `business-intake/business-intake-summary.md`
-- `planning/delivery-structure.md` if available.
+- `architecture/initial-architecture-review.md`
+- `architecture/global-architecture-rules.md`
 
-## Output file
+## Output path
 
 ```text
 architecture/initial-architecture-review.md
 ```
 
-## Output structure
+## Required output structure
 
 ```markdown
-# Initial Architecture Review
+# Artifact
 
-## 1. Architecture Source Summary
+## Summary
 
-## 2. Architecture Constraints Identified
+## Key Decisions
 
-| Constraint ID | Constraint | Source section | Applies to | Notes |
+| Decision ID | Decision | Evidence | Risk | Owner |
 |---|---|---|---|---|
 
-## 3. Architecture Decisions Already Taken
+## Main Table
 
-| Decision ID | Decision | Source | Impact |
-|---|---|---|---|
+| ID | Item | Source | Impact | Evidence | Risk / Gap | Owner |
+|---|---|---|---|---|---|---|
 
-## 4. BRS Alignment
+## Architecture Constraints Applied
 
-| BRS area / requirement | Architecture support | Gap / conflict | Owner |
-|---|---|---|---|
+| Constraint ID | Constraint | Applied how? | Evidence | Gap |
+|---|---|---|---|---|
 
-## 5. Missing Architecture Information
+## Traceability
 
-| Missing item | Why it matters | Owner | Blocking? |
-|---|---|---|---|
+| Requirement ID | Capability | Module / Component | Deliverable | Validation |
+|---|---|---|---|---|
 
-## 6. Conflicts Between BRS and Architecture
+## Conflicts / Open Decisions
 
-| Conflict ID | Description | Impact | Decision needed |
-|---|---|---|---|
+| ID | Conflict / Decision | Impact | Owner | Required before |
+|---|---|---|---|---|
 
-## 7. Constraints to Propagate
-
-List the constraints that must be inherited by global architecture rules, modules, deliverables, engineering readiness, and OpenSpec.
-
-## 8. Open Architecture Decisions
+## Recommendations
 ```
 
-## Rules
+## Quality bar
 
-- Do not invent architecture.
-- Preserve explicit constraints.
-- If there is no initial architecture document, mark architecture review as incomplete.
-- If the initial architecture defines a constraint, do not override it unless marked as conflict or open decision.
+A good output must:
+
+- respect the initial architecture constraints
+- keep business traceability visible
+- mark conflicts instead of resolving them silently
+- assign owners for gaps and decisions
+- avoid creating low-level implementation tasks
+
+## Anti-patterns to avoid
+
+Do not produce outputs that:
+
+- invent architecture not present in the inputs
+- slice work only by technical layer
+- create tasks for all future deliverables
+- ignore architecture conflicts
+- produce a table without evidence or owner
+
+## Stop conditions
+
+- If required inputs are missing, do not invent content.
+- List missing inputs and explain the impact.
+- Continue only for sections that can be supported by the available inputs.
+
+## Self-review checklist
+
+Before finalizing, verify:
+
+- [ ] Architecture constraints are referenced.
+- [ ] Business requirements remain traceable.
+- [ ] Open decisions include owners.
+- [ ] Risks and gaps are visible.
+- [ ] The output supports the next workflow step.

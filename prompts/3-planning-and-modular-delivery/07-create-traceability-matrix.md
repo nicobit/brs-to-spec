@@ -1,46 +1,100 @@
 # Prompt — Create Traceability Matrix
 
+## Role
+
+You are a delivery governance analyst creating end-to-end traceability.
+
+## Context
+
+This prompt is part of architecture-aware planning. It must not create implementation tasks for the whole BRS.
+
 ## Purpose
 
-Create end-to-end traceability for enterprise delivery.
+Trace requirements to capabilities, modules, deliverables, validation and gates.
 
 ## Inputs
 
-Use:
+Use these inputs when available:
+
 - `input/brs.md`
+- `input/initial-architecture.md`
 - `business-intake/business-intake-summary.md`
-- `modules/software-modules.md` if available
-- `planning/capability-module-map.md`
-- `planning/delivery-increments.md`
+- `architecture/initial-architecture-review.md`
 - `architecture/global-architecture-rules.md`
 
-## Output file
+## Output path
 
 ```text
 planning/traceability-matrix.md
 ```
 
-## Output structure
+## Required output structure
 
 ```markdown
-# Traceability Matrix
+# Artifact
 
-| Requirement ID | Business Capability | Module(s) | Deliverable | OpenSpec Change | Validation |
-|---|---|---|---|---|---|
+## Summary
 
-## Unmapped Requirements
+## Key Decisions
 
-| Requirement ID | Requirement | Reason unmapped | Owner |
-|---|---|---|---|
-
-## Architecture Constraints Traceability
-
-| Constraint ID | Constraint | Module(s) | Deliverable(s) | Validation |
+| Decision ID | Decision | Evidence | Risk | Owner |
 |---|---|---|---|---|
+
+## Main Table
+
+| ID | Item | Source | Impact | Evidence | Risk / Gap | Owner |
+|---|---|---|---|---|---|---|
+
+## Architecture Constraints Applied
+
+| Constraint ID | Constraint | Applied how? | Evidence | Gap |
+|---|---|---|---|---|
+
+## Traceability
+
+| Requirement ID | Capability | Module / Component | Deliverable | Validation |
+|---|---|---|---|---|
+
+## Conflicts / Open Decisions
+
+| ID | Conflict / Decision | Impact | Owner | Required before |
+|---|---|---|---|---|
+
+## Recommendations
 ```
 
-## Rules
+## Quality bar
 
-- Every high-priority requirement must be mapped.
-- Every active deliverable must have validation.
-- Architecture constraints must be traceable to modules/deliverables where applicable.
+A good output must:
+
+- respect the initial architecture constraints
+- keep business traceability visible
+- mark conflicts instead of resolving them silently
+- assign owners for gaps and decisions
+- avoid creating low-level implementation tasks
+
+## Anti-patterns to avoid
+
+Do not produce outputs that:
+
+- invent architecture not present in the inputs
+- slice work only by technical layer
+- create tasks for all future deliverables
+- ignore architecture conflicts
+- produce a table without evidence or owner
+
+## Stop conditions
+
+- If required inputs are missing, do not invent content.
+- List missing inputs and explain the impact.
+- Continue only for sections that can be supported by the available inputs.
+
+## Self-review checklist
+
+Before finalizing, verify:
+
+- [ ] Architecture constraints are referenced.
+- [ ] Business requirements remain traceable.
+- [ ] Open decisions include owners.
+- [ ] Risks and gaps are visible.
+- [ ] The output supports the next workflow step.

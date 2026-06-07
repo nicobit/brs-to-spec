@@ -2,46 +2,34 @@
 
 ## Purpose
 
-Create an input package that records the official source inputs for the framework.
+Create a concise index of all normalized inputs and their completeness.
 
 ## Inputs
 
-Use:
+Use the following inputs when available:
+
 - `input/brs.md`
 - `input/initial-architecture.md`
 
-## Output file
+## Output
 
 ```text
 input/input-package.md
 ```
 
-## Output structure
+## Required output structure
 
 ```markdown
 # Input Package
 
-## Source Documents
+## Input Inventory
 
-| Type | File | Version | Date | Owner | Notes |
-|---|---|---|---|---|---|
-| BRS | input/brs.md |  |  |  |  |
-| Initial Architecture | input/initial-architecture.md |  |  |  |  |
-
-## Input Completeness
-
-| Area | Available? | Notes |
-|---|---|---|
-| BRS |  |  |
-| Initial architecture |  |  |
-| Business objectives |  |  |
-| Requirements |  |  |
-| NFRs |  |  |
-| Architecture constraints |  |  |
-| Integration constraints |  |  |
-| Security constraints |  |  |
+| Artifact | Available? | Version/date | Completeness | Notes |
+|---|---|---|---|---|
 
 ## Known Limitations
+
+## Missing Inputs
 
 ## Assumptions
 
@@ -50,6 +38,6 @@ input/input-package.md
 
 ## Rules
 
-- Do not analyze the whole delivery yet.
-- Focus on input readiness.
-- Mark missing architecture as a risk for later architecture review.
+- Do not perform full analysis.
+- Identify missing inputs early.
+- State confidence and limitations.

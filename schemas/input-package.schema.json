@@ -1,19 +1,5 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "InputPackage",
-  "type": "object",
-  "properties": {
-    "brsAvailable": {
-      "type": "boolean"
-    },
-    "initialArchitectureAvailable": {
-      "type": "boolean"
-    },
-    "sourceDocuments": {
-      "type": "array"
-    },
-    "knownLimitations": {
-      "type": "array"
-    }
-  }
+  "type": "object"
 }

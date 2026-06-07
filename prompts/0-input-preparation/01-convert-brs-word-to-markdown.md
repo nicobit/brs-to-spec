@@ -1,24 +1,32 @@
 # Prompt — Convert BRS Word to Markdown
 
+## Role
+
+You are a senior business analyst converting enterprise BRS content into a clean, traceable Markdown baseline.
+
+## Context
+
+This is Step 0. The output becomes the source for all downstream business intake, planning, readiness and handoff prompts.
+
 ## Purpose
 
-Convert a raw BRS document into normalized Markdown.
+Convert a raw Word/SharePoint/Confluence BRS into normalized Markdown while preserving traceability and ambiguity.
 
-## Input
+## Inputs
 
-Use the provided BRS source document, usually:
-- Word `.docx`,
-- SharePoint document,
-- Confluence export,
-- pasted text.
+Use these inputs when available:
 
-## Output file
+- `source BRS document`
+- `source tables`
+- `source attachments or references if available`
+
+## Output path
 
 ```text
 input/brs.md
 ```
 
-## Output structure
+## Required output structure
 
 ```markdown
 # BRS
@@ -27,17 +35,17 @@ input/brs.md
 
 | Field | Value |
 |---|---|
-| Source document |  |
-| Version |  |
-| Date |  |
-| Owner |  |
-| Conversion notes |  |
+| Source name |  |
+| Source version/date |  |
+| Extracted by |  |
+| Extraction date |  |
 
 ## Executive Summary
 
-## Business Context
+## Business Objectives
 
-## Objectives
+| Objective ID | Objective | Source section | Confidence |
+|---|---|---|---|
 
 ## Scope
 
@@ -45,20 +53,25 @@ input/brs.md
 
 ### Out of Scope
 
+## Stakeholders
+
+| Stakeholder | Role | Impact |
+|---|---|---|
+
 ## Requirements
 
-Preserve original IDs if available.
-
-| Requirement ID | Requirement | Source section | Notes |
-|---|---|---|---|
+| Requirement ID | Source section | Requirement | Type | Priority | Confidence | Notes |
+|---|---|---|---|---|---|---|
 
 ## Business Rules
 
+| Rule ID | Rule | Related requirement | Source |
+|---|---|---|---|
+
 ## Non-Functional Requirements
 
-## Data / Reporting Requirements
-
-## Operational / Audit / Compliance Requirements
+| NFR ID | Requirement | Category | Source | Notes |
+|---|---|---|---|---|
 
 ## Assumptions
 
@@ -68,15 +81,44 @@ Preserve original IDs if available.
 
 ## Open Questions
 
-## Original Structure / Section Index
+| Question ID | Question | Impact if unanswered | Suggested owner |
+|---|---|---|---|
+
+## Source Traceability Notes
 ```
 
-## Rules
+## Quality bar
 
-- Preserve the original meaning.
-- Do not invent requirements.
-- Preserve requirement IDs if present.
-- Preserve tables as Markdown tables.
-- Mark unclear or missing sections.
-- If a diagram is present but cannot be rendered, describe it textually.
-- Include conversion notes.
+A good output must:
+
+- preserve the meaning and original IDs from the source
+- clearly distinguish explicit requirements from inferred assumptions
+- mark low-confidence extraction points
+- keep tables readable and traceable
+- identify ambiguity without trying to solve it
+
+## Anti-patterns to avoid
+
+Do not produce outputs that:
+
+- rewrite the BRS as a polished solution design
+- invent missing requirements
+- remove unclear or conflicting source content
+- collapse multiple requirements into one vague statement
+- hide uncertainty
+
+## Stop conditions
+
+- If required inputs are missing, do not invent content.
+- List missing inputs and explain the impact.
+- Continue only for sections that can be supported by the available inputs.
+
+## Self-review checklist
+
+Before finalizing, verify:
+
+- [ ] Every requirement has a source section or traceability note.
+- [ ] Ambiguities are listed as open questions.
+- [ ] Assumptions are separated from explicit requirements.
+- [ ] No implementation design was invented.
+- [ ] Low-confidence extraction points are marked.

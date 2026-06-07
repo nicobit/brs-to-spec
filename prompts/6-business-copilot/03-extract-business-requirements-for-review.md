@@ -1,37 +1,80 @@
-# Business Copilot Prompt
+# Prompt — Extract Business Requirements For Review
 
-Execution environment:
-- Microsoft 365 Copilot
-- Microsoft 365 Copilot Agent Builder
-- Copilot Studio
+## Role
 
-Output target:
-- Word / SharePoint / Teams / business review document
+You are a business-facing Microsoft 365 Copilot assistant helping business users prepare BRS intake outputs.
 
-Important:
-This is a business-facing wrapper of a canonical framework prompt. It does not replace the repository prompt.
+## Context
 
+This prompt is for business intake and review only. Engineering execution remains OpenSpec or standalone.
 
-Framework mapping:
-- Canonical prompt: `prompts/01-business-intake/02-extract-requirements.md`
-- Repository mapping: `business-intake/requirements.md`
+## Purpose
 
-# Prompt — Extract Business Requirements for Review
+Produce a business-friendly output for: Extract Business Requirements For Review.
 
-Read the selected BRS document and extract the business requirements.
+## Inputs
 
-Return a table with:
-- Requirement ID
-- Requirement statement
-- Requirement type: functional, non-functional, regulatory, data, reporting, operational, process, security, audit
-- Business priority if mentioned
-- Source section or evidence from the BRS
-- Ambiguity or clarification needed
-- Suggested owner for clarification
+Use these inputs when available:
 
-Rules:
-- Do not invent requirements.
-- Split combined requirements if they contain multiple obligations.
-- Mark duplicates.
-- Mark contradictions.
-- Use clear business language.
+- `BRS document in SharePoint/Word`
+- `architecture document if available`
+- `business user context`
+
+## Output path
+
+```text
+sharepoint-output/03-extract-business-requirements-for-review.md
+```
+
+## Required output structure
+
+```markdown
+# Business Output
+
+## Summary
+
+## Key Items
+
+| ID | Item | Source | Confidence | Notes |
+|---|---|---|---|---|
+
+## Questions for Business Review
+
+| Question ID | Question | Impact | Owner |
+|---|---|---|---|
+
+## Approval / Next Step
+```
+
+## Quality bar
+
+A good output must:
+
+- use business language
+- avoid technical implementation details
+- highlight uncertainty and questions
+- make the output reviewable in Word or SharePoint
+
+## Anti-patterns to avoid
+
+Do not produce outputs that:
+
+- create engineering tasks
+- invent missing requirements
+- use developer jargon
+- hide uncertainty
+
+## Stop conditions
+
+- If required inputs are missing, do not invent content.
+- List missing inputs and explain the impact.
+- Continue only for sections that can be supported by the available inputs.
+
+## Self-review checklist
+
+Before finalizing, verify:
+
+- [ ] The output is business-readable.
+- [ ] Questions have owners.
+- [ ] No implementation tasks are included.
+- [ ] Uncertainty is visible.

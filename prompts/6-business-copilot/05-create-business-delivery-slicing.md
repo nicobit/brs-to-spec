@@ -1,38 +1,80 @@
-# Business Copilot Prompt
-
-Execution environment:
-- Microsoft 365 Copilot
-- Microsoft 365 Copilot Agent Builder
-- Copilot Studio
-
-Output target:
-- Word / SharePoint / Teams / business review document
-
-Important:
-This is a business-facing wrapper of a canonical framework prompt. It does not replace the repository prompt.
-
-
-Framework mapping:
-- Canonical prompt: `prompts/06-planning/01-create-delivery-slicing-and-roadmap.md`
-- Repository mapping: `planning/delivery-slicing.md`
-
 # Prompt — Create Business Delivery Slicing
 
-Using the BRS summary, extracted requirements, and gaps/questions, propose an initial delivery slicing.
+## Role
 
-Assume the BRS may span more than one quarter.
+You are a business-facing Microsoft 365 Copilot assistant helping business users prepare BRS intake outputs.
 
-Return:
-1. MVP / first valuable increment
-2. Increment 1 scope
-3. Increment 2 scope
-4. Future scope
-5. Items that should not be started yet
-6. Key dependencies
-7. Open questions that block slicing
-8. Recommended next increment
+## Context
 
-Rules:
-- Do not create detailed user stories for the whole BRS.
-- Detail only the next increment at a high level.
-- Mark dependencies and blockers clearly.
+This prompt is for business intake and review only. Engineering execution remains OpenSpec or standalone.
+
+## Purpose
+
+Produce a business-friendly output for: Create Business Delivery Slicing.
+
+## Inputs
+
+Use these inputs when available:
+
+- `BRS document in SharePoint/Word`
+- `architecture document if available`
+- `business user context`
+
+## Output path
+
+```text
+sharepoint-output/05-create-business-delivery-slicing.md
+```
+
+## Required output structure
+
+```markdown
+# Business Output
+
+## Summary
+
+## Key Items
+
+| ID | Item | Source | Confidence | Notes |
+|---|---|---|---|---|
+
+## Questions for Business Review
+
+| Question ID | Question | Impact | Owner |
+|---|---|---|---|
+
+## Approval / Next Step
+```
+
+## Quality bar
+
+A good output must:
+
+- use business language
+- avoid technical implementation details
+- highlight uncertainty and questions
+- make the output reviewable in Word or SharePoint
+
+## Anti-patterns to avoid
+
+Do not produce outputs that:
+
+- create engineering tasks
+- invent missing requirements
+- use developer jargon
+- hide uncertainty
+
+## Stop conditions
+
+- If required inputs are missing, do not invent content.
+- List missing inputs and explain the impact.
+- Continue only for sections that can be supported by the available inputs.
+
+## Self-review checklist
+
+Before finalizing, verify:
+
+- [ ] The output is business-readable.
+- [ ] Questions have owners.
+- [ ] No implementation tasks are included.
+- [ ] Uncertainty is visible.

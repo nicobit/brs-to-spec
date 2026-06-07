@@ -1,9 +1,28 @@
 # Tasks
 
-## Task 1 — <Task Name>
+## Implementation Tasks
 
-- Objective:
-- Files likely to change:
-- Implementation notes:
-- Validation sub-task:
-- Completion criteria:
+- [ ] Task 1 — <small validated task>
+  - Related requirement:
+  - Related architecture constraint:
+  - Related quality gate:
+  - Validation:
+  - Evidence expected:
+
+## Validation Tasks
+
+- [ ] Add/execute validation for <requirement>
+  - Evidence expected:
+
+## Review Tasks
+
+- [ ] Complete required quality gate review
+  - Gate:
+  - Owner:
+  - Required before:
+
+## Documentation Tasks
+
+- [ ] Update documentation
+  - Location:
+  - Evidence:

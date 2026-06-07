@@ -1,67 +1,127 @@
 # Prompt — Create Business Intake Summary
 
+## Role
+
+You are a senior Product Owner and business analyst preparing a PO-reviewable intake artifact.
+
+## Context
+
+This is the main business review artifact. It must be understandable without requiring the PO to read technical contracts or implementation tasks.
+
 ## Purpose
 
-Create one PO-reviewable business intake output from the normalized BRS.
+Create the primary Product Owner review artifact from the normalized BRS and architecture inputs.
 
 ## Inputs
 
-Use:
-- `input/brs.md`
-- `input/input-package.md`
-- `input/initial-architecture.md` only for context, not technical design.
+Use these inputs when available:
 
-## Output file
+- `input/brs.md`
+- `input/initial-architecture.md`
+- `input/input-package.md`
+
+## Output path
 
 ```text
 business-intake/business-intake-summary.md
 ```
 
-## Output structure
+## Required output structure
 
 ```markdown
 # Business Intake Summary
 
-## 1. Executive Summary
+## Executive Summary
 
-## 2. Business Objectives
+## Business Objectives
 
-| Objective ID | Objective | Business value | Stakeholder | Notes |
+| Objective ID | Objective | Success measure | Source | Confidence |
 |---|---|---|---|---|
 
-## 3. Scope
+## Scope
 
 ### In Scope
 
 ### Out of Scope
 
-## 4. High-Level Requirements
+## Stakeholders and Impacted Users
 
-| Requirement ID | Requirement | Type | Priority if known | Source / evidence | Clarification needed |
-|---|---|---|---|---|---|
+| Stakeholder / User | Impact | Notes |
+|---|---|---|
 
-## 5. Business Capabilities
+## Business Capabilities
 
-| Capability ID | Capability | Description | Related requirements | Business value |
+| Capability ID | Capability | Description | Priority | Related objective |
 |---|---|---|---|---|
 
-## 6. Gaps and Questions
+## Requirements Summary
 
-| ID | Type | Question / gap | Owner | Blocks delivery? | Notes |
+| Requirement ID | Requirement | Capability | Priority | Clarity | Source |
 |---|---|---|---|---|---|
 
-## 7. Risks and Assumptions
+## Business Rules
 
-## 8. Initial Delivery Considerations
+| Rule ID | Rule | Related requirement | Impact |
+|---|---|---|---|
 
-## 9. PO Review Checklist
+## Acceptance Expectations
+
+| Expectation ID | Expectation | Related requirement | Evidence needed |
+|---|---|---|---|
+
+## Gaps and Questions
+
+| Question ID | Question | Impact if unanswered | Suggested owner | Required before |
+|---|---|---|---|---|
+
+## Risks and Assumptions
+
+| ID | Type | Description | Impact | Owner |
+|---|---|---|---|---|
+
+## Product Owner Review Checklist
+
+| Item | Ready? | Evidence / Notes |
+|---|---|---|
+| Objectives correct |  |  |
+| Scope correct |  |  |
+| Requirements understandable |  |  |
+| Open questions assigned |  |  |
+| Acceptance expectations clear |  |  |
 ```
 
-## Rules
+## Quality bar
 
-- Use business language.
-- Do not create technical design.
-- Do not create implementation tasks.
-- Do not invent requirements.
-- Mark missing information explicitly.
-- Keep the output suitable for PO review.
+A good output must:
+
+- use business language
+- keep technical details out unless they affect business scope or constraints
+- make gaps and questions actionable
+- preserve requirement traceability
+- make the output reviewable by a Product Owner
+
+## Anti-patterns to avoid
+
+Do not produce outputs that:
+
+- create implementation tasks
+- turn architecture constraints into business requirements unless explicitly linked
+- write vague goals without success measures
+- hide unclear scope
+- force the PO to review low-level technical details
+
+## Stop conditions
+
+- If required inputs are missing, do not invent content.
+- List missing inputs and explain the impact.
+- Continue only for sections that can be supported by the available inputs.
+
+## Self-review checklist
+
+Before finalizing, verify:
+
+- [ ] PO can understand the artifact without technical context.
+- [ ] Every requirement summary links to a source requirement.
+- [ ] Open questions include impact and owner.
+- [ ] Acceptance expectations are concrete.
+- [ ] No implementation tasks are included.
