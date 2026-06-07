@@ -1,0 +1,10 @@
+{
+  "github.copilot.chat.codeGeneration.instructions": [
+    {
+      "text": "Follow .github/copilot-instructions.md. Do not generate code directly from a raw BRS. Use the BRS-to-delivery workflow and preserve source-of-truth traceability."
+    }
+  ],
+  "files.associations": {
+    "*.prompt.md": "markdown"
+  }
+}

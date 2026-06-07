@@ -2,13 +2,13 @@
 
 This framework transforms a raw **Business Requirements Specification (BRS)** and an optional **initial architecture document** into business-approved, architecture-aligned, delivery-ready increments.
 
-OpenSpec is the default engineering downstream, but it is not mandatory. The framework also supports standalone execution and Microsoft 365 Copilot / Copilot Studio business intake.
+OpenSpec is the default engineering downstream, but it is not mandatory. The framework also supports standalone execution, Microsoft 365 Copilot / Copilot Studio business intake, and GitHub Copilot / VS Code guided delivery workflows.
 
 ## Why this framework exists
 
 Do not ask an AI coding agent to implement directly from a large Word BRS.
 
-A real enterprise BRS usually contains ambiguity, implicit assumptions, architecture constraints, regulatory expectations, dependencies, and hidden delivery risks. This framework creates a controlled path from business intent to delivery-ready work.
+A real enterprise BRS usually contains ambiguity, implicit assumptions, architecture constraints, regulatory expectations, dependencies, hidden delivery risks, and review obligations across multiple roles. This framework creates a controlled path from business intent to delivery-ready work.
 
 ## What this framework is
 
@@ -77,7 +77,7 @@ Use the smallest workflow that gives enough control.
 | Fast Path | The change is already clear and engineering-ready | OpenSpec directly or small standalone package |
 | Standard Path | Some clarification is needed | Business intake + readiness + handoff |
 | Enterprise Path | Formal BRS, architecture impact, compliance, multiple stakeholders | Intake + architecture + traceability + gates |
-| Enterprise + Modular Delivery | Large/multi-team/multi-quarter work or AI context saturation risk | Modules + increments + active-deliverable handoff |
+| Enterprise + Modular Delivery | Large, multi-team, multi-quarter work or AI context saturation risk | Modules + increments + active-deliverable handoff |
 
 ## Execution modes
 
@@ -99,7 +99,7 @@ input/input-package.md
 
 Quality gates are not optional.
 
-They are not always required, but when triggered by the readiness check, they become mandatory before the relevant implementation, merge, or release step.
+They are not always required, but when triggered by the readiness check, they become mandatory before the relevant implementation, merge, or handoff step.
 
 ## Planning view
 
@@ -134,6 +134,19 @@ perspectives/agile-planning/gitlab-planning-view.md
 ```
 
 If scope, requirements, architecture constraints, quality gates, or implementation tasks change, update the source artifacts first and regenerate the planning view.
+
+## Copilot guidance
+
+The repository also includes guidance for GitHub Copilot and VS Code so assistants understand that this is a BRS-to-delivery-readiness framework, not an application codebase.
+
+Relevant support files include:
+
+```text
+.github/copilot-instructions.md
+.github/prompts/
+docs/15-github-copilot-workflow.md
+.vscode/settings.json
+```
 
 ## Template quality rule
 

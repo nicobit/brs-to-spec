@@ -199,3 +199,30 @@ To refresh the view after readiness or quality gates change, run:
 ```text
 prompts/7-perspectives/agile-planning/02-refresh-gitlab-planning-view.md
 ```
+
+
+## Using GitHub Copilot / VS Code
+
+This repository includes repository-level Copilot instructions:
+
+```text
+.github/copilot-instructions.md
+```
+
+Useful prompt files:
+
+```text
+.github/prompts/brs-to-spec-run-workflow.prompt.md
+.github/prompts/create-engineering-readiness.prompt.md
+.github/prompts/create-openspec-handoff.prompt.md
+.github/prompts/create-standalone-handoff.prompt.md
+.github/prompts/create-gitlab-planning-view.prompt.md
+```
+
+Recommended first Copilot request:
+
+```text
+Based on .github/copilot-instructions.md, identify the current workflow stage and recommend the next artifact to create.
+```
+
+Do not ask Copilot to implement directly from a raw BRS.
