@@ -2,6 +2,8 @@
 
 ## Executive Summary
 
+## Source Document Inventory
+
 ## Objectives
 
 ## Scope
@@ -11,5 +13,9 @@
 ## Capabilities
 
 ## Gaps and Questions
+
+## Risks and Assumptions
+
+## Consolidation Notes
 
 ## PO Review Checklist

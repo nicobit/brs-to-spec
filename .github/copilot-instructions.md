@@ -1,4 +1,4 @@
-# GitHub Copilot Instructions — BRS to Delivery Readiness Framework
+﻿# GitHub Copilot Instructions - BRS to Delivery Readiness Framework
 
 ## Purpose of this repository
 
@@ -7,7 +7,7 @@ This repository is not a normal application codebase.
 It is an enterprise delivery-readiness framework that transforms:
 
 ```text
-BRS + initial architecture
+one or more BRS inputs + optional architecture inputs
 ```
 
 into:
@@ -30,17 +30,39 @@ Do not treat this repository as a coding project where the goal is to generate a
 
 The purpose is to guide business analysis, architecture-aware planning, engineering readiness, quality gates, and handoff to OpenSpec or standalone delivery.
 
-## Source of truth hierarchy
+## Feature workspace rule
 
-Respect this order:
+Operate inside one feature workspace at a time.
+
+The standard workspace shape is:
 
 ```text
-1. input/brs.md
-2. input/initial-architecture.md
+features/<feature-id>-<slug>/
+```
+
+All workflow paths are relative to the active feature workspace.
+
+The canonical source set for a feature starts with:
+
+```text
+input/brs.md or input/brs/*.md
+input/architecture.md or input/architecture/*.md
+input/input-package.md
+```
+
+Start with `input/brs.md` and `input/architecture.md`. Expand to folders only when the same initiative genuinely has multiple source documents.
+
+## Source of truth hierarchy
+
+Respect this order within the active feature workspace:
+
+```text
+1. input/brs.md or input/brs/*.md
+2. input/architecture.md or input/architecture/*.md
 3. input/input-package.md
 4. business-intake/business-intake-summary.md
-5. architecture/initial-architecture-review.md
-6. architecture/global-architecture-rules.md
+5. architecture/architecture-review.md
+6. architecture/architecture-rules.md
 7. planning/delivery-increments.md
 8. planning/traceability-matrix.md
 9. engineering-readiness/readiness-check.md
@@ -51,9 +73,20 @@ Respect this order:
 
 The Agile / GitLab Planning View is a projection only. It is not the source of truth.
 
+## Consolidation rule for multiple source files
+
+When multiple BRS or architecture files exist:
+
+```text
+analyze all files in the relevant input folder
+preserve source document names and section references
+record overlap, conflicts, and assumptions in input/input-package.md
+do not silently merge conflicting statements without noting the conflict
+```
+
 ## Architecture rule
 
-If `input/initial-architecture.md` defines a constraint, do not override it unless explicitly marked as:
+If the architecture input defines a constraint, do not override it unless explicitly marked as:
 
 ```text
 conflict
@@ -165,7 +198,7 @@ quality gates
 implementation tasks
 ```
 
-Always include source artifact paths and IDs.
+Always include source artifact paths and source IDs or source file names.
 
 ## User story format
 
@@ -219,23 +252,26 @@ Control area | Status | Evidence | Gap / Risk | Required action | Owner | Requir
 
 Do not:
 
-- generate application code directly from a raw BRS
-- create tasks for the whole BRS at once
-- ignore the initial architecture document
+- generate application code directly from raw BRS sources
+- create tasks for the whole feature at once
+- ignore the architecture input
 - call triggered quality gates optional
 - duplicate source-of-truth content in the planning view
 - invent GitLab issue IDs
 - invent missing requirements, architecture decisions, or acceptance criteria
+- mix outputs from different feature workspaces
 - treat standalone mode as lower quality than OpenSpec mode
 
 ## Recommended behavior in Copilot Chat
 
 When asked to help with this repository:
 
-1. Identify the user’s current workflow step.
-2. Ask which source artifacts exist only if that is unclear.
-3. Recommend the next prompt to run.
-4. Generate or update only the relevant artifact.
-5. Preserve source IDs and paths.
-6. Include evidence, risk, owner, required-before, and traceability.
-7. Do not create unrelated files.
+1. Identify the active feature workspace.
+2. Identify the user's current workflow step.
+3. Ask which source artifacts exist only if that is unclear.
+4. Recommend the next prompt to run.
+5. Generate or update only the relevant artifact inside that feature workspace.
+6. Preserve source paths and traceability.
+7. Include evidence, risk, owner, required-before, and traceability.
+8. Do not create unrelated files.
+

@@ -1,4 +1,4 @@
-# Prompt — Create Module Technical Spec
+﻿# Prompt â€” Create Module Technical Spec
 
 ## Purpose
 
@@ -9,8 +9,8 @@ Create a technical specification for one selected module only.
 Use normalized artifacts when available:
 
 ```text
-input/brs.md
-input/initial-architecture.md
+input/brs.md or input/brs/*.md
+input/architecture.md or input/architecture/*.md
 input/input-package.md
 ```
 
@@ -25,3 +25,5 @@ specs/modules/<module-name>/technical_spec.md
 - Use only when required.
 - Respect global architecture rules.
 - Do not create implementation tasks.
+
+

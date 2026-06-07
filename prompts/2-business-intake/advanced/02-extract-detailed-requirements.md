@@ -1,4 +1,4 @@
-# Prompt — Extract Detailed Requirements
+﻿# Prompt â€” Extract Detailed Requirements
 
 ## Purpose
 
@@ -9,8 +9,8 @@ Create a deeper business artifact only when required by readiness or governance.
 Use normalized artifacts when available:
 
 ```text
-input/brs.md
-input/initial-architecture.md
+input/brs.md or input/brs/*.md
+input/architecture.md or input/architecture/*.md
 input/input-package.md
 ```
 
@@ -24,3 +24,5 @@ business-intake/advanced/02-extract-detailed-requirements.md
 
 - Do not make this part of the default PO workflow.
 - Preserve traceability to the BRS.
+
+

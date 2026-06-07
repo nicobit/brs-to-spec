@@ -1,4 +1,4 @@
-# Prompt — Map Capabilities to Modules
+﻿# Prompt â€” Map Capabilities to Modules
 
 ## Role
 
@@ -16,11 +16,11 @@ Map requirements and capabilities to modules and constraints.
 
 Use these inputs when available:
 
-- `input/brs.md`
-- `input/initial-architecture.md`
+- `input/brs.md or input/brs/*.md`
+- `input/architecture.md or input/architecture/*.md`
 - `business-intake/business-intake-summary.md`
-- `architecture/initial-architecture-review.md`
-- `architecture/global-architecture-rules.md`
+- `architecture/architecture-review.md`
+- `architecture/architecture-rules.md`
 
 ## Output path
 
@@ -28,40 +28,15 @@ Use these inputs when available:
 planning/capability-module-map.md
 ```
 
-## Required output structure
+## Template
 
-```markdown
-# Artifact
+Use:
 
-## Summary
-
-## Key Decisions
-
-| Decision ID | Decision | Evidence | Risk | Owner |
-|---|---|---|---|---|
-
-## Main Table
-
-| ID | Item | Source | Impact | Evidence | Risk / Gap | Owner |
-|---|---|---|---|---|---|---|
-
-## Architecture Constraints Applied
-
-| Constraint ID | Constraint | Applied how? | Evidence | Gap |
-|---|---|---|---|---|
-
-## Traceability
-
-| Requirement ID | Capability | Module / Component | Deliverable | Validation |
-|---|---|---|---|---|
-
-## Conflicts / Open Decisions
-
-| ID | Conflict / Decision | Impact | Owner | Required before |
-|---|---|---|---|---|
-
-## Recommendations
+```text
+templates/planning-and-modular-delivery/capability-module-map.md
 ```
+
+Preserve the template headings and add structure only where the evidence demands it.
 
 ## Quality bar
 
@@ -98,3 +73,5 @@ Before finalizing, verify:
 - [ ] Open decisions include owners.
 - [ ] Risks and gaps are visible.
 - [ ] The output supports the next workflow step.
+
+

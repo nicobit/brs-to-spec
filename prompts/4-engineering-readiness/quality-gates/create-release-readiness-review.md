@@ -1,4 +1,4 @@
-# Prompt — Create Release Readiness Review
+﻿# Prompt â€” Create Release Readiness Review
 
 ## Role
 
@@ -17,9 +17,9 @@ Review production readiness, rollback, monitoring, evidence, support and go/no-g
 Use these inputs when available:
 
 - `engineering-readiness/readiness-check.md`
-- `input/brs.md`
-- `input/initial-architecture.md`
-- `architecture/global-architecture-rules.md`
+- `input/brs.md or input/brs/*.md`
+- `input/architecture.md or input/architecture/*.md`
+- `architecture/architecture-rules.md`
 - `planning/traceability-matrix.md`
 - `business-intake/business-intake-summary.md`
 
@@ -29,54 +29,15 @@ Use these inputs when available:
 quality-gates/release-readiness-review.md
 ```
 
-## Required output structure
+## Template
 
-```markdown
-# <Quality Gate Name>
+Use:
 
-## Metadata
-
-| Field | Value |
-|---|---|
-| Active deliverable |  |
-| Reviewer / Author |  |
-| Review date |  |
-| Related readiness check |  |
-
-## Decision / Outcome
-
-| Decision | Value |
-|---|---|
-| Status | Approved / Approved with risks / Not approved |
-| Conditions |  |
-
-## Scope
-
-## Main Assessment
-
-| Area | Status | Evidence | Gap / Risk | Required action | Owner | Required before |
-|---|---|---|---|---|---|---|
-
-## Findings
-
-| Finding ID | Severity | Area | Evidence | Risk | Recommendation | Owner | Required before |
-|---|---|---|---|---|---|---|---|
-
-## Traceability
-
-| Requirement ID / Constraint ID | Covered by | Evidence |
-|---|---|---|
-
-## Required Actions
-
-| Action ID | Action | Owner | Required before | Status |
-|---|---|---|---|---|
-
-## Residual Risks
-
-| Risk ID | Risk | Impact | Mitigation | Accepted by |
-|---|---|---|---|---|
+```text
+templates/quality-gates/release-readiness-review.md
 ```
+
+Preserve the template headings and add structure only where the evidence demands it.
 
 ## Quality bar
 
@@ -113,3 +74,5 @@ Before finalizing, verify:
 - [ ] Every required action has owner and required-before stage.
 - [ ] Residual risks are explicit.
 - [ ] The final decision is clear.
+
+

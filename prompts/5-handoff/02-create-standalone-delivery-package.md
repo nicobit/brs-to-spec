@@ -1,4 +1,4 @@
-# Prompt — Create Standalone Delivery Package
+# Prompt - Create Standalone Delivery Package
 
 ## Role
 
@@ -10,7 +10,7 @@ This prompt is used only when execution mode is Standalone. Standalone mode must
 
 ## Purpose
 
-Create a delivery package with scope, design approach, tasks, validation and review checklist.
+Create a delivery package with scope, design approach, tasks, validation, and review checklist.
 
 ## Inputs
 
@@ -19,7 +19,7 @@ Use these inputs when available:
 - `engineering-readiness/readiness-check.md`
 - `quality-gates/*.md`
 - `planning/traceability-matrix.md`
-- `architecture/global-architecture-rules.md`
+- `architecture/architecture-rules.md`
 - `business-intake/business-intake-summary.md`
 
 ## Output path
@@ -28,87 +28,19 @@ Use these inputs when available:
 standalone-delivery/D1-<deliverable-name>/
 ```
 
-## Required output structure
+## Templates
 
-```markdown
-# Standalone Delivery Package
+Use:
 
-## delivery-spec.md
-
-### Purpose
-
-### Scope
-
-### Out of Scope
-
-### Requirements Covered
-
-### Architecture Constraints
-
-### Acceptance Criteria
-
-### Quality Gates Applied
-
-## implementation-plan.md
-
-### Design Approach
-
-### Components Affected
-
-### API / Data / Event Impact
-
-### Security Considerations
-
-### Observability
-
-### Dependencies
-
-### Risks
-
-## tasks.md
-
-### Implementation Tasks
-
-- [ ] Task 1 — <small validated task>
-  - Related requirement:
-  - Related architecture constraint:
-  - Related quality gate:
-  - Validation:
-  - Evidence expected:
-  - Owner:
-
-### Validation Tasks
-
-### Documentation Tasks
-
-### Review Tasks
-
-## validation-plan.md
-
-### Automated Validation
-
-### Manual Validation
-
-### Regression Validation
-
-### Security Validation
-
-### Evidence Required
-
-### Exit Criteria
-
-## review-checklist.md
-
-### QA Review
-
-### Architecture Review
-
-### Security Review
-
-### Release Readiness
-
-### Final Decision
+```text
+templates/standalone-delivery/delivery-spec.md
+templates/standalone-delivery/implementation-plan.md
+templates/standalone-delivery/tasks.md
+templates/standalone-delivery/validation-plan.md
+templates/standalone-delivery/review-checklist.md
 ```
+
+Preserve the template headings in each file and add detail only where the evidence demands it.
 
 ## Quality bar
 

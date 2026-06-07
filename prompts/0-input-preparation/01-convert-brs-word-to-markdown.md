@@ -1,4 +1,4 @@
-# Prompt — Convert BRS Word to Markdown
+# Prompt - Convert BRS Word to Markdown
 
 ## Role
 
@@ -6,11 +6,11 @@ You are a senior business analyst converting enterprise BRS content into a clean
 
 ## Context
 
-This is Step 0. The output becomes the source for all downstream business intake, planning, readiness and handoff prompts.
+This is Step 0. The output becomes one source document in the current feature workspace and feeds all downstream business intake, planning, readiness, and handoff prompts.
 
 ## Purpose
 
-Convert a raw Word/SharePoint/Confluence BRS into normalized Markdown while preserving traceability and ambiguity.
+Convert one raw Word, SharePoint, or Confluence BRS into normalized Markdown while preserving traceability and ambiguity.
 
 ## Inputs
 
@@ -19,73 +19,31 @@ Use these inputs when available:
 - `source BRS document`
 - `source tables`
 - `source attachments or references if available`
+- the active feature workspace path
 
 ## Output path
+
+Default output for the first BRS in a feature workspace:
 
 ```text
 input/brs.md
 ```
 
-## Required output structure
+If the feature workspace already contains multiple BRS source files, create the new file under:
 
-```markdown
-# BRS
-
-## Source Metadata
-
-| Field | Value |
-|---|---|
-| Source name |  |
-| Source version/date |  |
-| Extracted by |  |
-| Extraction date |  |
-
-## Executive Summary
-
-## Business Objectives
-
-| Objective ID | Objective | Source section | Confidence |
-|---|---|---|---|
-
-## Scope
-
-### In Scope
-
-### Out of Scope
-
-## Stakeholders
-
-| Stakeholder | Role | Impact |
-|---|---|---|
-
-## Requirements
-
-| Requirement ID | Source section | Requirement | Type | Priority | Confidence | Notes |
-|---|---|---|---|---|---|---|
-
-## Business Rules
-
-| Rule ID | Rule | Related requirement | Source |
-|---|---|---|---|
-
-## Non-Functional Requirements
-
-| NFR ID | Requirement | Category | Source | Notes |
-|---|---|---|---|---|
-
-## Assumptions
-
-## Dependencies
-
-## Risks
-
-## Open Questions
-
-| Question ID | Question | Impact if unanswered | Suggested owner |
-|---|---|---|---|
-
-## Source Traceability Notes
+```text
+input/brs/<short-name>.md
 ```
+
+## Template
+
+Use:
+
+```text
+templates/input-preparation/brs.md
+```
+
+Preserve the template headings and extend them only when the source evidence requires more detail.
 
 ## Quality bar
 
@@ -117,6 +75,8 @@ Do not produce outputs that:
 
 Before finalizing, verify:
 
+- [ ] The file is written inside the current feature workspace.
+- [ ] The default output is `input/brs.md` unless the feature has expanded to `input/brs/`.
 - [ ] Every requirement has a source section or traceability note.
 - [ ] Ambiguities are listed as open questions.
 - [ ] Assumptions are separated from explicit requirements.

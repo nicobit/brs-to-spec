@@ -1,4 +1,4 @@
-# Global Architecture Rules
+# Architecture Rules
 
 ## Principles
 

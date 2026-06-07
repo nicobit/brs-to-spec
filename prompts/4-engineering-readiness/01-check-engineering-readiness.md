@@ -1,4 +1,4 @@
-# Prompt — Check Engineering Readiness
+﻿# Prompt â€” Check Engineering Readiness
 
 ## Role
 
@@ -16,15 +16,15 @@ Assess the active deliverable and determine required quality gates using evidenc
 
 Use these inputs when available:
 
-- `input/brs.md`
-- `input/initial-architecture.md`
+- `input/brs.md or input/brs/*.md`
+- `input/architecture.md or input/architecture/*.md`
 - `business-intake/business-intake-summary.md`
-- `architecture/initial-architecture-review.md`
-- `architecture/global-architecture-rules.md`
+- `architecture/architecture-review.md`
+- `architecture/architecture-rules.md`
 - `planning/delivery-structure.md`
 - `planning/delivery-increments.md`
 - `planning/traceability-matrix.md`
-- `routing/delivery-and-execution-mode-decision.md`
+- `routing/routing-decision.md`
 
 ## Output path
 
@@ -32,69 +32,15 @@ Use these inputs when available:
 engineering-readiness/readiness-check.md
 ```
 
-## Required output structure
+## Template
 
-```markdown
-# Engineering Readiness Check
+Use:
 
-## Metadata
-
-| Field | Value |
-|---|---|
-| Initiative / Feature |  |
-| Active deliverable |  |
-| Delivery mode |  |
-| Execution mode |  |
-| Reviewer |  |
-| Review date |  |
-
-## Readiness Decision
-
-| Decision | Value |
-|---|---|
-| Status | Ready / Ready with risks / Not ready |
-| Decision owner |  |
-| Conditions / caveats |  |
-
-## Decision Rationale
-
-## Core Checklist
-
-| Area | Status | Evidence | Gap / Risk | Required action | Owner | Required before |
-|---|---|---|---|---|---|---|
-| Business scope clear |  |  |  |  |  | Handoff |
-| Requirements traceable |  |  |  |  |  | Handoff |
-| Initial architecture reviewed |  |  |  |  |  | Handoff |
-| Architecture constraints applied |  |  |  |  |  | Implementation |
-| Architecture conflicts resolved or accepted |  |  |  |  |  | Implementation |
-| Impacted modules known |  |  |  |  |  | Implementation |
-| Acceptance expectations clear |  |  |  |  |  | Implementation |
-| Validation approach clear |  |  |  |  |  | Implementation |
-
-## Conditional Quality Gates
-
-| Quality Gate | Triggered? | Required? | Trigger evidence | Risk if skipped | Owner | Required before | Output |
-|---|---|---|---|---|---|---|---|
-| BDD scenarios |  |  |  |  | PO/QA | Implementation | `quality-gates/bdd-scenarios.md` |
-| Test strategy |  |  |  |  | QA | Implementation | `quality-gates/test-strategy.md` |
-| QA review |  |  |  |  | QA | Merge | `quality-gates/qa-review.md` |
-| Architecture review |  |  |  |  | Architect | Implementation | `quality-gates/architecture-review.md` |
-| Security review |  |  |  |  | Security/Architect | Implementation/Merge | `quality-gates/security-review.md` |
-| Release readiness review |  |  |  |  | Dev/QA/SRE | Release | `quality-gates/release-readiness-review.md` |
-| API contract |  |  |  |  | Engineering | Implementation | `quality-gates/api-contract.md` |
-| Data contract |  |  |  |  | Engineering/DB | Implementation | `quality-gates/data-contract.md` |
-| Event contract |  |  |  |  | Engineering | Implementation | `quality-gates/event-contract.md` |
-| Threat model |  |  |  |  | Security/Architect | Implementation | `quality-gates/threat-model.md` |
-| Observability plan |  |  |  |  | SRE/Engineering | Release | `quality-gates/observability-plan.md` |
-
-## Blocking Issues
-
-## Accepted Risks
-
-## Required Actions Before Handoff
-
-## Recommended Handoff
+```text
+templates/engineering-readiness/readiness-check.md
 ```
+
+Preserve the template headings and complete every section that can be supported by evidence.
 
 ## Quality bar
 
@@ -131,3 +77,5 @@ Before finalizing, verify:
 - [ ] Readiness decision is justified.
 - [ ] Required-before stages are clear.
 - [ ] Unsupported assumptions are flagged.
+
+

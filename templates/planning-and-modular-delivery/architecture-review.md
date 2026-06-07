@@ -1,4 +1,4 @@
-# Initial Architecture Review
+# Architecture Review
 
 ## Constraints Identified
 

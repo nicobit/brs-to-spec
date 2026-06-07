@@ -1,4 +1,4 @@
-# Prompt — Select Delivery and Execution Mode
+﻿# Prompt â€” Select Delivery and Execution Mode
 
 ## Role
 
@@ -16,20 +16,20 @@ Select both the delivery mode and execution mode, with clear rationale and trade
 
 Use these inputs when available:
 
-- `input/brs.md`
-- `input/initial-architecture.md`
+- `input/brs.md or input/brs/*.md`
+- `input/architecture.md or input/architecture/*.md`
 - `input/input-package.md`
 
 ## Output path
 
 ```text
-routing/delivery-and-execution-mode-decision.md
+routing/routing-decision.md
 ```
 
 ## Required output structure
 
 ```markdown
-# Delivery and Execution Mode Decision
+# Routing Decision
 
 ## Decision Summary
 
@@ -108,3 +108,5 @@ Before finalizing, verify:
 - [ ] Unnecessary prompts are explicitly excluded.
 - [ ] Under-processing and over-processing risks are both described.
 - [ ] The recommendation is practical for a real project.
+
+

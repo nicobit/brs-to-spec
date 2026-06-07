@@ -1,4 +1,4 @@
-# Initial Architecture
+# Architecture
 
 ## Source Metadata
 

@@ -4,6 +4,8 @@ description: Create OpenSpec handoff for the active deliverable.
 
 # Create OpenSpec Handoff
 
+Work inside the active feature workspace.
+
 Use:
 
 ```text

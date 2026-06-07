@@ -1,4 +1,4 @@
-# Prompt — Create Business Test Expectations
+﻿# Prompt â€” Create Business Test Expectations
 
 ## Purpose
 
@@ -9,18 +9,20 @@ Create a deeper business artifact only when required by readiness or governance.
 Use normalized artifacts when available:
 
 ```text
-input/brs.md
-input/initial-architecture.md
+input/brs.md or input/brs/*.md
+input/architecture.md or input/architecture/*.md
 input/input-package.md
 ```
 
 ## Output
 
 ```text
-business-intake/advanced/04-create-business-test-expectations.md
+business-intake/advanced/acceptance-expectations.md
 ```
 
 ## Rules
 
 - Do not make this part of the default PO workflow.
 - Preserve traceability to the BRS.
+
+

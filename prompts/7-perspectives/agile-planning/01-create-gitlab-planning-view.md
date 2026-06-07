@@ -1,4 +1,4 @@
-# Prompt — Create GitLab Planning View
+# Prompt - Create GitLab Planning View
 
 ## Role
 
@@ -19,7 +19,7 @@ quality-gates/*.md
 openspec/changes/... or standalone-delivery/...
 ```
 
-This prompt creates a **read-only planning projection** for teams that work with epics, features, user stories, GitLab issues, milestones and labels.
+This prompt creates a read-only planning projection for teams that work with epics, features, user stories, GitLab issues, milestones, and labels.
 
 ## Purpose
 
@@ -47,97 +47,15 @@ Use these inputs when available:
 perspectives/agile-planning/gitlab-planning-view.md
 ```
 
-## Required output structure
+## Template
 
-```markdown
-# GitLab Planning View
+Use:
 
-> This file is a planning projection.
-> It is not the source of truth.
-> If scope, requirements, architecture constraints, quality gates or implementation tasks change,
-> update the source artifacts first and regenerate this view.
-
-## Metadata
-
-| Field | Value |
-|---|---|
-| Initiative / Feature |  |
-| Active deliverable |  |
-| Delivery mode |  |
-| Execution mode | OpenSpec / Standalone |
-| Source of truth |  |
-| Generated from |  |
-| Generated date |  |
-| View status | Draft / Updated / Stale |
-
-## Planning Summary
-
-## Source Artifact Map
-
-| Source artifact | Path | Purpose | Used in this view? |
-|---|---|---|---|
-
-## Suggested GitLab Hierarchy
-
-| GitLab level | Suggested title | Source artifact | Source ID | Notes |
-|---|---|---|---|---|
-| Epic / Parent epic |  |  |  |  |
-| Feature / Epic / Issue |  |  |  |  |
-| User story / Issue |  |  |  |  |
-| Task / Checklist item |  |  |  |  |
-
-## Epic Projection
-
-| Field | Value | Source |
-|---|---|---|
-| Epic title |  |  |
-| Epic goal |  |  |
-| Business value |  |  |
-| Scope |  |  |
-| Out of scope |  |  |
-| Related requirements |  |  |
-| Related architecture constraints |  |  |
-| Related quality gates |  |  |
-
-## Feature / Issue Projection
-
-| Feature ID | Suggested GitLab title | Description | Business value | Source deliverable | Related requirements | Dependencies | Labels |
-|---|---|---|---|---|---|---|---|
-
-## User Story Projection
-
-| Story ID | Suggested GitLab title | User story | Source requirement | Acceptance source | Quality gate references | Labels |
-|---|---|---|---|---|---|---|
-
-## Task / Checklist Projection
-
-| Task ID | Suggested task / checklist item | Source artifact | Source ID | Validation / evidence expected | Required before | Owner / Team |
-|---|---|---|---|---|---|---|
-
-## Quality Gate Actions to Track
-
-| Gate | Action | Source artifact | Required before | Suggested GitLab representation | Owner |
-|---|---|---|---|---|---|
-
-## Suggested Labels
-
-| Label | Reason |
-|---|---|
-
-## Suggested Milestone / Iteration
-
-| Field | Value | Source / Notes |
-|---|---|---|
-
-## Sync Notes
-
-| Item | Source of truth | What to do if this changes |
-|---|---|---|
-
-## Do Not Duplicate
-
-List any content that should not be copied as independent truth into GitLab.
+```text
+templates/perspectives/agile-planning/gitlab-planning-view.md
 ```
+
+Preserve the template headings and add detail only where the evidence demands it.
 
 ## Quality bar
 
@@ -146,7 +64,7 @@ A good output must:
 - map source artifacts to GitLab planning items
 - preserve source IDs and source paths
 - clearly state that this is a projection, not the source of truth
-- avoid redefining requirements, architecture constraints or acceptance criteria
+- avoid redefining requirements, architecture constraints, or acceptance criteria
 - show how quality gate actions should be tracked
 - make GitLab planning usable without creating a parallel framework
 
@@ -158,7 +76,7 @@ Do not produce outputs that:
 - redefine requirements independently from the traceability matrix
 - duplicate OpenSpec or standalone tasks as a new authoritative task list
 - create a second backlog source of truth
-- generate many epics/features/stories without source references
+- generate many epics, features, or stories without source references
 - hide the source artifact path
 
 ## Stop conditions
@@ -173,7 +91,7 @@ Do not produce outputs that:
 Before finalizing, verify:
 
 - [ ] The file states it is a projection, not source of truth.
-- [ ] Every epic/feature/story/task points to a source artifact and source ID where possible.
+- [ ] Every epic, feature, story, and task points to a source artifact and source ID where possible.
 - [ ] No requirement was redefined independently.
 - [ ] Quality gate actions are tracked without duplicating the gate content.
 - [ ] GitLab mapping is usable by the team.

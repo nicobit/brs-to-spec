@@ -1,8 +1,8 @@
-# Prompt — Convert Initial Architecture Document to Markdown
+# Prompt - Convert Architecture Document to Markdown
 
 ## Role
 
-You are a senior solution architect normalizing an initial architecture document for downstream delivery analysis.
+You are a senior solution architect normalizing an architecture document for downstream delivery analysis.
 
 ## Context
 
@@ -10,7 +10,7 @@ This is Step 0. The output becomes the architecture baseline and must not be sil
 
 ## Purpose
 
-Convert the initial architecture document into normalized Markdown and extract constraints, decisions, assumptions, and open architecture questions.
+Convert the architecture source document into normalized Markdown and extract constraints, decisions, assumptions, and open architecture questions.
 
 ## Inputs
 
@@ -23,65 +23,27 @@ Use these inputs when available:
 
 ## Output path
 
+Default output for the first architecture input in a feature workspace:
+
 ```text
-input/initial-architecture.md
+input/architecture.md
 ```
 
-## Required output structure
+If the feature workspace already contains multiple architecture source files, create the new file under:
 
-```markdown
-# Initial Architecture
-
-## Source Metadata
-
-| Field | Value |
-|---|---|
-| Source name |  |
-| Source version/date |  |
-| Extracted by |  |
-| Extraction date |  |
-
-## Architecture Summary
-
-## System Context
-
-## Main Components
-
-| Component | Responsibility | Notes |
-|---|---|---|
-
-## Integration Points
-
-| Integration | Producer | Consumer | Protocol / Pattern | Notes |
-|---|---|---|---|---|
-
-## Data Ownership and Persistence
-
-## Security and Identity
-
-## Deployment / Infrastructure
-
-## Observability / Operations
-
-## Architecture Constraints
-
-| Constraint ID | Area | Constraint | Source | Mandatory? | Risk if violated |
-|---|---|---|---|---|---|
-
-## Architecture Decisions Already Taken
-
-| Decision ID | Decision | Rationale | Source |
-|---|---|---|---|
-
-## Assumptions
-
-## Open Architecture Decisions
-
-| Decision ID | Question | Impact | Suggested owner |
-|---|---|---|---|
-
-## Conflicts / Ambiguities
+```text
+input/architecture/<short-name>.md
 ```
+
+## Template
+
+Use:
+
+```text
+templates/input-preparation/architecture.md
+```
+
+Preserve the template headings and extend them only when the source evidence requires more detail.
 
 ## Quality bar
 
@@ -113,6 +75,7 @@ Do not produce outputs that:
 
 Before finalizing, verify:
 
+- [ ] The default output is `input/architecture.md` unless the feature has expanded to `input/architecture/`.
 - [ ] Every architecture constraint has an ID.
 - [ ] Decisions, assumptions and open decisions are separated.
 - [ ] Any missing architecture input is explicitly stated.
