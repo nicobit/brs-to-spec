@@ -7,7 +7,7 @@ def slugify(value: str) -> str:
     value = value.strip().lower()
     value = re.sub(r"[^a-z0-9]+", "-", value)
     value = re.sub(r"-{2,}", "-", value).strip("-")
-    return value or "feature"
+    return value or "initiative"
 
 
 def write_if_missing(path: Path, content: str) -> None:
@@ -16,19 +16,23 @@ def write_if_missing(path: Path, content: str) -> None:
         path.write_text(content.strip() + "\n", encoding="utf-8")
 
 
-def build_workspace_name(feature_id: str | None, name: str) -> str:
+def build_workspace_name(initiative_id: str | None, name: str) -> str:
     slug = slugify(name)
-    if feature_id:
-        return f"{feature_id}-{slug}"
+    if initiative_id:
+        return f"{initiative_id}-{slug}"
     return slug
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Create a new feature-scoped BRS-to-delivery workspace."
+        description="Create a new initiative-scoped BRS-to-delivery workspace."
     )
-    parser.add_argument("name", help="Feature name or slug.")
-    parser.add_argument("--feature-id", help="Optional feature identifier such as F001.")
+    parser.add_argument("name", help="Initiative name or slug.")
+    parser.add_argument(
+        "--initiative-id",
+        dest="initiative_id",
+        help="Optional initiative identifier such as I001.",
+    )
     parser.add_argument(
         "--mode",
         choices=["fast", "standard", "enterprise", "enterprise-modular"],
@@ -41,12 +45,12 @@ def main() -> None:
     )
     parser.add_argument(
         "--root",
-        default="features",
-        help="Workspace parent directory. Defaults to features.",
+        default="initiatives",
+        help="Workspace parent directory. Defaults to initiatives.",
     )
     args = parser.parse_args()
 
-    workspace_name = build_workspace_name(args.feature_id, args.name)
+    workspace_name = build_workspace_name(args.initiative_id, args.name)
     root = Path(args.root) / workspace_name
 
     write_if_missing(
@@ -54,7 +58,7 @@ def main() -> None:
         f"""
         # {workspace_name}
 
-        This feature workspace holds all inputs and outputs for one delivery initiative.
+        This initiative workspace holds all inputs and outputs for one delivery initiative.
 
         Default inputs:
         - `input/brs.md`
@@ -62,7 +66,7 @@ def main() -> None:
         - `input/input-package.md`
 
         Expand to `input/brs/` or `input/architecture/` only when the same initiative has multiple source documents.
-        Treat every other path in this workspace as relative to this feature root.
+        Treat every other path in this workspace as relative to this initiative root.
         """,
     )
     write_if_missing(
@@ -95,7 +99,7 @@ def main() -> None:
         """
         # Input Package
 
-        ## Feature Workspace
+        ## Initiative Workspace
 
         ## Input Inventory
 
@@ -157,9 +161,11 @@ def main() -> None:
         )
 
     write_if_missing(root / "quality-gates" / ".gitkeep", "")
+    write_if_missing(root / "perspectives" / "agile-planning" / ".gitkeep", "")
+    write_if_missing(root / "reviews" / "implementation" / ".gitkeep", "")
 
     print(f"Created workspace: {root}")
-    print(f"Feature workspace: {workspace_name}")
+    print(f"Initiative workspace: {workspace_name}")
     print(f"Initial BRS file: {root / 'input' / 'brs.md'}")
     print(f"Initial architecture file: {root / 'input' / 'architecture.md'}")
     print(f"Delivery mode: {args.mode}")

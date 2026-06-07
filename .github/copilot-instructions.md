@@ -30,17 +30,17 @@ Do not treat this repository as a coding project where the goal is to generate a
 
 The purpose is to guide business analysis, architecture-aware planning, engineering readiness, quality gates, and handoff to OpenSpec or standalone delivery.
 
-## Feature workspace rule
+## Initiative workspace rule
 
-Operate inside one feature workspace at a time.
+Operate inside one initiative workspace at a time.
 
 The standard workspace shape is:
 
 ```text
-features/<feature-id>-<slug>/
+initiatives/<initiative-id>-<slug>/
 ```
 
-All workflow paths are relative to the active feature workspace.
+All workflow paths are relative to the active initiative workspace.
 
 The canonical source set for a feature starts with:
 
@@ -54,7 +54,7 @@ Start with `input/brs.md` and `input/architecture.md`. Expand to folders only wh
 
 ## Source of truth hierarchy
 
-Respect this order within the active feature workspace:
+Respect this order within the active initiative workspace:
 
 ```text
 1. input/brs.md or input/brs/*.md
@@ -69,9 +69,27 @@ Respect this order within the active feature workspace:
 10. quality-gates/*.md
 11. openspec/changes/... or standalone-delivery/...
 12. perspectives/agile-planning/gitlab-planning-view.md
+13. implementation and review helper outputs
 ```
 
 The Agile / GitLab Planning View is a projection only. It is not the source of truth.
+
+Implementation summaries, review comments, and reviewer prompt outputs are downstream helper artifacts only.
+
+## Coding-agent boundary
+
+Do not start coding from raw source inputs.
+
+Code implementation should begin only when the active initiative workspace has:
+
+```text
+engineering-readiness/readiness-check.md
+required quality gates completed or explicitly accepted as risk
+openspec/changes/D1-.../tasks.md
+or standalone-delivery/D1-.../tasks.md
+```
+
+If `quality-gates/ready-for-copilot-checklist.md` exists, use it as the final implementation gate.
 
 ## Consolidation rule for multiple source files
 
@@ -175,6 +193,30 @@ threat model
 observability plan
 ```
 
+## Implementation rule
+
+When using a coding agent:
+
+```text
+implement one task at a time
+read the active feature artifacts first
+inspect existing similar code before changing files
+update tests with behavior changes
+return assumptions, risks, and open questions
+```
+
+Do not implement future tasks in the same pass.
+
+## Review rule
+
+After implementation, use the review prompts under:
+
+```text
+prompts/9-reviewers/
+```
+
+Treat review prompts as implementation review surfaces, not as replacements for artifact-generation quality gates.
+
 ## Agile / GitLab Planning View rule
 
 The GitLab Planning View maps delivery artifacts to:
@@ -259,18 +301,18 @@ Do not:
 - duplicate source-of-truth content in the planning view
 - invent GitLab issue IDs
 - invent missing requirements, architecture decisions, or acceptance criteria
-- mix outputs from different feature workspaces
+- mix outputs from different initiative workspaces
 - treat standalone mode as lower quality than OpenSpec mode
 
 ## Recommended behavior in Copilot Chat
 
 When asked to help with this repository:
 
-1. Identify the active feature workspace.
+1. Identify the active initiative workspace.
 2. Identify the user's current workflow step.
 3. Ask which source artifacts exist only if that is unclear.
 4. Recommend the next prompt to run.
-5. Generate or update only the relevant artifact inside that feature workspace.
+5. Generate or update only the relevant artifact inside that initiative workspace.
 6. Preserve source paths and traceability.
 7. Include evidence, risk, owner, required-before, and traceability.
 8. Do not create unrelated files.

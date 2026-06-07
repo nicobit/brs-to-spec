@@ -11,8 +11,8 @@ def slugify(value: str) -> str:
     return value or "source"
 
 
-def ensure_multi_architecture_mode(feature_root: Path) -> Path:
-    input_dir = feature_root / "input"
+def ensure_multi_architecture_mode(initiative_root: Path) -> Path:
+    input_dir = initiative_root / "input"
     arch_dir = input_dir / "architecture"
     single_file = input_dir / "architecture.md"
 
@@ -26,17 +26,17 @@ def ensure_multi_architecture_mode(feature_root: Path) -> Path:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Add another normalized architecture file to an existing feature workspace."
+        description="Add another normalized architecture file to an existing initiative workspace."
     )
     parser.add_argument(
-        "feature_path",
-        help="Path to the feature workspace, for example features/F001-customer-onboarding.",
+        "initiative_path",
+        help="Path to the initiative workspace, for example initiatives/I001-customer-onboarding.",
     )
     parser.add_argument("name", help="Short source name for the additional architecture file.")
     args = parser.parse_args()
 
-    feature_root = Path(args.feature_path)
-    arch_dir = ensure_multi_architecture_mode(feature_root)
+    initiative_root = Path(args.initiative_path)
+    arch_dir = ensure_multi_architecture_mode(initiative_root)
     target = arch_dir / f"{slugify(args.name)}.md"
     if target.exists():
         raise SystemExit(f"Architecture file already exists: {target}")

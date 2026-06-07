@@ -25,6 +25,7 @@ Do not maintain scope, requirements, architecture constraints, quality gates or 
 The source of truth remains:
 
 ```text
+initiatives/<initiative-id>-<slug>/
 business-intake/business-intake-summary.md
 planning/delivery-increments.md
 planning/traceability-matrix.md
@@ -35,6 +36,8 @@ openspec/changes/<change>/design.md
 openspec/changes/<change>/tasks.md
 standalone-delivery/<deliverable>/*
 ```
+
+All of the paths above are relative to the active initiative workspace.
 
 ## Generated view
 
@@ -60,3 +63,25 @@ perspectives/agile-planning/gitlab-planning-view.md
 A classic Agile backlog can become a competing source of truth.
 
 This framework avoids that by generating a planning view that references source artifact IDs and paths.
+
+## User story rule
+
+When the planning view includes user stories, use classic Agile phrasing:
+
+```text
+As a <persona>,
+I want <capability>,
+so that <business value>.
+```
+
+This is a projection convenience only.
+
+Acceptance criteria remain in the source artifacts such as:
+
+```text
+BDD scenarios
+delivery spec
+OpenSpec tasks
+standalone validation plan
+traceability matrix
+```

@@ -23,13 +23,13 @@ Use these inputs when available:
 
 ## Output path
 
-Default output for the first architecture input in a feature workspace:
+Default output for the first architecture input in an initiative workspace:
 
 ```text
 input/architecture.md
 ```
 
-If the feature workspace already contains multiple architecture source files, create the new file under:
+If the initiative workspace already contains multiple architecture source files, create the new file under:
 
 ```text
 input/architecture/<short-name>.md

@@ -49,13 +49,13 @@
 
 ## Feature / Issue Projection
 
-| Feature ID | Suggested GitLab title | Description | Business value | Source deliverable | Related requirements | Dependencies | Labels |
+| Initiative ID | Suggested GitLab title | Description | Business value | Source deliverable | Related requirements | Dependencies | Labels |
 |---|---|---|---|---|---|---|---|
 
 ## User Story Projection
 
-| Story ID | Suggested GitLab title | User story | Source requirement | Acceptance source | Quality gate references | Labels |
-|---|---|---|---|---|---|---|
+| Story ID | Suggested GitLab title | User story in format `As a <persona>, I want <capability>, so that <business value>.` | Source artifact path | Source requirement ID | Acceptance source | Quality gate references | Labels |
+|---|---|---|---|---|---|---|---|
 
 ## Task / Checklist Projection
 
@@ -81,6 +81,24 @@
 
 | Item | Source of truth | What to do if this changes |
 |---|---|---|
+
+## Acceptance Source Notes
+
+Do not duplicate full acceptance criteria here.
+
+Reference the acceptance source instead, for example:
+
+```text
+BDD scenarios
+delivery spec
+OpenSpec tasks
+standalone validation plan
+traceability matrix
+```
+
+## Stale View Handling
+
+If any source artifact changes, mark the view status as `Stale`, update the source artifact map, and regenerate this projection rather than editing planning items independently.
 
 ## Do Not Duplicate
 

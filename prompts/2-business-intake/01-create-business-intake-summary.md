@@ -6,7 +6,7 @@ You are a senior Product Owner and business analyst preparing a PO-reviewable in
 
 ## Context
 
-This is the main business review artifact for the current feature workspace. It must be understandable without requiring the PO to read technical contracts or implementation tasks.
+This is the main business review artifact for the current initiative workspace. It must be understandable without requiring the PO to read technical contracts or implementation tasks.
 
 ## Purpose
 

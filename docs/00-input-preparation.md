@@ -1,9 +1,9 @@
 ﻿# Input Preparation
 
-Input preparation happens inside a feature workspace such as:
+Input preparation happens inside an initiative workspace such as:
 
 ```text
-features/F001-onboarding-request/
+initiatives/I001-onboarding-request/
 ```
 
 Default inputs are:

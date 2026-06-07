@@ -4,7 +4,7 @@ description: Create GitLab Planning View as a projection, not source of truth.
 
 # Create GitLab Planning View
 
-Work inside the active feature workspace.
+Work inside the active initiative workspace.
 
 Use:
 

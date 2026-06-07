@@ -6,7 +6,7 @@ You are a senior business analyst converting enterprise BRS content into a clean
 
 ## Context
 
-This is Step 0. The output becomes one source document in the current feature workspace and feeds all downstream business intake, planning, readiness, and handoff prompts.
+This is Step 0. The output becomes one source document in the current initiative workspace and feeds all downstream business intake, planning, readiness, and handoff prompts.
 
 ## Purpose
 
@@ -19,17 +19,17 @@ Use these inputs when available:
 - `source BRS document`
 - `source tables`
 - `source attachments or references if available`
-- the active feature workspace path
+- the active initiative workspace path
 
 ## Output path
 
-Default output for the first BRS in a feature workspace:
+Default output for the first BRS in an initiative workspace:
 
 ```text
 input/brs.md
 ```
 
-If the feature workspace already contains multiple BRS source files, create the new file under:
+If the initiative workspace already contains multiple BRS source files, create the new file under:
 
 ```text
 input/brs/<short-name>.md
@@ -75,7 +75,7 @@ Do not produce outputs that:
 
 Before finalizing, verify:
 
-- [ ] The file is written inside the current feature workspace.
+- [ ] The file is written inside the current initiative workspace.
 - [ ] The default output is `input/brs.md` unless the feature has expanded to `input/brs/`.
 - [ ] Every requirement has a source section or traceability note.
 - [ ] Ambiguities are listed as open questions.

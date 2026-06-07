@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Create a concise index of all normalized inputs for the current feature workspace and explain how single-file or multi-file inputs should be interpreted together.
+Create a concise index of all normalized inputs for the current initiative workspace and explain how single-file or multi-file inputs should be interpreted together.
 
 ## Inputs
 

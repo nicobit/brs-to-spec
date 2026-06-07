@@ -1,6 +1,6 @@
 # Input Package
 
-## Feature Workspace
+## Initiative Workspace
 
 ## Input Inventory
 

@@ -16,34 +16,60 @@ REQUIRED = [
     ".vscode/settings.json",
     "docs/14-agile-planning-view.md",
     "docs/15-github-copilot-workflow.md",
+    "docs/16-prompt-execution-environments.md",
+    "docs/17-copilot-usage.md",
     "prompts/0-input-preparation/01-convert-brs-word-to-markdown.md",
     "prompts/0-input-preparation/03-normalize-input-package.md",
     "prompts/2-business-intake/01-create-business-intake-summary.md",
+    "prompts/8-copilot-implementation/01-implement-one-task.md",
+    "prompts/8-copilot-implementation/02-fix-review-comments.md",
+    "prompts/9-reviewers/01-senior-code-review.md",
+    "prompts/9-reviewers/02-qa-review.md",
+    "prompts/9-reviewers/03-architecture-review.md",
+    "prompts/9-reviewers/04-security-review.md",
     "templates/input-preparation/input-package.md",
-    "tools/scripts/new_feature.py",
+    "templates/quality-gates/ready-for-copilot-checklist.md",
+    "templates/perspectives/agile-planning/gitlab-planning-view.md",
+    "tools/scripts/new_initiative.py",
     "tools/scripts/add_brs.py",
     "tools/scripts/add_architecture.py",
+    "examples/initiative-workspace-end-to-end/README.md",
 ]
 
 CONTENT_CHECKS = {
     "README.md": [
         "business-intake/business-intake-summary.md",
         "planning/traceability-matrix.md",
-        "feature workspace",
+        "initiative workspace",
+        "reviewer prompts are downstream helpers",
     ],
     "HOW_TO_USE.md": [
-        "python tools/scripts/new_feature.py onboarding-request --feature-id F001",
-        "python tools/scripts/add_brs.py features/F001-onboarding-request compliance",
-        "python tools/scripts/add_architecture.py features/F001-onboarding-request security-constraints",
+        "python tools/scripts/new_initiative.py onboarding-request --initiative-id I001",
+        "python tools/scripts/add_brs.py initiatives/I001-onboarding-request compliance",
+        "python tools/scripts/add_architecture.py initiatives/I001-onboarding-request security-constraints",
     ],
     ".github/copilot-instructions.md": [
         "input/brs.md or input/brs/*.md",
         "input/architecture.md or input/architecture/*.md",
-        "Operate inside one feature workspace at a time.",
+        "Operate inside one initiative workspace at a time.",
+        "implement one task at a time",
+    ],
+    "docs/16-prompt-execution-environments.md": [
+        "prompts/8-copilot-implementation",
+        "VS Code Copilot Agent mode",
+        "Work inside one initiative workspace at a time.",
+    ],
+    "docs/17-copilot-usage.md": [
+        "Implement Task 001",
+        "review the task",
+    ],
+    "docs/14-agile-planning-view.md": [
+        "All of the paths above are relative to the active initiative workspace.",
+        "As a <persona>,",
     ],
     ".github/prompts/brs-to-spec-run-workflow.prompt.md": [
-        "Active Feature Workspace",
-        "feature workspace",
+        "Active Initiative Workspace",
+        "initiative workspace",
     ],
     "prompts/0-input-preparation/01-convert-brs-word-to-markdown.md": [
         "input/brs.md",
@@ -56,6 +82,18 @@ CONTENT_CHECKS = {
     "prompts/2-business-intake/01-create-business-intake-summary.md": [
         "input/brs.md or input/brs/*.md",
         "input/architecture.md or input/architecture/*.md",
+    ],
+    "prompts/8-copilot-implementation/01-implement-one-task.md": [
+        "openspec/changes/D1-<deliverable-name>/tasks.md",
+        "standalone-delivery/D1-<deliverable-name>/tasks.md",
+    ],
+    "prompts/9-reviewers/01-senior-code-review.md": [
+        "Finding ID",
+        "Required before",
+    ],
+    "templates/perspectives/agile-planning/gitlab-planning-view.md": [
+        "Acceptance Source Notes",
+        "Stale View Handling",
     ],
 }
 

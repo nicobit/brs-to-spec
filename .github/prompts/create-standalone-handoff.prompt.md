@@ -4,7 +4,7 @@ description: Create standalone delivery package when OpenSpec is not used.
 
 # Create Standalone Delivery Package
 
-Work inside the active feature workspace.
+Work inside the active initiative workspace.
 
 Use:
 

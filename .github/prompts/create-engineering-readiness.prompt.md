@@ -4,7 +4,7 @@ description: Create the engineering readiness check for the active deliverable.
 
 # Create Engineering Readiness Check
 
-Work inside the active feature workspace.
+Work inside the active initiative workspace.
 
 Use:
 
@@ -13,7 +13,7 @@ prompts/4-engineering-readiness/01-check-engineering-readiness.md
 templates/engineering-readiness/readiness-check.md
 ```
 
-Create `engineering-readiness/readiness-check.md` inside that feature workspace.
+Create `engineering-readiness/readiness-check.md` inside that initiative workspace.
 
 You must decide:
 

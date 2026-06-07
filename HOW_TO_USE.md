@@ -2,18 +2,18 @@
 
 ## Workspace rule
 
-Work inside one feature workspace at a time.
+Work inside one initiative workspace at a time.
 
 The standard workspace shape is:
 
 ```text
-features/<feature-id>-<slug>/
+initiatives/<initiative-id>-<slug>/
 ```
 
 Create a new workspace with:
 
 ```bash
-python tools/scripts/new_feature.py onboarding-request --feature-id F001 --mode enterprise --execution-mode openspec
+python tools/scripts/new_initiative.py onboarding-request --initiative-id I001 --mode enterprise --execution-mode openspec
 ```
 
 ## Default input mode
@@ -31,8 +31,8 @@ input/input-package.md
 If the same initiative is described by more than one BRS or more than one architecture source, expand only that input family:
 
 ```bash
-python tools/scripts/add_brs.py features/F001-onboarding-request compliance
-python tools/scripts/add_architecture.py features/F001-onboarding-request security-constraints
+python tools/scripts/add_brs.py initiatives/I001-onboarding-request compliance
+python tools/scripts/add_architecture.py initiatives/I001-onboarding-request security-constraints
 ```
 
 After expansion, the workspace can look like:
@@ -47,11 +47,11 @@ input/architecture/
 input/input-package.md
 ```
 
-All prompt input and output paths are relative to the current feature workspace, not the repository root.
+All prompt input and output paths are relative to the current initiative workspace, not the repository root.
 
 ## Step 0 - Prepare inputs
 
-Inside the feature workspace, maintain either:
+Inside the initiative workspace, maintain either:
 
 ```text
 input/brs.md
@@ -114,7 +114,7 @@ Output:
 business-intake/business-intake-summary.md
 ```
 
-This is the main Product Owner review artifact for the current feature workspace.
+This is the main Product Owner review artifact for the current initiative workspace.
 
 ## Step 3 - Review architecture
 
@@ -176,6 +176,10 @@ Required = Yes
 
 Quality gates are not optional. They are conditional.
 
+These gate artifacts are pre-implementation or pre-release governance artifacts.
+
+They are not the same as downstream implementation review prompts.
+
 ## Step 7A - OpenSpec handoff
 
 Run:
@@ -212,7 +216,48 @@ standalone-delivery/D1-<deliverable-name>/
   review-checklist.md
 ```
 
-## Step 8 - Review template quality
+## Step 8 - Optional ready-for-Copilot gate
+
+Before asking a coding agent to implement, you may complete:
+
+```text
+templates/quality-gates/ready-for-copilot-checklist.md
+```
+
+Use it to confirm the active deliverable, implementation source, readiness state, and required quality gates.
+
+## Step 9 - Implement one task
+
+Use a coding-agent environment such as VS Code Copilot Agent mode only after the handoff artifacts exist.
+
+Run:
+
+```text
+prompts/8-copilot-implementation/01-implement-one-task.md
+```
+
+If review findings come back, use:
+
+```text
+prompts/8-copilot-implementation/02-fix-review-comments.md
+```
+
+## Step 10 - Review implemented work
+
+Run the review prompts that match the change:
+
+```text
+prompts/9-reviewers/01-senior-code-review.md
+prompts/9-reviewers/02-qa-review.md
+prompts/9-reviewers/03-architecture-review.md
+prompts/9-reviewers/04-security-review.md
+```
+
+These prompts review actual code and tests after implementation.
+
+They do not replace the quality-gate artifacts created earlier in the workflow.
+
+## Step 11 - Review template quality
 
 For every generated artifact, check:
 
@@ -229,7 +274,7 @@ If an artifact does not answer these questions, regenerate it using the same pro
 
 ## Important rules
 
-Do not generate tasks for the whole feature at once.
+Do not generate tasks for the whole initiative at once.
 
 Do not skip architecture constraints.
 
@@ -239,9 +284,9 @@ Do not force Product Owners to review low-level engineering details.
 
 Do not use standalone mode as a lower-quality version of OpenSpec.
 
-Do not mix outputs from different features in the same workspace.
+Do not mix outputs from different initiatives in the same workspace.
 
-## Step 9 - Create GitLab Planning View
+## Step 12 - Create GitLab Planning View
 
 Use this only when the delivery team plans and tracks work in GitLab, Jira, Azure DevOps or a similar planning tool.
 
@@ -290,7 +335,7 @@ Useful prompt files:
 Recommended first Copilot request:
 
 ```text
-Based on .github/copilot-instructions.md, identify the active feature workspace, the current workflow stage, and the next artifact to create.
+Based on .github/copilot-instructions.md, identify the active initiative workspace, the current workflow stage, and the next artifact to create.
 ```
 
 Do not ask Copilot to implement directly from raw BRS sources.

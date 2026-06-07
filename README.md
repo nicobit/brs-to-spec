@@ -12,20 +12,20 @@ A real enterprise initiative usually spans ambiguity, implicit assumptions, arch
 
 ## Core workspace model
 
-The primary operating model is a **feature workspace**:
+The primary operating model is an **initiative workspace**:
 
 ```text
-features/<feature-id>-<slug>/
+initiatives/<initiative-id>-<slug>/
 ```
 
-Each feature workspace represents one delivery initiative.
+Each initiative workspace represents one delivery initiative.
 
 ### Default input model
 
 For the common case, keep the inputs simple:
 
 ```text
-features/<feature-id>-<slug>/
+initiatives/<initiative-id>-<slug>/
   input/
     brs.md
     architecture.md
@@ -37,7 +37,7 @@ features/<feature-id>-<slug>/
 Only expand into folders when the same initiative has multiple source documents:
 
 ```text
-features/<feature-id>-<slug>/
+initiatives/<initiative-id>-<slug>/
   input/
     brs/
       main.md
@@ -96,12 +96,12 @@ review outcome
 acceptance and exit criteria
 ```
 
-## Feature-scoped outputs
+## Initiative-Scoped Outputs
 
-All outputs belong to the active feature workspace. For example:
+All outputs belong to the active initiative workspace. For example:
 
 ```text
-features/<feature-id>-<slug>/
+initiatives/<initiative-id>-<slug>/
   business-intake/business-intake-summary.md
   architecture/architecture-review.md
   planning/delivery-increments.md
@@ -141,13 +141,13 @@ Use the smallest workflow that gives enough control.
 
 | Execution mode | Use when | Output |
 |---|---|---|
-| OpenSpec | OpenSpec is available and should be the engineering source of truth | `openspec/changes/D1-<name>/` inside the feature workspace |
-| Standalone | OpenSpec is not used | `standalone-delivery/D1-<name>/` inside the feature workspace |
-| Business Copilot | Business users work in Microsoft 365 / SharePoint / Word / Teams | SharePoint/Word review outputs plus feature-scoped framework artifacts |
+| OpenSpec | OpenSpec is available and should be the engineering source of truth | `openspec/changes/D1-<name>/` inside the initiative workspace |
+| Standalone | OpenSpec is not used | `standalone-delivery/D1-<name>/` inside the initiative workspace |
+| Business Copilot | Business users work in Microsoft 365 / SharePoint / Word / Teams | SharePoint/Word review outputs plus initiative-scoped framework artifacts |
 
 ## Official normalized inputs
 
-Within a feature workspace, the canonical inputs are:
+Within an initiative workspace, the canonical inputs are:
 
 ```text
 input/brs.md or input/brs/*.md
@@ -174,6 +174,14 @@ planning/traceability-matrix.md
 engineering-readiness/readiness-check.md
 quality-gates/*.md
 openspec/changes/... or standalone-delivery/...
+```
+
+Downstream helper outputs are not source of truth:
+
+```text
+perspectives/agile-planning/gitlab-planning-view.md
+prompts/8-copilot-implementation execution summaries
+prompts/9-reviewers review findings
 ```
 
 The planning view maps those artifacts into the language used by delivery teams:
@@ -205,10 +213,25 @@ Relevant support files include:
 .github/copilot-instructions.md
 .github/prompts/
 docs/15-github-copilot-workflow.md
+docs/16-prompt-execution-environments.md
+docs/17-copilot-usage.md
 .vscode/settings.json
 ```
 
-The Copilot instructions also define a critical operating rule: work inside one feature workspace at a time, and treat all workflow paths as relative to that workspace.
+The Copilot instructions also define a critical operating rule: work inside one initiative workspace at a time, and treat all workflow paths as relative to that workspace.
+
+For implementation and review, the framework also includes:
+
+```text
+prompts/8-copilot-implementation/
+prompts/9-reviewers/
+templates/quality-gates/ready-for-copilot-checklist.md
+```
+
+Quality gate artifacts and reviewer prompts are intentionally separate:
+
+- quality gates are governance artifacts created before implementation, merge, or release when triggered
+- reviewer prompts are downstream helpers used after implementation to review actual code and tests against the approved source artifacts
 
 ## Template quality rule
 
@@ -225,26 +248,26 @@ Which requirement or architecture constraint is affected?
 
 ## Recommended use
 
-Create a feature workspace:
+Create an initiative workspace:
 
 ```bash
-python tools/scripts/new_feature.py onboarding-request --feature-id F001 --mode enterprise --execution-mode openspec
+python tools/scripts/new_initiative.py onboarding-request --initiative-id I001 --mode enterprise --execution-mode openspec
 ```
 
 Add another BRS source only if the initiative really has more than one source document:
 
 ```bash
-python tools/scripts/add_brs.py features/F001-onboarding-request compliance
+python tools/scripts/add_brs.py initiatives/I001-onboarding-request compliance
 ```
 
 Add another architecture source only if needed:
 
 ```bash
-python tools/scripts/add_architecture.py features/F001-onboarding-request security-constraints
+python tools/scripts/add_architecture.py initiatives/I001-onboarding-request security-constraints
 ```
 
-Then run the prompts against that feature workspace, treating every input and output path as relative to:
+Then run the prompts against that initiative workspace, treating every input and output path as relative to:
 
 ```text
-features/F001-onboarding-request/
+initiatives/I001-onboarding-request/
 ```

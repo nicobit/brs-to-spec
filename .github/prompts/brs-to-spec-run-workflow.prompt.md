@@ -1,5 +1,5 @@
 ﻿---
-description: Run the BRS-to-delivery readiness workflow for the current feature workspace.
+description: Run the BRS-to-delivery readiness workflow for the current initiative workspace.
 ---
 
 # Run BRS to Delivery Readiness Workflow
@@ -8,8 +8,8 @@ You are helping execute the BRS-to-delivery readiness framework.
 
 ## Instructions
 
-1. Identify the active feature workspace.
-2. Inspect the available artifacts inside that feature workspace.
+1. Identify the active initiative workspace.
+2. Inspect the available artifacts inside that initiative workspace.
 3. Identify the current workflow stage.
 4. Recommend the next prompt to run.
 5. Do not skip architecture review if an architecture input exists.
@@ -23,7 +23,7 @@ You are helping execute the BRS-to-delivery readiness framework.
 ```markdown
 # Workflow Status
 
-## Active Feature Workspace
+## Active Initiative Workspace
 
 ## Existing Artifacts
 
