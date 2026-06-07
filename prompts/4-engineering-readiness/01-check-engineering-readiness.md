@@ -2,7 +2,9 @@
 
 ## Purpose
 
-Decide whether the active deliverable is ready to become an OpenSpec change.
+Decide whether the active deliverable is ready to be implemented (as an OpenSpec
+change in Execution Mode A, or as a standalone delivery package in Execution Mode
+B), and decide **which Conditional Quality Gates are triggered**.
 
 ## Inputs
 
@@ -47,29 +49,34 @@ Ready / Ready with risks / Not ready
 | Risks identified |  |  |
 | Automated validation expectations clear |  |  |
 
-## Required Advanced Contracts
+## Conditional Quality Gates
 
-| Contract / artifact | Needed? | Reason |
-|---|---|---|
-| API contract |  |  |
-| Data contract |  |  |
-| Event contract |  |  |
-| Threat model |  |  |
-| Observability plan |  |  |
-| CI/CD readiness |  |  |
-| Module technical spec |  |  |
-| BDD scenarios |  |  |
-| Test strategy |  |  |
-| QA review |  |  |
-| Architecture review |  |  |
-| Security review |  |  |
-| Release readiness review |  |  |
+These gates are not always required. But when **Triggered**, they become
+**Required** and are mandatory before implementation, merge, or release
+(depending on the gate).
+
+| Quality Gate | Triggered? | Required? | Reason | Owner | Output |
+|---|---|---|---|---|---|
+| BDD scenarios | Yes/No | Yes/No |  |  | quality-gates/bdd-scenarios.md |
+| Test strategy | Yes/No | Yes/No |  |  | quality-gates/test-strategy.md |
+| QA review | Yes/No | Yes/No |  |  | quality-gates/qa-review.md |
+| Architecture review | Yes/No | Yes/No |  |  | quality-gates/architecture-review.md |
+| Security review | Yes/No | Yes/No |  |  | quality-gates/security-review.md |
+| Release readiness | Yes/No | Yes/No |  |  | quality-gates/release-readiness-review.md |
+| API contract | Yes/No | Yes/No |  |  | quality-gates/api-contract.md |
+| Data contract | Yes/No | Yes/No |  |  | quality-gates/data-contract.md |
+| Event contract | Yes/No | Yes/No |  |  | quality-gates/event-contract.md |
+| Threat model | Yes/No | Yes/No |  |  | quality-gates/threat-model.md |
+| Observability plan | Yes/No | Yes/No |  |  | quality-gates/observability-plan.md |
 
 ## Recommendation
 ```
 
 ## Rules
 
-- Do not create advanced contracts unless needed.
+- The readiness check **decides which Conditional Quality Gates are triggered**.
+- A gate that is not triggered is skipped. A gate that is triggered is mandatory.
+- Do not create quality-gate artifacts that are not triggered.
 - If architecture conflicts are unresolved, mark Not ready or Ready with risks.
-- If ready, recommend creating an OpenSpec change.
+- If ready, recommend creating the OpenSpec change (Mode A) or the standalone
+  delivery package (Mode B), plus any triggered quality gates.

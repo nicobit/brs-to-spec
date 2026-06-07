@@ -1,4 +1,4 @@
-# Advanced Prompt — Create Security Review
+# Quality Gate Prompt — Create Security Review
 
 ## Purpose
 
@@ -18,7 +18,7 @@ Use:
 ## Output file
 
 ```text
-advanced-governance/security-review.md
+quality-gates/security-review.md
 ```
 
 ## Output structure

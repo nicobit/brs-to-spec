@@ -1,8 +1,11 @@
 # Overview
 
-This framework is an enterprise front-end to OpenSpec.
+This framework is an adaptive enterprise BRS-to-delivery-readiness framework. It
+transforms a raw BRS plus an initial architecture document into
+business-approved, architecture-aligned delivery increments.
 
-It prepares raw BRS and initial architecture inputs for engineering.
+OpenSpec is the **default** engineering downstream, but standalone execution is
+fully supported when OpenSpec is not used.
 
 ## Problem
 
@@ -32,7 +35,9 @@ business-approved, architecture-aligned, OpenSpec-ready delivery increments
 
 ## Output
 
-The final engineering output should normally be:
+The final engineering output depends on the execution mode.
+
+Execution Mode A — OpenSpec (default):
 
 ```text
 openspec/changes/<active-deliverable>/
@@ -40,3 +45,16 @@ openspec/changes/<active-deliverable>/
   design.md
   tasks.md
 ```
+
+Execution Mode B — Standalone (when OpenSpec is not used):
+
+```text
+standalone-delivery/<active-deliverable>/
+  delivery-spec.md
+  implementation-plan.md
+  tasks.md
+  validation-plan.md
+  review-checklist.md
+```
+
+See `docs/08-execution-modes.md`.

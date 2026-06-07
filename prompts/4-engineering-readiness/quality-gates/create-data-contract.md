@@ -1,4 +1,4 @@
-# Advanced Prompt — Create Api Contract
+# Quality Gate Prompt — Create Data Contract
 
 Use this prompt only when required by the engineering readiness check.
 
@@ -10,6 +10,12 @@ Use:
 - global architecture rules,
 - traceability matrix,
 - engineering readiness check.
+
+## Output file
+
+```text
+quality-gates/data-contract.md
+```
 
 ## Rules
 

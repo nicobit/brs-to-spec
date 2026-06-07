@@ -1,0 +1,30 @@
+name: validate
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate framework structure
+        run: python tools/scripts/check_program.py
+      - name: Validate prompt sequence
+        run: python tools/scripts/check_prompt_sequence.py
+      - name: Smoke-test new_feature.py (all modes)
+        run: |
+          set -e
+          python tools/scripts/new_feature.py smoke-fast --mode fast --execution-mode openspec
+          python tools/scripts/new_feature.py smoke-standard --mode standard --execution-mode standalone
+          python tools/scripts/new_feature.py smoke-enterprise --mode enterprise --execution-mode openspec
+          python tools/scripts/new_feature.py smoke-modular --mode enterprise-modular --execution-mode standalone
+          test -f smoke-fast/openspec/changes/D1-active-deliverable/tasks.md
+          test -f smoke-standard/standalone-delivery/D1-active-deliverable/delivery-spec.md
+          test -f smoke-enterprise/engineering-readiness/readiness-check.md
+          test -f smoke-modular/planning/traceability-matrix.md
+          test -f smoke-modular/standalone-delivery/D1-active-deliverable/review-checklist.md
