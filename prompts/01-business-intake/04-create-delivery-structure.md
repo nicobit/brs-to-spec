@@ -1,211 +1,68 @@
-# Prompt 04 — Create Delivery Structure
+# Prompt — Create Delivery Structure
 
-Recommended environment:
-- Microsoft 365 Copilot, ChatGPT, or another approved LLM
-- GitHub Copilot Chat if artifacts are already in the repository
+## Purpose
 
-Owner:
-- Business PO / BA
-- Optional review by Scrum Master, Tech Lead, or Product Manager
+Create a delivery structure from the BRS that preserves the business view while preparing for modular delivery.
 
-This prompt does not require code access.
+This prompt must not produce only a flat list of epics and features.
 
-Input files:
-- `features/<feature-name>/business-intake/brs-summary.md`
-- `features/<feature-name>/business-intake/requirements.md`
+For small and medium initiatives, it may create a lightweight capability/feature structure.
 
-Task:
-Create a business delivery structure that groups the requirements into business objectives, epics, and features/capabilities.
+For large initiatives, it must identify business capabilities and candidate software modules so that the work can later be organized into vertical deliverables.
 
-Rules:
-- Do not invent business scope.
-- Do not treat requirements as epics automatically.
-- Requirements describe obligations; epics/features organize delivery.
-- Each epic must support one or more business objectives.
-- Each feature/capability must belong to an epic.
-- Each feature/capability must map to one or more requirement IDs.
-- A requirement can map to multiple features if needed.
-- Mark uncertain grouping decisions as assumptions.
-- Identify candidate user stories, but do not fully write the stories here.
+## Output file
 
-Output:
-Create `features/<feature-name>/business-intake/epics-and-features.md`.
+```text
+business-intake/delivery-structure.md
+```
 
-Use this structure:
+## Output structure
 
 ```markdown
-# Epics and Features
+# Delivery Structure
 
-## 1. Business Objectives
+## 1. Delivery Mode Assumption
+Fast Path / Standard Path / Enterprise Path / Enterprise + Modular Delivery
 
-### BO-001 — <business objective title>
+## 2. Business Capabilities
+| Capability ID | Capability | Business value | Related requirements | Priority | Notes |
+|---|---|---|---|---|---|
 
-Description:
+## 3. Candidate Software Modules
+| Module ID | Module name | Responsibility | Module type | Related capabilities | Notes |
+|---|---|---|---|---|---|
 
-Success measures:
+Module type examples:
+- Domain module
+- Integration module
+- UI module
+- API module
+- Data module
+- Workflow module
+- Reporting module
+- Platform/enabler module
 
-Related BRS sections:
+## 4. Capability-to-Module Map
+| Capability | Modules involved | Main module | Dependency notes |
+|---|---|---|---|
 
-## 2. Epics
-
-### EPIC-001 — <epic title>
-
-Business objectives:
-- BO-001
-
-Description:
-
-Business value:
-
-In scope:
-
-Out of scope:
-
-Success measures:
-
-Related requirements:
-- FR-xxx
-- NFR-xxx
-- SEC-xxx
-
-## 3. Features / Capabilities
-
-### FEAT-001 — <feature title>
-
-Parent epic:
-- EPIC-001
-
-Description:
-
-Business value:
-
-Related requirements:
-- FR-xxx
-- DATA-xxx
-- SEC-xxx
-- AUD-xxx
-
-Candidate user stories:
-- US-xxx — <candidate title>
-
-Dependencies:
-
-Assumptions:
-
-Open questions:
-
-## 4. Requirement-to-Feature Mapping
-
-| Requirement ID | Requirement Title | Epic | Feature / Capability | Notes |
+## 5. Candidate Delivery Slices
+| Slice ID | Business slice | Capabilities included | Modules involved | Notes |
 |---|---|---|---|---|
 
-## 5. Delivery Slicing Recommendations
+## 6. Items Requiring Architecture Alignment
+| Item | Reason | Owner | Blocking? |
+|---|---|---|---|
 
-Suggest a sensible delivery order, for example:
-1. Foundation / data model
-2. Core backend behavior
-3. User-facing UI
-4. Audit / reporting
-5. Hardening / regression
-
-## 6. Open Questions
+## 7. Recommendation
 ```
 
-## How to use this prompt
+## Rules
 
-Run this after:
-
-```text
-02-extract-requirements.md
-```
-
-and before:
-
-```text
-05-create-user-stories.md
-```
-
-This prompt creates the delivery structure. It should not create full user stories.
-
-Remember:
-
-```text
-Requirements are not epics.
-Requirements describe obligations.
-Epics and features organize delivery.
-User stories describe user-centered increments.
-```
-
-For a small change, the output may contain only one epic and one feature.
-
-For medium and large/risky changes, use this step to identify multiple features/capabilities and a sensible delivery slicing.
-
-## Optional architecture and alignment input
-
-If available, also read:
-
-```text
-features/<feature-name>/input/architecture-draft.md
-features/<feature-name>/business-intake/brs-architecture-alignment.md
-```
-
-Use architecture information only to improve:
-
-```text
-delivery slicing
-dependencies
-feature boundaries
-implementation sequencing
-risk identification
-```
-
-Do not change business scope based only on architecture.
-
-## What this prompt does
-
-This prompt replaces the old confusing `04-create-delivery-structure.md`.
-
-It creates the delivery structure between requirements and user stories:
-
-```text
-Requirements
-  ↓
-Business Objectives
-  ↓
-Epics
-  ↓
-Features / Capabilities
-  ↓
-User Stories
-```
-
-Use it to answer:
-
-```text
-What are the business objectives?
-What epics group the work?
-What features or capabilities should be delivered?
-Which requirements belong to each feature?
-What is the recommended delivery slicing?
-```
-
-For small changes, keep the output minimal.
-For medium and large/risky changes, use it fully.
-
-## Mandatory use of architecture alignment
-
-If this file exists, read it:
-
-```text
-features/<feature-name>/business-intake/brs-architecture-alignment.md
-```
-
-Use it to:
-- identify blocked or risky features
-- improve feature boundaries
-- identify architecture-dependent features
-- improve delivery slicing
-- carry forward contradictions and missing architecture decisions
-
-Do not ignore unresolved alignment findings.
-Do not change business scope based only on architecture.
+- Do not jump directly from BRS to detailed user stories.
+- Do not create a flat feature-only backlog for large initiatives.
+- Preserve the business capability view.
+- Add software modules only as a bridge to engineering execution.
+- Do not call every technical layer a bounded context.
+- A bounded context is only appropriate when there is a clear domain model boundary.
+- Detailed module specs are created later only if Modular Delivery is selected.

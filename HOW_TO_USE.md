@@ -916,3 +916,25 @@ Read:
 docs/copilot/how-to-run-business-intake-in-m365-copilot.md
 docs/copilot/how-to-create-m365-copilot-agent.md
 ```
+
+# Adaptive Usage
+
+Before running the full framework, select the delivery mode:
+
+```text
+prompts/00-routing/01-select-delivery-mode.md
+```
+
+## Enterprise + Modular Delivery sequence
+
+```text
+01-business-intake/01-create-business-intake-summary.md
+01-business-intake/04-create-delivery-structure.md
+07-modular-delivery/01-create-global-architecture-rules.md
+07-modular-delivery/02-identify-software-modules.md
+07-modular-delivery/03-map-capabilities-to-modules.md
+07-modular-delivery/04b-define-delivery-increments.md
+07-modular-delivery/06-create-openspec-change-for-active-deliverable.md
+```
+
+Do not generate tasks for all deliverables at once. Generate an OpenSpec change only for the active deliverable.

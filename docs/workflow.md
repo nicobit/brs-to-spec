@@ -422,3 +422,19 @@ Business review / approval
   ↓
 IT imports or maps outputs into repository framework artifacts
 ```
+
+# Adaptive Workflow
+
+```text
+Start
+  ↓
+Select delivery mode
+  ↓
+Fast Path? → OpenSpec directly
+  ↓
+Standard Path? → simplified intake → OpenSpec
+  ↓
+Enterprise Path? → full intake/alignment/slicing → OpenSpec
+  ↓
+Enterprise + Modular Delivery? → modules + vertical increments → OpenSpec per active deliverable
+```

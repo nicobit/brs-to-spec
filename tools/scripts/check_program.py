@@ -5,6 +5,18 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 
 REQUIRED_TOP_LEVEL = [
+    "schemas/modular-delivery.schema.json",
+    "templates/openspec-deliverable/tasks.md",
+    "templates/modular-delivery/delivery-increments.md",
+    "templates/modular-delivery/00_global_architecture_rules.md",
+    "prompts/07-modular-delivery/04b-define-delivery-increments.md",
+    "prompts/07-modular-delivery/01-create-global-architecture-rules.md",
+    "prompts/01-business-intake/01-create-business-intake-summary.md",
+    "prompts/00-routing/01-select-delivery-mode.md",
+    "docs/po-simplified-intake.md",
+    "docs/modular-delivery.md",
+    "docs/when-to-use-modular-delivery.md",
+    "docs/delivery-modes.md",
     "schemas/business-copilot-intake.schema.json",
     "templates/business-copilot-intake/business-requirements-table.md",
     "prompts/12-business-copilot-intake/08-create-business-approval-checklist.md",

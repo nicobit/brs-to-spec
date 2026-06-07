@@ -819,3 +819,50 @@ docs/copilot/how-to-run-business-intake-in-m365-copilot.md
 docs/copilot/how-to-create-m365-copilot-agent.md
 docs/copilot/copilot-studio-agent-design.md
 ```
+
+# Adaptive Delivery Modes and Modular Delivery
+
+The framework now supports adaptive delivery modes:
+
+```text
+Fast Path
+Standard Path
+Enterprise Path
+Enterprise + Modular Delivery
+```
+
+Use the smallest process that gives enough control.
+
+For small and clear changes, go directly to OpenSpec.
+
+For large BRS-driven initiatives, use the business intake and, when needed, the Modular Delivery Track.
+
+New routing prompt:
+
+```text
+prompts/00-routing/01-select-delivery-mode.md
+```
+
+New simplified PO intake prompt:
+
+```text
+prompts/01-business-intake/01-create-business-intake-summary.md
+```
+
+Updated delivery structure prompt:
+
+```text
+prompts/01-business-intake/04-create-delivery-structure.md
+```
+
+New Modular Delivery prompts:
+
+```text
+prompts/07-modular-delivery/
+  01-create-global-architecture-rules.md
+  02-identify-software-modules.md
+  03-map-capabilities-to-modules.md
+  04b-define-delivery-increments.md
+  05-create-module-spec.md
+  06-create-openspec-change-for-active-deliverable.md
+```
