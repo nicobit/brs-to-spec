@@ -121,8 +121,8 @@ This is the main Product Owner review artifact for the current initiative worksp
 Run:
 
 ```text
-prompts/3-planning-and-modular-delivery/02-review-initial-architecture.md
-prompts/3-planning-and-modular-delivery/03-create-global-architecture-rules.md
+prompts/3-planning-and-modular-delivery/01-review-initial-architecture.md
+prompts/3-planning-and-modular-delivery/02-create-global-architecture-rules.md
 ```
 
 Outputs:
@@ -137,7 +137,7 @@ architecture/architecture-rules.md
 For Enterprise Path, run:
 
 ```text
-prompts/3-planning-and-modular-delivery/01-create-delivery-structure.md
+prompts/3-planning-and-modular-delivery/03-create-delivery-structure.md
 prompts/3-planning-and-modular-delivery/07-create-traceability-matrix.md
 ```
 

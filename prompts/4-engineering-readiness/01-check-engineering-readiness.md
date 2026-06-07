@@ -22,7 +22,7 @@ Use these inputs when available:
 - `architecture/architecture-review.md`
 - `architecture/architecture-rules.md`
 - `planning/delivery-structure.md`
-- `planning/delivery-increments.md`
+- `planning/delivery-increments.md` when the initiative is using Modular Delivery
 - `planning/traceability-matrix.md`
 - `routing/routing-decision.md`
 
@@ -51,6 +51,7 @@ A good output must:
 - include evidence for each decision
 - assign owner and required-before stage for each action
 - return Not ready if critical inputs are missing
+- avoid treating modular-only artifacts as mandatory for non-modular paths
 
 ## Anti-patterns to avoid
 

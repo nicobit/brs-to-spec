@@ -1,8 +1,8 @@
-﻿# Prompt â€” Review Initial Architecture
+﻿# Prompt â€” Create Global Architecture Rules
 
 ## Role
 
-You are a solution architect reviewing whether the initial architecture supports the BRS.
+You are a solution architect converting architecture constraints into delivery rules.
 
 ## Context
 
@@ -10,7 +10,7 @@ This prompt is part of architecture-aware planning. It must not create implement
 
 ## Purpose
 
-Review architecture constraints, conflicts, missing decisions and delivery impact.
+Create architecture rules that all modules and deliverables inherit.
 
 ## Inputs
 
@@ -20,12 +20,11 @@ Use these inputs when available:
 - `input/architecture.md or input/architecture/*.md`
 - `business-intake/business-intake-summary.md`
 - `architecture/architecture-review.md`
-- `architecture/architecture-rules.md`
 
 ## Output path
 
 ```text
-architecture/architecture-review.md
+architecture/architecture-rules.md
 ```
 
 ## Template
@@ -33,7 +32,7 @@ architecture/architecture-review.md
 Use:
 
 ```text
-templates/planning-and-modular-delivery/architecture-review.md
+templates/planning-and-modular-delivery/architecture-rules.md
 ```
 
 Preserve the template headings. Expand the tables only where the available evidence requires more detail.
@@ -72,6 +71,6 @@ Before finalizing, verify:
 - [ ] Business requirements remain traceable.
 - [ ] Open decisions include owners.
 - [ ] Risks and gaps are visible.
-- [ ] The output supports the next workflow step.
+- [ ] The output supports delivery planning and later readiness checks.
 
 

@@ -53,6 +53,7 @@ CONTENT_CHECKS = {
         "input/architecture.md or input/architecture/*.md",
         "Operate inside one initiative workspace at a time.",
         "implement one task at a time",
+        "planning/delivery-structure.md",
     ],
     "docs/16-prompt-execution-environments.md": [
         "prompts/8-copilot-implementation",

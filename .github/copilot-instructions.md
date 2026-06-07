@@ -42,7 +42,7 @@ initiatives/<initiative-id>-<slug>/
 
 All workflow paths are relative to the active initiative workspace.
 
-The canonical source set for a feature starts with:
+The canonical source set for an initiative starts with:
 
 ```text
 input/brs.md or input/brs/*.md
@@ -63,13 +63,14 @@ Respect this order within the active initiative workspace:
 4. business-intake/business-intake-summary.md
 5. architecture/architecture-review.md
 6. architecture/architecture-rules.md
-7. planning/delivery-increments.md
-8. planning/traceability-matrix.md
-9. engineering-readiness/readiness-check.md
-10. quality-gates/*.md
-11. openspec/changes/... or standalone-delivery/...
-12. perspectives/agile-planning/gitlab-planning-view.md
-13. implementation and review helper outputs
+7. planning/delivery-structure.md
+8. planning/delivery-increments.md when the initiative uses Modular Delivery
+9. planning/traceability-matrix.md
+10. engineering-readiness/readiness-check.md
+11. quality-gates/*.md
+12. openspec/changes/... or standalone-delivery/...
+13. perspectives/agile-planning/gitlab-planning-view.md
+14. implementation and review helper outputs
 ```
 
 The Agile / GitLab Planning View is a projection only. It is not the source of truth.
@@ -199,7 +200,7 @@ When using a coding agent:
 
 ```text
 implement one task at a time
-read the active feature artifacts first
+read the active initiative artifacts first
 inspect existing similar code before changing files
 update tests with behavior changes
 return assumptions, risks, and open questions
@@ -295,7 +296,7 @@ Control area | Status | Evidence | Gap / Risk | Required action | Owner | Requir
 Do not:
 
 - generate application code directly from raw BRS sources
-- create tasks for the whole feature at once
+- create tasks for the whole initiative at once
 - ignore the architecture input
 - call triggered quality gates optional
 - duplicate source-of-truth content in the planning view

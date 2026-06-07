@@ -169,7 +169,8 @@ It does not create a second source of truth. The source of truth remains:
 
 ```text
 business-intake/business-intake-summary.md
-planning/delivery-increments.md
+planning/delivery-structure.md
+planning/delivery-increments.md when the initiative uses Modular Delivery
 planning/traceability-matrix.md
 engineering-readiness/readiness-check.md
 quality-gates/*.md
