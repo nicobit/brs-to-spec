@@ -58,6 +58,12 @@ Ready / Ready with risks / Not ready
 | Observability plan |  |  |
 | CI/CD readiness |  |  |
 | Module technical spec |  |  |
+| BDD scenarios |  |  |
+| Test strategy |  |  |
+| QA review |  |  |
+| Architecture review |  |  |
+| Security review |  |  |
+| Release readiness review |  |  |
 
 ## Recommendation
 ```

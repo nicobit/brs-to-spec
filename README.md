@@ -146,3 +146,25 @@ docs/04-business-copilot/
 
 Use OpenSpec directly for clear engineering changes.  
 Use this framework when a raw BRS and initial architecture document must be transformed into business-approved, architecture-aligned, OpenSpec-ready delivery increments.
+
+## Advanced optional governance pack
+
+The simplified framework keeps the main path small, but includes optional enterprise review prompts when needed:
+
+```text
+BDD scenarios
+test strategy
+QA review
+architecture review
+security review
+release readiness review
+```
+
+These are under:
+
+```text
+prompts/4-engineering-readiness/advanced/
+templates/advanced-governance/
+```
+
+They are not part of the default workflow. Use them only when `engineering-readiness/readiness-check.md` requires them.

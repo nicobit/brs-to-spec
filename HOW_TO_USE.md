@@ -156,3 +156,20 @@ openspec/changes/D1-<deliverable-name>/
 - Do not ignore the initial architecture document.
 - Do not use Modular Delivery for small changes.
 - Use advanced governance only when the readiness check requires it.
+
+## Optional advanced reviews
+
+After `engineering-readiness/readiness-check.md`, run advanced review prompts only if needed.
+
+Examples:
+
+```text
+prompts/4-engineering-readiness/advanced/create-bdd-scenarios.md
+prompts/4-engineering-readiness/advanced/create-test-strategy.md
+prompts/4-engineering-readiness/advanced/create-qa-review.md
+prompts/4-engineering-readiness/advanced/create-architecture-review.md
+prompts/4-engineering-readiness/advanced/create-security-review.md
+prompts/4-engineering-readiness/advanced/create-release-readiness-review.md
+```
+
+Do not run all of them by default.

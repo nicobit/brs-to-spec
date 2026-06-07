@@ -3,6 +3,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 REQUIRED = [
+    "templates/advanced-governance/security-review.md",
+    "templates/advanced-governance/architecture-review.md",
+    "templates/advanced-governance/qa-review.md",
+    "templates/advanced-governance/test-strategy.md",
+    "templates/advanced-governance/bdd-scenarios.md",
+    "prompts/4-engineering-readiness/advanced/create-security-review.md",
+    "prompts/4-engineering-readiness/advanced/create-architecture-review.md",
+    "prompts/4-engineering-readiness/advanced/create-qa-review.md",
+    "prompts/4-engineering-readiness/advanced/create-test-strategy.md",
+    "prompts/4-engineering-readiness/advanced/create-bdd-scenarios.md",
     "README.md",
     "HOW_TO_USE.md",
     "docs/00-input-preparation.md",
