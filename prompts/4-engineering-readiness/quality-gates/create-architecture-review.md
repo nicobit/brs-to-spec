@@ -1,4 +1,4 @@
-# Advanced Prompt — Create Architecture Review
+# Quality Gate Prompt — Create Architecture Review
 
 ## Purpose
 
@@ -18,7 +18,7 @@ Use:
 ## Output file
 
 ```text
-advanced-governance/architecture-review.md
+quality-gates/architecture-review.md
 ```
 
 ## Output structure

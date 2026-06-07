@@ -1,4 +1,4 @@
-# Advanced Prompt — Create Threat Model
+# Quality Gate Prompt — Create Event Contract
 
 Use this prompt only when required by the engineering readiness check.
 
@@ -10,6 +10,12 @@ Use:
 - global architecture rules,
 - traceability matrix,
 - engineering readiness check.
+
+## Output file
+
+```text
+quality-gates/event-contract.md
+```
 
 ## Rules
 

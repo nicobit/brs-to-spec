@@ -1,4 +1,4 @@
-# Advanced Prompt — Create Test Strategy
+# Quality Gate Prompt — Create Test Strategy
 
 ## Purpose
 
@@ -19,7 +19,7 @@ Use:
 ## Output file
 
 ```text
-advanced-governance/test-strategy.md
+quality-gates/test-strategy.md
 ```
 
 ## Output structure

@@ -1,4 +1,4 @@
-# Advanced Prompt — Create BDD Scenarios
+# Quality Gate Prompt — Create BDD Scenarios
 
 ## Purpose
 
@@ -19,7 +19,7 @@ Use:
 ## Output file
 
 ```text
-advanced-governance/bdd-scenarios.md
+quality-gates/bdd-scenarios.md
 ```
 
 ## Output structure

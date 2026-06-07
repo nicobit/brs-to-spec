@@ -1,8 +1,10 @@
 # Decision Tree
 
+## Delivery mode
+
 ```text
 Are the inputs already engineering-ready?
-  Yes → Fast Path → OpenSpec directly
+  Yes → Fast Path → chosen execution mode
   No
     ↓
 Do you have Word/SharePoint/Confluence inputs?
@@ -20,6 +22,18 @@ Is there a formal BRS, approval, or architecture impact?
 Is it large, multi-quarter, multi-team, or likely to saturate AI coding context?
   Yes → Enterprise + Modular Delivery
   No → Enterprise Path
+```
+
+## Execution mode
+
+```text
+Is OpenSpec available and the chosen downstream?
+  Yes → Execution Mode A — OpenSpec (default)
+  No
+    ↓
+Will business users drive the early work in M365 Copilot / SharePoint / Teams?
+  Yes → Execution Mode C — Business Copilot (then A or B for engineering)
+  No → Execution Mode B — Standalone
 ```
 
 ## Over-processing warning

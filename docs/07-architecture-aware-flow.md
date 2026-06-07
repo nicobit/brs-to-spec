@@ -15,10 +15,16 @@ modules/software-modules.md
   ↓
 planning/delivery-increments.md
   ↓
+planning/traceability-matrix.md
+  ↓
 engineering-readiness/readiness-check.md
   ↓
-openspec/changes/D1-.../design.md
+Execution Mode A: openspec/changes/D1-.../design.md
+Execution Mode B: standalone-delivery/D1-.../delivery-spec.md
 ```
+
+In both execution modes the architecture constraints must propagate all the way
+into the downstream design / delivery spec and into any triggered quality gates.
 
 ## Rule
 
@@ -37,4 +43,5 @@ This artifact identifies:
 
 This artifact turns reviewed architecture constraints into reusable rules.
 
-All modules, deliverables, and OpenSpec designs must comply with them.
+All modules, deliverables, OpenSpec designs, and standalone delivery specs must
+comply with them.

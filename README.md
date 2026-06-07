@@ -1,59 +1,54 @@
-# Enterprise BRS to OpenSpec Readiness Framework
+# Adaptive Enterprise BRS-to-Delivery Framework
 
-**Purpose:** transform a raw enterprise BRS and an optional initial architecture document into **business-approved, architecture-aligned, OpenSpec-ready delivery increments**.
+An adaptive enterprise BRS-to-delivery-readiness framework that transforms a raw
+BRS and an initial architecture document into **business-approved,
+architecture-aligned delivery increments**, with **OpenSpec as the default
+downstream** and **standalone execution supported** when OpenSpec is not used.
 
-This framework is intentionally **not** a replacement for OpenSpec.
+## What this framework is
 
-Use OpenSpec directly for clear engineering changes. Use this framework when the input is still business-heavy, ambiguous, multi-stakeholder, architecture-sensitive, or too large for a single AI coding context.
+- A front door that turns business-heavy, ambiguous, multi-stakeholder,
+  architecture-sensitive BRS input into small, engineering-ready deliverables.
+- Architecture-aware: the initial architecture document is a first-class input
+  whose constraints propagate through the whole flow.
+- Adaptive: you pick the smallest delivery mode and the execution mode that match
+  your situation.
 
-## What this framework does
+## What this framework is not
 
-```text
-Word / SharePoint / Confluence BRS
-+
-Initial Architecture Document
-  ↓
-0. Input Preparation
-  ↓
-1. Routing
-  ↓
-2. Business Intake
-  ↓
-3. Planning and Modular Delivery
-  ↓
-4. Engineering Readiness
-  ↓
-5. Handoff to OpenSpec
-```
+- It is **not** a replacement for OpenSpec.
+- It does not require dozens of artifacts for every change.
+- It does not generate tasks for the whole BRS at once.
+- It does not let AI invent architecture that conflicts with the initial
+  architecture document.
 
-## What this framework does not do
-
-This framework does not:
-- replace OpenSpec,
-- replace engineering judgment,
-- require dozens of artifacts for every change,
-- generate tasks for the whole BRS at once,
-- let AI invent architecture that conflicts with the initial architecture document.
-
-## Core principle
-
-Use the smallest path that gives enough control.
+## When to use OpenSpec directly vs this framework
 
 ```text
-Fast Path
-  → OpenSpec directly
+Use OpenSpec directly
+  → for clear engineering changes.
 
-Standard Path
-  → input preparation + business intake summary + OpenSpec
-
-Enterprise Path
-  → BRS + initial architecture + readiness + OpenSpec
-
-Enterprise + Modular Delivery
-  → modules + vertical deliverables + OpenSpec change for active deliverable
+Use this framework
+  → when a raw BRS and optional initial architecture document must be transformed
+    into business-approved, architecture-aligned, OpenSpec-ready (or standalone)
+    delivery increments.
 ```
 
-## Final project structure
+## Input artifacts
+
+Source documents (Word / SharePoint / Confluence / text) are normalized into:
+
+```text
+input/brs.md
+input/initial-architecture.md
+input/input-package.md
+```
+
+The initial architecture document is a first-class input. If none exists, create
+`input/initial-architecture.md` and mark it as
+`No initial architecture document provided.`
+
+## Structure
 
 ```text
 docs/
@@ -63,7 +58,8 @@ prompts/
   2-business-intake/
   3-planning-and-modular-delivery/
   4-engineering-readiness/
-  5-handoff-to-openspec/
+    quality-gates/
+  5-handoff/
   6-business-copilot/
 templates/
 examples/
@@ -71,100 +67,90 @@ schemas/
 tools/scripts/
 ```
 
-## Official input artifacts
+`5-handoff` is intentionally generalized (not `5-handoff-to-openspec`): OpenSpec is
+the default downstream, but it is not the only supported execution path.
 
-The framework normalizes source documents into:
+## Delivery modes
+
+How much ceremony the change needs:
 
 ```text
-input/brs.md
-input/initial-architecture.md
-input/input-package.md
+Fast Path                     → go straight to the chosen execution mode
+Standard Path                 → business intake summary + execution mode
+Enterprise Path               → BRS + architecture + readiness + execution mode
+Enterprise + Modular Delivery → modules + vertical increments + execution mode
 ```
 
-All downstream prompts should use these normalized inputs.
+## Execution modes
+
+Which downstream actually builds it (orthogonal to delivery mode):
+
+```text
+Execution Mode A — OpenSpec    (default downstream)
+Execution Mode B — Standalone  (when OpenSpec is not used)
+Execution Mode C — Business Copilot (M365 / SharePoint / Word / Teams / Copilot Studio)
+```
+
+## Conditional Quality Gates
+
+Detailed governance is preserved but **conditional** — not "optional".
+
+```text
+Not triggered → skipped
+Triggered     → required (mandatory before implementation, merge, or release)
+```
+
+The engineering readiness check decides which gates trigger:
+
+```text
+| Quality Gate | Triggered? | Required? | Reason | Owner | Output |
+```
+
+Gates: BDD scenarios, test strategy, QA review, architecture review, security
+review, release readiness, API contract, data contract, event contract, threat
+model, observability plan. See `docs/06-conditional-quality-gates.md`.
 
 ## Architecture-aware rule
 
-If the initial architecture document defines a constraint, do not override it unless explicitly marked as a conflict or open decision.
+If the initial architecture document defines a constraint, do not override it
+unless explicitly marked as a conflict or open decision. Constraints propagate
+into the architecture review, global rules, modules, increments, traceability
+matrix, readiness check, and the downstream design (OpenSpec) or delivery spec
+(standalone).
 
-This rule applies to:
-- global architecture rules,
-- software modules,
-- delivery increments,
-- engineering readiness,
-- OpenSpec proposal/design/tasks.
+## Product Owner experience
 
-## Main workflow
+The Product Owner primarily reviews one artifact:
 
 ```text
-0. Prepare inputs
-1. Select delivery mode
-2. Create business intake summary
-3. Review initial architecture
-4. Create delivery structure
-5. Create global architecture rules
-6. Use modular delivery only if needed
-7. Create traceability matrix
-8. Check engineering readiness
-9. Create OpenSpec change for the active deliverable
+business-intake/business-intake-summary.md
 ```
 
-## Default downstream
+POs do not manage module specs, API contracts, implementation tasks, OpenSpec
+tasks, or low-level test automation.
 
-The default downstream execution layer is:
-
-```text
-OpenSpec
-```
-
-The final engineering output should normally be:
+## Final outputs
 
 ```text
+Execution Mode A — OpenSpec
 openspec/changes/D1-<deliverable-name>/
   proposal.md
   design.md
   tasks.md
+
+Execution Mode B — Standalone
+standalone-delivery/D1-<deliverable-name>/
+  delivery-spec.md
+  implementation-plan.md
+  tasks.md
+  validation-plan.md
+  review-checklist.md
 ```
 
-## Business Copilot
+## Where to go next
 
-Business users can run the early intake in:
-- Microsoft 365 Copilot,
-- Word,
-- SharePoint,
-- Teams,
-- Copilot Studio.
-
-Use:
-
-```text
-prompts/6-business-copilot/
-docs/04-business-copilot/
-```
-
-## Recommended sentence
-
-Use OpenSpec directly for clear engineering changes.  
-Use this framework when a raw BRS and initial architecture document must be transformed into business-approved, architecture-aligned, OpenSpec-ready delivery increments.
-
-## Advanced optional governance pack
-
-The simplified framework keeps the main path small, but includes optional enterprise review prompts when needed:
-
-```text
-BDD scenarios
-test strategy
-QA review
-architecture review
-security review
-release readiness review
-```
-
-These are under:
-
-```text
-prompts/4-engineering-readiness/advanced/
-templates/advanced-governance/
-```
-
-They are not part of the default workflow. Use them only when `engineering-readiness/readiness-check.md` requires them.
+- `HOW_TO_USE.md` — step-by-step usage.
+- `docs/02-delivery-modes.md` — delivery + execution modes.
+- `docs/06-conditional-quality-gates.md` — quality gates.
+- `docs/08-execution-modes.md` — OpenSpec / Standalone / Business Copilot.
+- `docs/09-migration-0.0.7-to-0.0.8.md` — what changed from 0.0.7.

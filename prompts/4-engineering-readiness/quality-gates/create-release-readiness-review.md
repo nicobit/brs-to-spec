@@ -1,4 +1,4 @@
-# Advanced Prompt — Create Release Readiness Review
+# Quality Gate Prompt — Create Release Readiness Review
 
 ## Purpose
 
@@ -20,7 +20,7 @@ Use:
 ## Output file
 
 ```text
-advanced-governance/release-readiness-review.md
+quality-gates/release-readiness-review.md
 ```
 
 ## Output structure

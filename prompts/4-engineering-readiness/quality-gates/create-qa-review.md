@@ -1,4 +1,4 @@
-# Advanced Prompt — Create QA Review
+# Quality Gate Prompt — Create QA Review
 
 ## Purpose
 
@@ -19,7 +19,7 @@ Use:
 ## Output file
 
 ```text
-advanced-governance/qa-review.md
+quality-gates/qa-review.md
 ```
 
 ## Output structure
