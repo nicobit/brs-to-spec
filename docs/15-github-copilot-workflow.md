@@ -24,6 +24,13 @@ when quality gates are mandatory
 how the GitLab Planning View should behave
 ```
 
+That guidance must preserve this boundary:
+
+```text
+User stories = business context and traceability
+OpenSpec / standalone tasks = engineering implementation contract
+```
+
 ## Prompt files
 
 Additional prompt files are provided under:
@@ -149,6 +156,12 @@ prompts/9-reviewers/04-security-review.md
 The planning view exists to help the team create GitLab epics, issues, stories and tasks.
 
 It is not the source of truth.
+
+It is also not the engineering contract.
+
+User stories in that view provide planning context and traceability only.
+
+Copilot should implement from one approved OpenSpec or standalone task at a time.
 
 Copilot implementation summaries and reviewer findings are also downstream helpers, not source-of-truth artifacts.
 

@@ -19,6 +19,8 @@ The planning view is a projection only.
 
 Do not redefine requirements, architecture constraints, acceptance criteria, quality gates, or implementation tasks.
 
+Use the view as the team-facing Delivery Planning View, not as a new workflow.
+
 ## Output
 
 Create:
@@ -36,3 +38,9 @@ As a <persona>,
 I want <capability>,
 so that <business value>.
 ```
+
+User stories are business context and traceability only.
+
+Do not implement from user stories alone.
+
+Implementation must come from approved OpenSpec or standalone tasks.

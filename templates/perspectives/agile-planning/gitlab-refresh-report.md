@@ -8,11 +8,20 @@
 | Previous view |  |
 | Refreshed from |  |
 | Refresh date |  |
+| View status after refresh | Draft / Updated / Stale |
 
 ## Change Summary
 
 | Area | Change detected | Source artifact | Impact |
 |---|---|---|---|
+
+## Delivery Planning View Rules Reconfirmed
+
+| Rule | Status | Notes |
+|---|---|---|
+| Projection only, not source of truth |  |  |
+| User stories remain business context, not engineering contract |  |  |
+| OpenSpec / standalone tasks remain implementation input |  |  |
 
 ## Stale Items
 

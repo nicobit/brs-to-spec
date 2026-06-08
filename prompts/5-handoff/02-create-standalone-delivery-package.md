@@ -10,7 +10,7 @@ This prompt is used only when execution mode is Standalone. Standalone mode must
 
 ## Purpose
 
-Create a delivery package with scope, design approach, tasks, validation, and review checklist.
+Create a delivery package with scope, design approach, tasks, validation, review checklist, and initiative traceability.
 
 ## Inputs
 
@@ -21,6 +21,7 @@ Use these inputs when available:
 - `planning/traceability-matrix.md`
 - `architecture/architecture-rules.md`
 - `business-intake/business-intake-summary.md`
+- `perspectives/agile-planning/gitlab-planning-view.md` when a planning view exists
 
 ## Output path
 
@@ -50,6 +51,8 @@ A good output must:
 - include quality gates and accepted risks
 - make tasks small and validation-oriented
 - include evidence expected for each task
+- convert business planning items into engineering-ready implementation tasks
+- reference requirements, user stories when available, acceptance sources, architecture constraints, and quality gates
 - state out of scope clearly
 
 ## Anti-patterns to avoid
@@ -58,6 +61,7 @@ Do not produce outputs that:
 
 - treat standalone as informal notes
 - skip validation because OpenSpec is not used
+- copy user stories directly as implementation tasks
 - create broad tasks without evidence
 - ignore required quality gates
 - invent architecture
@@ -73,6 +77,7 @@ Do not produce outputs that:
 Before finalizing, verify:
 
 - [ ] Delivery spec includes scope and constraints.
+- [ ] Tasks include traceability back to requirement, user story when available, acceptance source, architecture constraint, and quality gate.
 - [ ] Tasks include validation and evidence.
 - [ ] Quality gates are reflected.
 - [ ] Review checklist is complete.

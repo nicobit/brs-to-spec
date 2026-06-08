@@ -4,6 +4,8 @@
 
 The Agile / GitLab Planning View translates the framework output into the planning language used by delivery teams.
 
+It also acts as the framework's single team-facing Delivery Planning View.
+
 It helps teams answer:
 
 ```text
@@ -39,6 +41,19 @@ standalone-delivery/<deliverable>/*
 ```
 
 All of the paths above are relative to the active initiative workspace.
+
+## Delivery Planning View role
+
+Use the planning view to combine:
+
+```text
+Agile breakdown
+Engineering Notes
+Enablement Needs
+GitLab or planning-tool mapping
+```
+
+This is still one projection, not multiple planning tracks.
 
 ## Generated view
 
@@ -77,6 +92,10 @@ so that <business value>.
 
 This is a projection convenience only.
 
+User stories provide business intent and traceability.
+
+They are not the engineering contract.
+
 Acceptance criteria remain in the source artifacts such as:
 
 ```text
@@ -86,3 +105,11 @@ OpenSpec tasks
 standalone validation plan
 traceability matrix
 ```
+
+## Engineering consumption rule
+
+Engineers use the planning view for context, planning-tool mapping, and traceability.
+
+Engineers implement from approved OpenSpec or standalone tasks, one task at a time.
+
+Do not implement directly from user stories alone.

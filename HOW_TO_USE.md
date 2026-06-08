@@ -203,6 +203,10 @@ openspec/changes/D1-<deliverable-name>/
   tasks.md
 ```
 
+The generated tasks are the engineering implementation contract for OpenSpec mode.
+
+They should preserve traceability back to requirements, user stories when available, acceptance sources, architecture constraints, and quality gates.
+
 ## Step 7B - Standalone handoff
 
 Run:
@@ -221,6 +225,10 @@ standalone-delivery/D1-<deliverable-name>/
   validation-plan.md
   review-checklist.md
 ```
+
+The generated tasks are the engineering implementation contract for Standalone mode.
+
+They should preserve traceability back to requirements, user stories when available, acceptance sources, architecture constraints, and quality gates.
 
 ## Step 8 - Optional ready-for-Copilot gate
 
@@ -247,6 +255,12 @@ If review findings come back, use:
 ```text
 prompts/8-copilot-implementation/02-fix-review-comments.md
 ```
+
+Do not implement from user stories alone.
+
+Use user stories for business context and traceability.
+
+Use one approved OpenSpec or standalone task as the implementation unit.
 
 ## Step 10 - Review implemented work
 
@@ -310,7 +324,15 @@ perspectives/agile-planning/gitlab-planning-view.md
 
 This file is a planning projection, not the source of truth.
 
+It is also not the engineering contract.
+
 Do not edit the planning view to change scope, requirements, architecture constraints, quality gates, or implementation tasks.
+
+Use the planning view to show Agile breakdown, Engineering Notes, Enablement Needs, and GitLab mapping in one place.
+
+User stories in this view provide business context and traceability.
+
+Implementation still happens from approved OpenSpec or standalone tasks.
 
 If something changes, update the source artifacts and regenerate the view.
 

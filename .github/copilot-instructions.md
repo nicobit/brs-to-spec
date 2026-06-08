@@ -77,6 +77,10 @@ The Agile / GitLab Planning View is a projection only. It is not the source of t
 
 Implementation summaries, review comments, and reviewer prompt outputs are downstream helper artifacts only.
 
+User stories are business context and traceability only.
+
+OpenSpec or standalone tasks are the engineering implementation contract.
+
 ## Coding-agent boundary
 
 Do not start coding from raw source inputs.
@@ -243,6 +247,8 @@ implementation tasks
 
 Always include source artifact paths and source IDs or source file names.
 
+Use the planning view as one team-facing Delivery Planning View that can include Agile breakdown, Engineering Notes, Enablement Needs, and GitLab mapping without creating a second workflow.
+
 ## User story format
 
 When creating user story projections, use the classic format:
@@ -262,6 +268,12 @@ OpenSpec tasks
 standalone validation plan
 traceability matrix
 ```
+
+Do not implement from user stories alone.
+
+Use linked user stories for business context and validation traceability.
+
+Use one approved OpenSpec or standalone task as the implementation unit.
 
 ## Output quality
 

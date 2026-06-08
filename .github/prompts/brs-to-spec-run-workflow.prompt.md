@@ -17,6 +17,8 @@ You are helping execute the BRS-to-delivery readiness framework.
 7. If quality gates are triggered, create those gates before handoff.
 8. If OpenSpec is not used, use standalone mode.
 9. If the team needs GitLab planning, create the planning view as a projection only.
+10. Do not treat user stories as the engineering implementation contract.
+11. Recommend implementation only from approved OpenSpec or standalone tasks.
 
 ## Expected response
 

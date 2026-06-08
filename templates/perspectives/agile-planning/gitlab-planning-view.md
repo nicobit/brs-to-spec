@@ -4,21 +4,26 @@
 > It is not the source of truth.
 > If scope, requirements, architecture constraints, quality gates or implementation tasks change,
 > update the source artifacts first and regenerate this view.
+> User stories provide business context and traceability.
+> Engineers implement from approved OpenSpec or standalone tasks, not from user stories alone.
 
 ## Metadata
 
 | Field | Value |
 |---|---|
-| Initiative / Feature |  |
+| Initiative |  |
 | Active deliverable |  |
 | Delivery mode |  |
 | Execution mode | OpenSpec / Standalone |
+| Readiness status |  |
 | Source of truth |  |
 | Generated from |  |
 | Generated date |  |
 | View status | Draft / Updated / Stale |
 
 ## Planning Summary
+
+## Agile Delivery Breakdown
 
 ## Source Artifact Map
 
@@ -57,6 +62,27 @@
 | Story ID | Suggested GitLab title | User story in format `As a <persona>, I want <capability>, so that <business value>.` | Source artifact path | Source requirement ID | Acceptance source | Quality gate references | Labels |
 |---|---|---|---|---|---|---|---|
 
+## Engineering Notes
+
+| Note area | Summary | Source artifact | Source ID / reference |
+|---|---|---|---|
+| Components affected |  |  |  |
+| Architecture constraints |  |  |  |
+| API impact |  |  |  |
+| Data impact |  |  |  |
+| Event impact |  |  |  |
+| Security considerations |  |  |  |
+| Observability considerations |  |  |  |
+| Dependencies |  |  |  |
+| Assumptions and risks |  |  |  |
+
+## Enablement Needs
+
+| Need | Reason / trigger | Source artifact | Suggested GitLab item | Owner / role | Required before |
+|---|---|---|---|---|---|
+
+## GitLab / Agile Tool Mapping
+
 ## Task / Checklist Projection
 
 | Task ID | Suggested task / checklist item | Source artifact | Source ID | Validation / evidence expected | Required before | Owner / Team |
@@ -77,6 +103,26 @@
 | Field | Value | Source / Notes |
 |---|---|---|
 
+## Engineering Consumption Model
+
+```text
+Agile item:
+Epic / Feature / User Story
+
+Engineering input:
+OpenSpec or standalone proposal, design, and tasks
+
+Engineer implementation source:
+One approved implementation task at a time
+
+Traceability:
+Task links back to requirement, user story, acceptance source, architecture constraint, and quality gates
+```
+
+Engineers use user stories for business context.
+
+Engineers use OpenSpec or standalone tasks for implementation.
+
 ## Sync Notes
 
 | Item | Source of truth | What to do if this changes |
@@ -96,10 +142,23 @@ standalone validation plan
 traceability matrix
 ```
 
+## Source Traceability
+
+| Planning item | Source artifact | Source ID / reference | Notes |
+|---|---|---|---|
+
 ## Stale View Handling
 
-If any source artifact changes, mark the view status as `Stale`, update the source artifact map, and regenerate this projection rather than editing planning items independently.
+If any source artifact used by the active initiative path changes, mark the view status as `Stale`, update the source artifact map, and regenerate this projection rather than editing planning items independently.
+
+Examples:
+
+- `planning/delivery-increments.md` when the initiative uses Modular Delivery
+- `openspec/changes/.../tasks.md` when OpenSpec mode is used
+- `standalone-delivery/.../tasks.md` when standalone mode is used
 
 ## Do Not Duplicate
 
 List any content that should not be copied as independent truth into GitLab.
+
+## Open Questions

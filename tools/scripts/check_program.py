@@ -67,6 +67,7 @@ CONTENT_CHECKS = {
     "docs/14-agile-planning-view.md": [
         "All of the paths above are relative to the active initiative workspace.",
         "As a <persona>,",
+        "Engineers implement from approved OpenSpec or standalone tasks",
     ],
     ".github/prompts/brs-to-spec-run-workflow.prompt.md": [
         "Active Initiative Workspace",
@@ -93,8 +94,32 @@ CONTENT_CHECKS = {
         "Required before",
     ],
     "templates/perspectives/agile-planning/gitlab-planning-view.md": [
+        "Engineering Notes",
+        "Enablement Needs",
+        "Engineering Consumption Model",
         "Acceptance Source Notes",
         "Stale View Handling",
+        "Engineers use OpenSpec or standalone tasks for implementation.",
+    ],
+    ".github/prompts/create-gitlab-planning-view.prompt.md": [
+        "User stories are business context and traceability only.",
+        "Implementation must come from approved OpenSpec or standalone tasks.",
+    ],
+    ".github/prompts/brs-to-spec-run-workflow.prompt.md": [
+        "Do not treat user stories as the engineering implementation contract.",
+        "Recommend implementation only from approved OpenSpec or standalone tasks.",
+    ],
+    "README.md": [
+        "single team-facing Delivery Planning View",
+        "OpenSpec or standalone tasks remain the engineering implementation contract.",
+    ],
+    "HOW_TO_USE.md": [
+        "Do not implement from user stories alone.",
+        "Use one approved OpenSpec or standalone task as the implementation unit.",
+    ],
+    "prompts/7-perspectives/agile-planning/01-create-gitlab-planning-view.md": [
+        "user stories are business context, not engineering contract",
+        "Enablement Needs only when relevant",
     ],
 }
 

@@ -171,6 +171,8 @@ They are not always required, but when triggered by the readiness check, they be
 
 The framework can generate an Agile / GitLab planning view as a read-only projection.
 
+It also serves as the framework's single team-facing Delivery Planning View.
+
 It does not create a second source of truth. The source of truth remains:
 
 ```text
@@ -201,6 +203,20 @@ Task / Checklist
 Milestone
 Labels
 ```
+
+The same projection can include:
+
+```text
+Engineering Notes
+Enablement Needs
+GitLab mapping
+```
+
+without becoming a new workflow or a parallel technical-planning track.
+
+User stories in that view provide business intent and traceability.
+
+OpenSpec or standalone tasks remain the engineering implementation contract.
 
 Generated output:
 
