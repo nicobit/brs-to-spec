@@ -1,5 +1,8 @@
 # Threat Model
 
+> Optional visual view: add a compact trust-boundary or attack-surface view only when it materially improves threat understanding for reviewers.
+> Prefer one embedded markdown-friendly visual over a separate diagram artifact.
+
 ## Metadata
 
 | Field | Value |
@@ -19,6 +22,11 @@
 
 | Boundary | Description | Risk |
 |---|---|---|
+
+## Optional Visual View
+
+Add only when a compact trust-boundary or attack-surface view makes the security model easier to review than text alone.
+Reference an existing authoritative diagram instead of duplicating it when one already exists.
 
 ## Threat Scenarios
 

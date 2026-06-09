@@ -9,7 +9,7 @@ Work inside the active initiative workspace.
 Use:
 
 ```text
-prompts/7-perspectives/agile-planning/01-create-gitlab-planning-view.md
+.brs2spec/7-perspectives/agile-planning/01-create-gitlab-planning-view.md
 templates/perspectives/agile-planning/gitlab-planning-view.md
 ```
 

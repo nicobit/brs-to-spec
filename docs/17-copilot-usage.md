@@ -1,5 +1,38 @@
 # Copilot Usage
 
+## Workflow-status rule
+
+Before asking Copilot to create or update an artifact, ask it to state:
+
+```text
+current stage
+completed artifacts
+missing artifacts
+next prompt
+risk if skipped
+```
+
+This keeps the workflow explicit without adding a new orchestration artifact.
+
+## Artifact-quality rule
+
+Before accepting a generated artifact, ask Copilot:
+
+```text
+Is this artifact good enough for the next workflow step?
+What decision does it support?
+What concrete evidence is present?
+What is still too generic, repetitive, or vague?
+```
+
+Use:
+
+```text
+docs/21-artifact-quality-review.md
+```
+
+when the artifact exists but still feels weak.
+
 ## Do Not Ask
 
 ```text
@@ -13,13 +46,13 @@ Generate code directly from input/brs.md.
 ### Workflow status
 
 ```text
-Use .github/prompts/brs-to-spec-run-workflow.prompt.md to identify the active initiative workspace, current stage, missing artifacts, and next prompt to run.
+Use .github/.brs2spec/brs-to-spec-run-workflow.prompt.md to identify the active initiative workspace, current stage, missing artifacts, and next prompt to run.
 ```
 
 ### Artifact generation
 
 ```text
-Create engineering-readiness/readiness-check.md for the active initiative workspace using prompts/4-engineering-readiness/01-check-engineering-readiness.md and the matching template.
+Create engineering-readiness/readiness-check.md for the active initiative workspace using .brs2spec/4-engineering-readiness/01-check-engineering-readiness.md and the matching template.
 ```
 
 ### Task implementation
@@ -39,7 +72,7 @@ Then implement only Task 001, update tests, and summarize files changed, coverag
 ### Review
 
 ```text
-Review the implementation for Task 001 using prompts/9-reviewers/01-senior-code-review.md and the active initiative workspace artifacts.
+Review the implementation for Task 001 using .brs2spec/9-reviewers/01-senior-code-review.md and the active initiative workspace artifacts.
 ```
 
 ## Good Operating Pattern

@@ -1,5 +1,8 @@
 # Data Contract
 
+> Optional visual view: add a compact logical ERD or data-ownership view only when it materially improves schema, ownership, or downstream-impact clarity.
+> Prefer one embedded markdown-friendly visual over a separate diagram artifact.
+
 ## Metadata
 
 | Field | Value |
@@ -20,6 +23,11 @@
 | Entity | Change | Migration required? | Backward compatible? | Risk |
 |---|---|---|---|---|
 
+## Optional Visual View
+
+Add only when a compact logical ERD or ownership view makes the governed data boundary easier to review than tables alone.
+Reference an existing authoritative diagram instead of duplicating it when one already exists.
+
 ## Data Quality Rules
 
 | Rule ID | Rule | Validation | Owner |
@@ -35,3 +43,9 @@
 
 | Question ID | Question | Owner | Required before |
 |---|---|---|---|
+
+## Acceptance
+
+Status: `In progress` → change to `Accepted` when all checklist items are ticked or explicitly recorded as accepted risk.
+
+When accepted, update the `Status` field in Metadata to `Accepted`. The git commit records who accepted and when.

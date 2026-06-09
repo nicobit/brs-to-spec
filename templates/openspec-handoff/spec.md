@@ -1,5 +1,0 @@
-# Spec
-
-## Requirements
-
-## Acceptance Criteria

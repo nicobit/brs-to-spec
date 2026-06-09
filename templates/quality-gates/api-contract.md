@@ -1,5 +1,8 @@
 # API Contract
 
+> Optional visual view: add a compact request/response or interaction sequence only when it materially improves contract clarity for reviewers or implementers.
+> Prefer one embedded markdown-friendly visual over a separate diagram artifact.
+
 ## Metadata
 
 | Field | Value |
@@ -22,6 +25,11 @@
 | Endpoint | Request schema | Response schema | Validation rules |
 |---|---|---|---|
 
+## Optional Visual View
+
+Add only when a compact interaction or request/response sequence makes the governed API boundary easier to review than tables alone.
+Reference an existing authoritative diagram instead of duplicating it when one already exists.
+
 ## Error Handling
 
 | Error case | Status / code | Message rule | Consumer action |
@@ -37,3 +45,9 @@
 
 | Question ID | Question | Owner | Required before |
 |---|---|---|---|
+
+## Acceptance
+
+Status: `In progress` → change to `Accepted` when all checklist items are ticked or explicitly recorded as accepted risk.
+
+When accepted, update the `Status` field in Metadata to `Accepted`. The git commit records who accepted and when.

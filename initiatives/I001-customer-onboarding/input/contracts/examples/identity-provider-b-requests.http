@@ -1,0 +1,54 @@
+### Identity Provider B — Verify (synchronous) - example
+POST https://api.identity-provider-b.example/v1/verify
+Authorization: Bearer {{API_KEY}}
+Content-Type: application/json
+
+{
+  "requestId": "11111111-1111-1111-1111-111111111111",
+  "subject": {
+    "firstName": "Alice",
+    "lastName": "Example",
+    "email": "alice@example.com",
+    "phone": "+391234567890",
+    "document": {
+      "type": "id_card",
+      "number": "AB1234567",
+      "country": "IT"
+    }
+  }
+}
+
+### Identity Provider B — Verify (async) - example (returns 202)
+POST https://api.identity-provider-b.example/v1/verify
+Authorization: Bearer {{API_KEY}}
+Content-Type: application/json
+
+{
+  "requestId": "22222222-2222-2222-2222-222222222222",
+  "subject": {
+    "firstName": "Bob",
+    "lastName": "Example",
+    "email": "bob@example.com",
+    "phone": "+391234567891",
+    "document": {
+      "type": "passport",
+      "number": "P12345678",
+      "country": "IT"
+    }
+  },
+  "callbackUrl": "https://onboarding.example.com/webhooks/verification"
+}
+
+### Identity Provider B — Webhook example (server -> onboarding)
+POST https://onboarding.example.com/webhooks/verification
+X-Idp-Signature: sha256=abcdef1234567890
+Content-Type: application/json
+
+{
+  "verificationId": "verif-2222",
+  "requestId": "22222222-2222-2222-2222-222222222222",
+  "status": "verified",
+  "score": 0.98,
+  "issuedAt": "2026-06-09T12:00:00Z",
+  "metadata": {}
+}

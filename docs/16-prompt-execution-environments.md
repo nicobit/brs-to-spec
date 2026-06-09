@@ -8,16 +8,16 @@ Do not assume every prompt should run in GitHub Copilot Coding Agent or in a bus
 
 | Prompt group | Typical owner | Recommended environment | Repository / code access |
 |---|---|---|---|
-| `prompts/0-input-preparation` | Business analyst / product owner / architect | Microsoft 365 Copilot, ChatGPT, VS Code Copilot Chat | Not usually required |
-| `prompts/1-routing` | Product owner / architect / tech lead | VS Code Copilot Chat or another repository-aware assistant | Helpful |
-| `prompts/2-business-intake` | Product owner / business analyst | Microsoft 365 Copilot, ChatGPT, VS Code Copilot Chat | Not usually required |
-| `prompts/3-planning-and-modular-delivery` | Architect / tech lead / senior engineer | VS Code Copilot Chat | Recommended |
-| `prompts/4-engineering-readiness` | Tech lead / QA / architect / security lead | VS Code Copilot Chat | Recommended |
-| `prompts/5-handoff` | Engineering lead / senior engineer | VS Code Copilot Chat | Recommended |
-| `prompts/6-business-copilot` | Business user / business analyst | Microsoft 365 Copilot / Copilot Studio | No |
-| `prompts/7-perspectives` | Delivery lead / scrum master / PM | VS Code Copilot Chat | Helpful |
-| `prompts/8-copilot-implementation` | Developer | VS Code Copilot Agent mode / GitHub Copilot Coding Agent | Yes |
-| `prompts/9-reviewers` | Senior developer / QA / architect / security reviewer | VS Code Copilot Chat / PR review surface | Yes |
+| `.brs2spec/0-input-preparation` | Business analyst / product owner / architect | Microsoft 365 Copilot, ChatGPT, VS Code Copilot Chat | Not usually required |
+| `.brs2spec/1-routing` | Product owner / architect / tech lead | VS Code Copilot Chat or another repository-aware assistant | Helpful |
+| `.brs2spec/2-business-intake` | Product owner / business analyst | Microsoft 365 Copilot, ChatGPT, VS Code Copilot Chat | Not usually required |
+| `.brs2spec/3-planning-and-modular-delivery` | Architect / tech lead / senior engineer | VS Code Copilot Chat | Recommended |
+| `.brs2spec/4-engineering-readiness` | Tech lead / QA / architect / security lead | VS Code Copilot Chat | Recommended |
+| `.brs2spec/5-handoff` | Engineering lead / senior engineer | VS Code Copilot Chat | Recommended |
+| `.brs2spec/6-business-copilot` | Business user / business analyst | Microsoft 365 Copilot / Copilot Studio | No |
+| `.brs2spec/7-perspectives` | Delivery lead / scrum master / PM | VS Code Copilot Chat | Helpful |
+| `.brs2spec/8-copilot-implementation` | Developer | VS Code Copilot Agent mode / GitHub Copilot Coding Agent | Yes |
+| `.brs2spec/9-reviewers` | Senior developer / QA / architect / security reviewer | VS Code Copilot Chat / PR review surface | Yes |
 
 ## Operating Rule
 
@@ -59,6 +59,15 @@ planning projection
 ```
 
 These prompts benefit from repository context, existing artifact context, and feature-workspace awareness.
+
+## Visual documentation rule
+
+When a prompt or template allows an optional visual view:
+
+- prefer embedded Mermaid in markdown
+- keep the visual focused on one concern
+- reference an existing authoritative diagram instead of duplicating it when one already exists
+- avoid creating a large external diagram file unless the initiative already uses that as the system of record
 
 ## Coding-agent environments
 

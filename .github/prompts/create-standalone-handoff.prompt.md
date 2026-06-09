@@ -9,7 +9,7 @@ Work inside the active initiative workspace.
 Use:
 
 ```text
-prompts/5-handoff/02-create-standalone-delivery-package.md
+.brs2spec/5-handoff/02-create-standalone-delivery-package.md
 templates/standalone-delivery/
 ```
 

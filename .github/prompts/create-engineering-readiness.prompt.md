@@ -9,7 +9,7 @@ Work inside the active initiative workspace.
 Use:
 
 ```text
-prompts/4-engineering-readiness/01-check-engineering-readiness.md
+.brs2spec/4-engineering-readiness/01-check-engineering-readiness.md
 templates/engineering-readiness/readiness-check.md
 ```
 

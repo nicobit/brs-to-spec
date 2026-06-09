@@ -1,5 +1,13 @@
 # Engineering Readiness Check
 
+> Primary consumer: Delivery lead, architect, QA, governance reviewers
+> Purpose of this artifact: decide whether the active deliverable is ready and which gates are mandatory
+> Downstream use: conditional quality gates, handoff approval, implementation timing
+> Do not duplicate: detailed handoff content, implementation review findings, or code-level task breakdown
+> Keep the rationale crisp and evidence-based.
+> Every non-trivial decision should point to evidence, risk, or a required action.
+> Avoid generic governance language that does not change the readiness decision.
+
 ## Metadata
 
 | Field | Value |
@@ -24,6 +32,8 @@
 
 ## Decision Rationale
 
+State only the reasoning that materially explains Ready, Ready with risks, or Not ready.
+
 ## Core Checklist
 
 | Area | Status | Evidence | Gap / Risk | Required action | Owner | Required before |
@@ -36,7 +46,9 @@
 | Governed service / API boundaries identified |  |  |  |  |  | Handoff |
 | Governed data boundaries identified |  |  |  |  |  | Handoff |
 | Governed event boundaries identified |  |  |  |  |  | Handoff |
+| Existing-system impact reviewed when relevant |  |  |  |  |  | Handoff |
 | Impacted modules known |  |  |  |  |  | Implementation |
+| Existing behavior stability expectations clear |  |  |  |  |  | Implementation |
 | Acceptance expectations clear |  |  |  |  |  | Implementation |
 | Validation approach clear |  |  |  |  |  | Implementation |
 | Dependencies known |  |  |  |  |  | Implementation |
@@ -75,10 +87,14 @@ When a governed boundary exists in the section above, the matching contract gate
 
 ## Blocking Issues
 
+List only issues that truly block handoff, implementation, merge, or release.
+
 | Issue ID | Severity | Description | Evidence | Owner | Required action | Required before |
 |---|---|---|---|---|---|---|
 
 ## Accepted Risks
+
+Accepted risks should be explicit tradeoffs, not unresolved unknowns with no owner.
 
 | Risk ID | Risk | Impact | Mitigation | Accepted by | Expiry / Review date |
 |---|---|---|---|---|---|

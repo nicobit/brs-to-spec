@@ -1,0 +1,41 @@
+### Payment Provider A — Validate Payment (example)
+POST https://api.payment-provider-a.example/v1/validate-payment
+Authorization: Bearer {{API_KEY}}
+Content-Type: application/json
+
+{
+  "requestId": "aaaaaaa0-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "customerId": "cust-12345",
+  "paymentInstrument": {
+    "type": "card",
+    "card": {
+      "brand": "visa",
+      "last4": "4242",
+      "expiryMonth": 12,
+      "expiryYear": 2028,
+      "token": "tok_sample_123"
+    }
+  }
+}
+
+### Payment Provider A — Validation response (example)
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "validationId": "val-0001",
+  "status": "valid",
+  "reason": null,
+  "timestamp": "2026-06-09T12:05:00Z"
+}
+
+### Payment Provider A — Decline example
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "validationId": "val-0002",
+  "status": "invalid",
+  "reason": "card_expired",
+  "timestamp": "2026-06-09T12:05:00Z"
+}

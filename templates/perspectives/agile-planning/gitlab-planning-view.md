@@ -6,6 +6,15 @@
 > update the source artifacts first and regenerate this view.
 > User stories provide business context and traceability.
 > Engineers implement from approved OpenSpec or standalone tasks, not from user stories alone.
+> Primary consumer: delivery team, Product Owner, scrum master / PM
+> Purpose of this artifact: project approved source artifacts into Agile-tool language for coordination and tracking
+> Downstream use: GitLab / Jira / Azure DevOps planning and delivery coordination
+> Do not duplicate: requirements truth, architecture truth, acceptance truth, or implementation task truth
+> Keep this view easy to scan and useful for coordination.
+> Prefer concise projections over dense explanation.
+> Include only engineering notes, enablement needs, and tracking items that are supported by source artifacts.
+> Keep hierarchy, task projection, and gate-tracking detail only to the level needed for planning-tool coordination.
+> Keep narrative notes brief. If a section becomes long, the source artifact probably carries the real detail.
 
 ## Metadata
 
@@ -23,7 +32,12 @@
 
 ## Planning Summary
 
+Stories in this view should come from `planning/delivery-structure.md` and remain traceable to requirements and downstream implementation tasks.
+Keep the summary brief. Do not restate the whole initiative.
+
 ## Agile Delivery Breakdown
+
+Keep this section concise and projection-focused.
 
 ## Source Artifact Map
 
@@ -31,6 +45,8 @@
 |---|---|---|---|
 
 ## Suggested GitLab Hierarchy
+
+Only include the hierarchy needed for the active initiative shape.
 
 | GitLab level | Suggested title | Source artifact | Source ID | Notes |
 |---|---|---|---|---|
@@ -40,6 +56,8 @@
 | Task / Checklist item |  |  |  |  |
 
 ## Epic Projection
+
+Keep entries concise. Reference source detail rather than retelling it.
 
 | Field | Value | Source |
 |---|---|---|
@@ -54,15 +72,21 @@
 
 ## Feature / Issue Projection
 
+Keep descriptions short and coordination-oriented.
+
 | Initiative ID | Suggested GitLab title | Description | Business value | Source deliverable | Related requirements | Dependencies | Labels |
 |---|---|---|---|---|---|---|---|
 
 ## User Story Projection
 
+Keep user stories readable and traceable. Do not attach duplicated acceptance detail here.
+
 | Story ID | Suggested GitLab title | User story in format `As a <persona>, I want <capability>, so that <business value>.` | Source artifact path | Source requirement ID | Acceptance source | Quality gate references | Labels |
 |---|---|---|---|---|---|---|---|
 
 ## Engineering Notes
+
+List only notes that change implementation, validation, sequencing, or coordination.
 
 | Note area | Summary | Source artifact | Source ID / reference |
 |---|---|---|---|
@@ -78,12 +102,16 @@
 
 ## Enablement Needs
 
+Only include needs that are real prerequisites or clear delivery accelerators.
+
 | Need | Reason / trigger | Source artifact | Suggested GitLab item | Owner / role | Required before |
 |---|---|---|---|---|---|
 
 ## GitLab / Agile Tool Mapping
 
 ## Task / Checklist Projection
+
+Project only task detail needed for planning-tool tracking. Engineers still implement from source tasks.
 
 | Task ID | Suggested task / checklist item | Source artifact | Source ID | Validation / evidence expected | Required before | Owner / Team |
 |---|---|---|---|---|---|---|
@@ -95,10 +123,14 @@
 
 ## Suggested Labels
 
+Keep labels minimal and useful. Do not generate label clutter.
+
 | Label | Reason |
 |---|---|
 
 ## Suggested Milestone / Iteration
+
+Keep this section brief and source-linked.
 
 | Field | Value | Source / Notes |
 |---|---|---|
@@ -160,5 +192,6 @@ Examples:
 ## Do Not Duplicate
 
 List any content that should not be copied as independent truth into GitLab.
+Keep this list short and specific.
 
 ## Open Questions

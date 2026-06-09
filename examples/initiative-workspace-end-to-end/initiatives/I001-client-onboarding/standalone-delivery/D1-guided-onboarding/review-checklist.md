@@ -1,5 +1,7 @@
 # Review Checklist
 
-- source artifacts referenced
-- security actions reflected
-- validation evidence defined
+- source artifacts referenced for every task
+- user-story and requirement traceability preserved
+- security actions reflected in scope and tasks
+- validation evidence defined for each task
+- retention risk and open compliance questions remain visible

@@ -20,6 +20,8 @@
 
 This view helps the delivery team map initiative artifacts into Agile planning items without creating a second source of truth.
 
+Stories in this view are projected from `planning/delivery-structure.md`.
+
 ## User Story Projection
 
 | Story ID | Suggested GitLab title | User story in format `As a <persona>, I want <capability>, so that <business value>.` | Source artifact path | Source requirement ID | Acceptance source | Quality gate references | Labels |

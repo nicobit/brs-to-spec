@@ -55,6 +55,26 @@ GitLab or planning-tool mapping
 
 This is still one projection, not multiple planning tracks.
 
+The Epic / Feature / User Story structure should already exist in `planning/delivery-structure.md`.
+
+The planning view projects that structure for Agile tooling.
+
+Keep the planning view light enough to scan quickly.
+
+Good planning-view content is:
+
+- projected from source artifacts
+- concise
+- traceable
+- useful for coordination
+
+Bad planning-view content is:
+
+- copied architecture rationale
+- copied acceptance detail
+- copied implementation-task detail
+- broad notes with no planning consequence
+
 ## Generated view
 
 ```text
@@ -79,6 +99,23 @@ perspectives/agile-planning/gitlab-planning-view.md
 A classic Agile backlog can become a competing source of truth.
 
 This framework avoids that by generating a planning view that references source artifact IDs and paths.
+
+## Density control
+
+Use the planning view for:
+
+- Agile breakdown
+- source-linked team coordination
+- concise Engineering Notes
+- concise Enablement Needs
+- quality-gate actions to track
+
+Keep these detailed in source artifacts instead:
+
+- story traceability rules in `planning/delivery-structure.md`
+- acceptance and validation detail in source validation artifacts
+- architecture rationale in architecture artifacts
+- implementation-task detail in OpenSpec or standalone tasks
 
 ## User story rule
 

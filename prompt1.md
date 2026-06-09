@@ -206,8 +206,8 @@ README.md
 HOW_TO_USE.md
 .github/copilot-instructions.md
 docs/15-github-copilot-workflow.md
-prompts/5-handoff/
-prompts/7-perspectives/
+.brs2spec/5-handoff/
+.brs2spec/7-perspectives/
 templates/perspectives/
 ```
 
@@ -437,15 +437,15 @@ Review and update the relevant prompt files.
 Most likely files:
 
 ```text
-prompts/7-perspectives/agile-planning/01-create-gitlab-planning-view.md
-prompts/7-perspectives/agile-planning/02-refresh-gitlab-planning-view.md
+.brs2spec/7-perspectives/agile-planning/01-create-gitlab-planning-view.md
+.brs2spec/7-perspectives/agile-planning/02-refresh-gitlab-planning-view.md
 ```
 
 or create:
 
 ```text
-prompts/7-perspectives/delivery-planning/01-create-delivery-planning-view.md
-prompts/7-perspectives/delivery-planning/02-refresh-delivery-planning-view.md
+.brs2spec/7-perspectives/delivery-planning/01-create-delivery-planning-view.md
+.brs2spec/7-perspectives/delivery-planning/02-refresh-delivery-planning-view.md
 ```
 
 Choose the least disruptive structure.
@@ -486,7 +486,7 @@ OpenSpec / standalone tasks are engineering execution input
 Review the handoff prompts, especially:
 
 ```text
-prompts/5-handoff/
+.brs2spec/5-handoff/
 ```
 
 Ensure OpenSpec and standalone handoff prompts explicitly consume:

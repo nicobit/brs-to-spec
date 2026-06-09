@@ -3,7 +3,7 @@
 ## v1.0.5-copilot-instructions
 
 - Added `.github/copilot-instructions.md`.
-- Added Copilot prompt files under `.github/prompts/`.
+- Added Copilot prompt files under `.github/.brs2spec/`.
 - Added `docs/15-github-copilot-workflow.md`.
 - Added `.vscode/settings.json` with Copilot workflow guidance.
 - Restored the practical VS Code / GitHub Copilot workflow guidance from earlier versions.
@@ -12,7 +12,7 @@
 ## v1.0.4-planning-view
 
 - Added Agile / GitLab Planning View as a read-only projection.
-- Added `prompts/7-perspectives/agile-planning/`.
+- Added `.brs2spec/7-perspectives/agile-planning/`.
 - Added `templates/perspectives/agile-planning/`.
 - Added `docs/14-agile-planning-view.md`.
 - Added an example GitLab planning view.

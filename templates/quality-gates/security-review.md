@@ -56,4 +56,10 @@
 | Action ID | Action | Owner | Required before | Status |
 |---|---|---|---|---|
 
+## Acceptance
+
+Status: `In progress` → change to `Accepted` when all checklist items are ticked or explicitly recorded as accepted risk.
+
+When accepted, update the `Status` field in Metadata to `Accepted`. The git commit records who accepted and when.
+
 ## Final Security Decision
