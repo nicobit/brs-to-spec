@@ -77,6 +77,7 @@ No shared schema or API between these three. F-002.2 is also in wave 5 but share
 ## Diagram
 
 ```mermaid
+
 graph LR
     F001_1[F-001.1\nOnboarding submission]
     F001_2[F-001.2\nPersist profile & consent]
