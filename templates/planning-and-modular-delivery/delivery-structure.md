@@ -34,9 +34,9 @@ This section should be detailed enough to support story grouping and handoff sha
 
 This section should be detailed enough for downstream handoff and planning projection.
 
-Every feature must have at least two stories. A feature with one story must be restructured — either split the feature or promote the single story to sit directly under the epic.
+Every feature must have at least one well-formed user story. A feature with only one story must include a one-line justification for why further splitting is not useful or not yet needed (e.g. "single atomic capability — no meaningful split at this stage"). Do not force artificial stories.
 
-Derive stories from: different personas, happy path vs failure path, retry flows, support/admin views, edge cases, and distinct entry points implied by the BRS. Do not write stories that merely restate the feature name.
+Derive multiple stories where scope warrants it from: different personas, happy path vs failure path, retry flows, support/admin views, edge cases, and distinct entry points implied by the BRS. Do not write stories that merely restate the feature name.
 
 | Story ID | Parent feature | User story | Source requirement(s) | Acceptance / validation reference | Architecture constraints | Likely quality gates | Likely enablement needs |
 |---|---|---|---|---|---|---|---|

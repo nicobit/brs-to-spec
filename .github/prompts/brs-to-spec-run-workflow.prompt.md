@@ -54,9 +54,23 @@ After identifying the workspace, check whether `planning/workflow-state.json` ex
 - If both are clear → use `next_action` as the starting point for Step 4 (determine next stage), then verify with a quick content check before executing.
 - **Do not blindly trust the state file.** Verify the `next_action` artifact with a content check before executing. If the content check disagrees with the state file, treat the content check as authoritative and update the state file.
 
-**If it does not exist, or `state_validated` = false:**
-- Do not use it. Proceed with the full stale check and stage assessment (Steps 2 and 3).
-- After completing the next stage, generate or update `planning/workflow-state.json` using `.brs2spec/3-planning-and-modular-delivery/01-maintain-workflow-state.md`.
+**If it does not exist:**
+- Auto-initialise it immediately before doing anything else.
+- Check which artifacts exist in the workspace to determine the correct starting stage:
+  - If `input/brs.md` does not exist → `current_stage: "pre-intake"` — stop and tell the user to create a BRS first using the `create-brs` prompt
+  - If `input/brs.md` exists but `routing/routing-decision.md` does not → `current_stage: "routing"`
+  - If routing exists but `business-intake/business-intake-summary.md` does not → `current_stage: "business-intake"`
+  - If intake exists but `planning/delivery-structure.md` does not → `current_stage: "delivery-structure-draft"`
+  - If delivery-structure draft exists but `architecture/architecture-review.md` does not → `current_stage: "architecture-review"`
+  - If architecture-review exists but `engineering-readiness/readiness-check.md` does not → `current_stage: "engineering-readiness"`
+  - If readiness exists with decision = Ready but delivery-structure has stub stories → `current_stage: "delivery-structure-confirmed"`
+  - Otherwise → scan remaining artifacts and set `current_stage` to the first incomplete stage
+- Write `planning/workflow-state.json` using `templates/planning/workflow-state.json` with `state_validated: false` and the detected `current_stage`.
+- Then proceed with the full stale check and stage assessment (Steps 2 and 3).
+
+**If it exists but `state_validated` = false:**
+- Do not use it as a fast path. Proceed with the full stale check and stage assessment (Steps 2 and 3).
+- After completing the next stage, update `planning/workflow-state.json` using `.brs2spec/3-planning-and-modular-delivery/01-maintain-workflow-state.md`.
 
 **After completing any stage:** always update `planning/workflow-state.json` to reflect the new state before stopping.
 
@@ -84,7 +98,7 @@ A home artifact is stale if it still contains any of:
 | `architecture/architecture-rules.md` | AR-OPEN-* entries | AR-OPEN-001 or AR-OPEN-002 present when OD-001/OD-002 Resolved |
 | `engineering-readiness/readiness-check.md` | Readiness decision; blocking issues | Says Not ready when all blocking issues in it are Resolved in the register |
 | `engineering-readiness/initiative-context.md` | Exists with real content | Missing entirely, or exists with empty rows |
-| `planning/delivery-structure.md` | Stories per feature | Any feature has only one user story |
+| `planning/delivery-structure.md` | Stories per feature | Any feature has only one user story with no justification for why splitting is not needed |
 
 **If any stale or incomplete artifact is found:**
 - Fix it immediately — do not report quality gates or readiness as the current blocker while these are stale
@@ -113,7 +127,7 @@ For each artifact below, check whether it exists **and passes its done criteria*
 | Architecture reviewed | `architecture/architecture-review.md` | Has initiative-specific constraints, conflicts, open decisions with owners — not generic statements |
 | Architecture rules defined | `architecture/architecture-rules.md` | Has binding rules with IDs; no AR-OPEN-* items remaining unless decisions are genuinely unresolved |
 | Open decisions current | `planning/open-decisions.md` | All decisions from all scanned artifacts are present; status and owners assigned; blocking summary accurate |
-| Delivery structure defined | `planning/delivery-structure.md` | Has epics with IDs; every feature has ≥2 user stories; every story traceable to a requirement ID; no features with a single story |
+| Delivery structure defined | `planning/delivery-structure.md` | Has epics with IDs; every feature has at least one well-formed user story; features with only one story include a justification for why splitting is not needed; every story traceable to a requirement ID |
 | Readiness checked | `engineering-readiness/readiness-check.md` | Has explicit Ready / Ready with risks / Not ready decision; every triggered gate listed; no placeholder owners |
 | Initiative context generated | `engineering-readiness/initiative-context.md` | Has technology constraints, binding rules, governed boundaries, active gates — no empty rows |
 | Quality gates done | `quality-gates/<gate>.md` for each triggered gate | Each triggered gate has real content, ticked checklist items, and `Status: Accepted` in the Metadata table — a stub or `Status: In progress` fails this check. No sign-off table or named reviewer required. |
@@ -141,36 +155,121 @@ Before running the architecture review, check `input/architecture.md`:
 
 Use this sequence. Find the **first stage** where the artifact is missing or empty. That is the next stage to execute.
 
+**This sequence is a strict gate chain — you may not skip a stage or advance past it until its artifact exists and passes the quality bar for that stage (see Quality bar section). Never jump ahead because a later stage looks simpler or because the BRS provides enough information to do it.**
+
 ```
-1.  Routing              → .brs2spec/1-routing/01-select-delivery-and-execution-mode.md
-2.  Business intake      → .brs2spec/2-business-intake/01-create-business-intake-summary.md
-3.  Architecture draft   → .brs2spec/0-input-preparation/04-draft-architecture-from-brs.md
-                           (only if input/architecture.md is missing or stub)
-4.  Architecture review  → .brs2spec/3-planning-and-modular-delivery/01-review-initial-architecture.md
-5.  Architecture rules   → .brs2spec/3-planning-and-modular-delivery/02-create-global-architecture-rules.md
-6.  Open decisions register → .brs2spec/3-planning-and-modular-delivery/00-maintain-open-decisions.md
-                           (create or update after every stage that produces decisions)
-7.  Delivery structure   → .brs2spec/3-planning-and-modular-delivery/03-create-delivery-structure.md
-8.  Readiness check      → .brs2spec/4-engineering-readiness/01-check-engineering-readiness.md
-9.  Open decisions register → .brs2spec/3-planning-and-modular-delivery/00-maintain-open-decisions.md
-                           (update after readiness — mark blocking issues as blocking decisions)
-10. Initiative context   → .brs2spec/4-engineering-readiness/02-generate-initiative-context.md
-11. Quality gates        → .brs2spec/4-engineering-readiness/quality-gates/create-<gate>.md (triggered only)
-12. Handoff              → .brs2spec/5-handoff/01-create-openspec-change-for-active-deliverable.md
-                           or .brs2spec/5-handoff/02-create-standalone-delivery-package.md
+1.  Routing              → routing/routing-decision.md
+                           prompt: .brs2spec/1-routing/01-select-delivery-and-execution-mode.md
+                           gate: delivery mode and execution mode both stated with rationale
+
+2.  Business intake      → business-intake/business-intake-summary.md
+                           prompt: .brs2spec/2-business-intake/01-create-business-intake-summary.md
+                           gate: objectives have success measures; every gap has an owner
+
+3.  Architecture draft   → input/architecture.md (only if missing or stub)
+                           prompt: .brs2spec/0-input-preparation/04-draft-architecture-from-brs.md
+                           gate: not a stub; may carry DRAFT notice
+
+4.  Draft delivery shape → planning/delivery-structure.md (initial draft — epics and features only)
+                           prompt: .brs2spec/3-planning-and-modular-delivery/03-create-delivery-structure.md
+                           gate: epics with IDs and features visible; user stories may be stubs at this stage
+                           note: this is a DRAFT — the architecture review refines and may reorder it
+
+5.  Architecture review  → architecture/architecture-review.md
+                           prompt: .brs2spec/3-planning-and-modular-delivery/01-review-initial-architecture.md
+                           gate: initiative-specific constraints; every open decision has an owner
+                           blocked by: draft delivery-structure.md must exist so the review targets real slices
+
+6.  Architecture rules   → architecture/architecture-rules.md
+                           prompt: .brs2spec/3-planning-and-modular-delivery/02-create-global-architecture-rules.md
+                           gate: every rule has an ID and enforcement mechanism; no AR-OPEN-* rules if decision is Resolved
+
+7.  Open decisions       → planning/open-decisions.md
+                           prompt: .brs2spec/3-planning-and-modular-delivery/00-maintain-open-decisions.md
+                           gate: all decisions from routing, intake, architecture captured with owners
+
+8.  Engineering readiness → engineering-readiness/readiness-check.md
+                           prompt: .brs2spec/4-engineering-readiness/01-check-engineering-readiness.md
+                           gate: readiness decision stated (Ready / Not ready); all blockers listed
+                           blocked by: architecture-review.md AND architecture-rules.md AND open-decisions.md
+
+9.  Delivery structure   → planning/delivery-structure.md (confirmed — full user stories)
+                           prompt: .brs2spec/3-planning-and-modular-delivery/03-create-delivery-structure.md
+                           gate: epics → features → stories; every feature has at least one well-formed user story;
+                                 features with a single story must include a justification for why splitting is not needed;
+                                 every story has AC reference; architecture constraints from review reflected
+                           blocked by: readiness decision must be Ready (or blockers explicitly accepted as risk)
+
+10. Open decisions update → planning/open-decisions.md
+                           prompt: .brs2spec/3-planning-and-modular-delivery/00-maintain-open-decisions.md
+                           gate: readiness blockers recorded as decisions with owners
+
+11. Initiative context   → engineering-readiness/initiative-context.md
+                           prompt: .brs2spec/4-engineering-readiness/02-generate-initiative-context.md
+                           gate: scope, integrations, constraints populated
+
+12. Quality gates        → quality-gates/<gate>.md (triggered only — see gate trigger rules)
+                           prompt: .brs2spec/4-engineering-readiness/quality-gates/create-<gate>.md
+                           gate: Status: Accepted in each triggered gate's Metadata
+
+13. Handoff              → openspec/changes/ (one folder per user story)
+                           prompt: .brs2spec/5-handoff/01-create-openspec-change-for-active-deliverable.md
+                           gate: dependency-graph.md generated first; all story folders present
 ```
+
+### Hard gate rules — never cross these without the prior stage artifact
+
+| Before executing... | This artifact must exist and pass quality bar |
+|---|---|
+| Business intake (2) | `routing/routing-decision.md` with delivery mode stated |
+| Architecture review (5) | `business-intake/business-intake-summary.md` with objectives and gaps; `planning/delivery-structure.md` draft with epics visible |
+| Engineering readiness (8) | `architecture/architecture-review.md` AND `architecture/architecture-rules.md` AND `planning/open-decisions.md` |
+| Delivery structure confirmed (9) | `engineering-readiness/readiness-check.md` with readiness decision = Ready |
+| Handoff (13) | All triggered quality gates with `Status: Accepted`; `planning/open-decisions.md` with zero blocking open decisions |
 
 ### Open decisions gate rule
 
 Before advancing to handoff (step 12), check `planning/open-decisions.md`.
+If any decision has Status = Open or In progress and Blocking = Yes, stop. List the blocking decisions and the user action required.
 
-If any decision in the Blocking decisions summary has Status = Open or In progress, the workflow must not advance to handoff. List the blocking decisions and stop.
+### Skip rules (Fast Path only)
 
-Skip stages that are not required for the selected delivery mode:
-- Fast Path: may skip architecture review, delivery structure, traceability matrix if scope is narrow and routing confirms this
-- Standard and above: all stages required in order
+- Fast Path: may skip draft delivery shape (4), architecture review (5), architecture rules (6), delivery structure confirmed (9), initiative context (11) if routing explicitly confirms scope is narrow enough
+- Standard and above: all stages required in order — no skipping
 
-## Step 5 — Execute the next stage
+## Step 5 — Pre-generation gate check (mandatory before writing any artifact)
+
+Before generating any artifact, run this checklist. If any item fails, do not generate the artifact — execute the blocking stage instead.
+
+**For `planning/delivery-structure.md` (draft — stage 4):**
+- [ ] `business-intake/business-intake-summary.md` exists → read it → confirm scope and requirements are present
+- If missing: generate business-intake first. Do not touch delivery-structure.md.
+- At draft stage, epics and features are sufficient. User stories may be stubs with a note that they will be confirmed after architecture review.
+
+**For `architecture/architecture-review.md` (stage 5):**
+- [ ] `business-intake/business-intake-summary.md` exists → read it → confirm objectives are present
+- [ ] `planning/delivery-structure.md` draft exists → read it → confirm epics are visible
+- If either missing: generate the missing artifact first. Do not touch architecture-review.md.
+
+**For `engineering-readiness/readiness-check.md` (stage 8):**
+- [ ] `architecture/architecture-review.md` exists → read it → confirm it is not a stub and has a Review Decision
+- [ ] `architecture/architecture-rules.md` exists → read it → confirm it is not a stub
+- [ ] `planning/open-decisions.md` exists → read it → confirm all architecture decisions have owners
+- If any missing: generate the missing artifact first.
+
+**For `planning/delivery-structure.md` (confirmed — stage 9):**
+- [ ] `engineering-readiness/readiness-check.md` exists → read it → confirm decision = Ready
+- [ ] `architecture/architecture-review.md` exists → read constraints and open decisions that affect delivery slices
+- If readiness missing or decision ≠ Ready: stop. Do not promote delivery-structure to confirmed.
+
+**For handoff (`openspec/changes/`):**
+- [ ] All triggered quality gates have `Status: Accepted` in Metadata — read each gate artifact to confirm
+- [ ] `planning/open-decisions.md` has zero blocking open decisions — read it to confirm
+- If either fails: stop. State exactly what is blocking and what the user must do.
+
+**This checklist is not optional.** Do not reason around it. Do not generate the artifact because "enough information is available." The gate artifact must exist and be read before the dependent artifact is generated.
+
+## Step 6 — Execute the next stage
 
 Run the prompt for the identified next stage against the available inputs.
 
@@ -184,7 +283,7 @@ Generate the full artifact content. Do not create a skeleton or placeholder. Do 
 
 Save the output to the correct path inside the initiative workspace.
 
-## Step 6 — Re-assess after completing the stage
+## Step 7 — Re-assess after completing the stage
 
 After generating the artifact, re-run the stage assessment from Step 2.
 
@@ -204,7 +303,7 @@ When multiple incomplete items exist, always work through them in this fixed ord
 
 ```
 1. Fix stale artifacts          — input/architecture.md, architecture-rules.md, readiness-check.md
-2. Fix incomplete artifacts     — planning/delivery-structure.md (≥2 stories per feature)
+2. Fix incomplete artifacts     — planning/delivery-structure.md (every feature needs at least one well-formed story; single-story features need a splitting justification)
 3. Generate missing artifacts   — engineering-readiness/initiative-context.md
 4. Complete quality gates       — security-review → data-contract → api-contract → observability-plan
 5. Handoff                      — proposal → design → tasks (only when all above are complete)
@@ -249,7 +348,7 @@ Genuine stop conditions:
 ## Delivery mode behavior
 
 ### Fast Path (routing score 0–3)
-Skip: architecture-review, architecture-rules, delivery-structure, traceability-matrix if routing confirms Fast Path.
+Skip: draft delivery shape, architecture-review, architecture-rules, delivery-structure confirmed, traceability-matrix if routing confirms Fast Path.
 Still required: routing, business-intake (optional if scope is trivially clear), readiness-check, initiative-context, handoff.
 
 ### Standard (4–7) and Enterprise (8–11)
@@ -270,7 +369,7 @@ Before marking a stage complete, verify the artifact passes every check below. I
 - **Architecture rules:** every rule has an ID and an enforcement mechanism; no AR-OPEN-* rules remain once the corresponding decision in `planning/open-decisions.md` is Resolved
 - **Delivery structure:**
   - Every epic has an ID and links to source requirements
-  - Every feature has **at least two user stories** — if any feature has one story, rewrite it before advancing
+  - Every feature has at least one well-formed user story — if a feature has only one story, the artifact must include a one-line justification for why further splitting is not useful or not yet needed; do not force artificial stories
   - Every story is written as "As a [persona], I want [action], so that [value]" — not as a system task
   - Every story references a source requirement ID
   - Stories cover: happy path, failure path, retry/recovery, support/admin view, and edge cases implied by the BRS

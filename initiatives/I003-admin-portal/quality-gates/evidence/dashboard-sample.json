@@ -1,0 +1,22 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-10-01/dashboard.json#",
+  "properties": {
+    "lenses": [
+      {
+        "order": 0,
+        "parts": {
+          "0": {
+            "position": { "x": 0, "y": 0, "w": 6, "h": 4 },
+            "metadata": {
+              "inputs": [
+                { "name": "resourceType", "value": "ApplicationInsights" }
+              ],
+              "type": "Extension/HubsExtension/PartType/Chart"
+            }
+          }
+        }
+      }
+    ],
+    "isLocked": false
+  }
+}

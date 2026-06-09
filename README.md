@@ -4,6 +4,24 @@ This framework transforms one or more raw **Business Requirements Specification 
 
 OpenSpec is the default engineering downstream, but it is not mandatory. The framework also supports standalone execution, Microsoft 365 Copilot / Copilot Studio business intake, and GitHub Copilot / VS Code guided delivery workflows.
 
+## Recommended first prompt
+
+Run:
+
+```text
+.github/prompts/brs-to-spec-run-workflow.prompt.md
+```
+
+Use it when you want Copilot or a Codex agent to inspect the current initiative workspace and continue from the correct next step.
+
+The workflow runner:
+- Detects the active initiative workspace
+- Reads `planning/workflow-state.json` for a fast-path hint (or auto-initialises it if missing)
+- Checks content, not just file existence — stubs and placeholders count as missing
+- Identifies stale artifacts (resolved decisions not yet reflected)
+- Executes the next required stage fully
+- Re-assesses and continues automatically until a genuine stop condition is reached
+
 ## Why this framework exists
 
 Do not ask an AI coding agent to implement directly from a large Word BRS.

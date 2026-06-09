@@ -1,0 +1,20 @@
+{
+  "Name": "AdminPortalActionRunner",
+  "IsCustom": true,
+  "Description": "Least-privilege role for Admin Portal action runner. Scoped to subscription for MVP.",
+  "Actions": [
+    "Microsoft.Resources/subscriptions/resourceGroups/read",
+    "Microsoft.Compute/virtualMachines/start/action",
+    "Microsoft.Compute/virtualMachines/deallocate/action",
+    "Microsoft.Compute/virtualMachines/restart/action",
+    "Microsoft.Storage/storageAccounts/listkeys/action",
+    "Microsoft.Authorization/*/read"
+  ],
+  "NotActions": [
+    "Microsoft.Resources/subscriptions/resourceGroups/delete",
+    "Microsoft.Compute/virtualMachines/delete"
+  ],
+  "AssignableScopes": [
+    "/subscriptions/{subscriptionId}"
+  ]
+}

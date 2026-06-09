@@ -43,20 +43,22 @@ Add an optional compact slice/dependency or capability-to-module orientation vie
 
 ## Story hierarchy rule
 
-Every feature must have at least two user stories.
+Every feature must have at least one well-formed user story.
 
-A feature with only one story is not a feature — it is a story that has been mislabeled. Collapse it into a story under the parent epic or split the feature further.
+If a feature has only one story, the artifact must include a one-line justification for why further splitting is not useful or not yet needed (e.g. "single atomic capability — no meaningful split available at this stage"). Do not force artificial stories.
 
-Derive multiple stories per feature by asking:
+Derive multiple stories per feature where the scope warrants it by asking:
 
 - Are there different personas who interact with this feature differently?
 - Are there distinct scenarios — happy path, failure path, edge case — that represent separate deliverable behaviors?
 - Are there different entry points, states, or contexts that a user experiences separately?
 - Is there a support or admin view that is distinct from the customer-facing view?
 
-A minimum of two stories per feature is a floor, not a target. A feature covering a complex capability may have four or more stories.
+A feature covering a complex capability may have three or more stories. A feature covering a single atomic action may legitimately have one.
 
 Do not write stories that merely restate the feature name with "As a user, I want to..." wrapper text. Each story must represent a distinct, independently testable behavior.
+
+**Draft vs confirmed:** when running this prompt before architecture review (draft stage), user stories may be stubs — epics and features are the primary output. When running after readiness is confirmed, all stories must be fully formed with AC references and architecture constraints reflected.
 
 ## Quality bar
 
@@ -65,7 +67,7 @@ A good output must:
 - respect the initial architecture constraints
 - keep business traceability visible
 - define Epic / Feature / User Story structure early enough to guide later architecture review and downstream handoff
-- produce at least two user stories per feature — a feature with one story must be restructured
+- produce at least one well-formed user story per feature; features with one story must include a justification for why splitting is not needed
 - write stories that represent distinct, independently testable behaviors — not restatements of the feature name
 - derive stories from different personas, scenarios, failure paths, and edge cases present in the BRS
 - use classic Agile user story wording: `As a <persona>, I want <capability>, so that <business value>.`
@@ -84,7 +86,7 @@ A good output must:
 
 Do not produce outputs that:
 
-- have only one story per feature
+- have a feature with one story and no justification for why splitting is not needed
 - write stories that restate the feature name with a user story wrapper
 - write stories only for the happy path — failure paths, retry flows, and support views are stories too
 - invent architecture not present in the inputs
@@ -109,7 +111,7 @@ Before finalizing, verify:
 - [ ] Architecture constraints are referenced.
 - [ ] Business requirements remain traceable.
 - [ ] Epic / Feature / User Story structure is defined and traceable.
-- [ ] Every feature has at least two user stories — any feature with one story has been restructured.
+- [ ] Every feature has at least one well-formed user story — features with only one story include a justification for why splitting is not needed.
 - [ ] Each story represents a distinct, independently testable behavior — not a restatement of the feature name.
 - [ ] Stories cover multiple personas, failure paths, and edge cases where the BRS implies them.
 - [ ] User stories use `As a <persona>, I want <capability>, so that <business value>.`

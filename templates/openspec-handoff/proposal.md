@@ -35,8 +35,25 @@
 
 ## Acceptance criteria
 
-| AC | Criterion | How to verify | Evidence expected |
-|---|---|---|---|
+| AC ID | Criterion | How to verify | BDD scenario(s) | Evidence expected |
+|---|---|---|---|---|
+
+<!-- AC IDs must match the BRS (AC-NNN). BDD scenario IDs must match quality-gates/bdd-scenarios.md (SCN-NNN). -->
+<!-- Every AC must have at least one BDD scenario or an explicit note that it is verified by manual review. -->
+
+## BDD scenarios
+
+| Scenario ID | Type | Summary |
+|---|---|---|
+| SCN-NNN | Happy path / Negative / Boundary / Authorization | One-line description |
+
+<!-- List only the scenarios that directly validate this story. Full Gherkin is in quality-gates/bdd-scenarios.md. -->
+<!-- Minimum: one happy-path and one failure scenario. Add boundary/authorization where the AC implies them. -->
+
+## Out of scope
+
+<!-- Explicit list of what this story does NOT do. -->
+<!-- One bullet per exclusion. If nothing is explicitly excluded, write "none." -->
 
 ## Constraints inherited from upstream
 
@@ -47,6 +64,7 @@
 
 | Artifact | Path | What to read there |
 |---|---|---|
+| BDD scenarios | `quality-gates/bdd-scenarios.md` | Full Gherkin for SCN-NNN referenced above |
 | Architecture rules | `architecture/architecture-rules.md` | Binding rules that apply to this story |
 | Data contract | `quality-gates/data-contract.md` | Full schema, PII mapping, retention |
 | API contract | `quality-gates/api-contract.md` | Full endpoint specs, sandbox credentials |

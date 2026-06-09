@@ -1,0 +1,48 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-01-01/dashboard.json#",
+  "version": "1.0",
+  "properties": {
+    "lenses": {
+      "0": {
+        "order": 0,
+        "parts": {
+          "action-overview": {
+            "position": { "x": 0, "y": 0, "colSpan": 6, "rowSpan": 6 },
+            "metadata": {
+              "type": "Extension/HubsExtension/PartType/MarkdownPart",
+              "settings": {
+                "content": "# Admin Portal Observability Overview\n\n- Action throughput\n- Job queue depth\n- Job failures\n- P95 latency"
+              }
+            }
+          },
+          "job-queue-depth": {
+            "position": { "x": 6, "y": 0, "colSpan": 6, "rowSpan": 4 },
+            "metadata": {
+              "type": "Extension/Microsoft_Insights/PartType/ChartPart",
+              "settings": {
+                "dataSource": {
+                  "resourceType": "microsoft.operationalinsights/workspaces",
+                  "resourceId": "[workspaceResourceId]",
+                  "query": "metrics | where Name == 'jobs.queue_depth' | summarize avg(Value) by bin(TimeGenerated, 1m)"
+                },
+                "visualization": "line"
+              }
+            }
+          },
+          "job-failure-rate": {
+            "position": { "x": 6, "y": 4, "colSpan": 6, "rowSpan": 4 },
+            "metadata": {
+              "type": "Extension/Microsoft_Insights/PartType/QueryPart",
+              "settings": {
+                "query": "Jobs | where TimeGenerated > ago(1h) | summarize failures = countif(status == 'failed'), total = count() | extend failure_rate = todouble(failures)/todouble(total)*100"
+              }
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "model": "dashboard"
+    }
+  }
+}

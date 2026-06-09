@@ -46,12 +46,41 @@ templates/engineering-readiness/readiness-check.md
 Preserve the template headings and complete every section that can be supported by evidence.
 Keep the reasoning sharp. Prefer explicit evidence, gaps, and actions over generic governance language.
 
+## Gate trigger rules — apply these explicitly
+
+For each gate, evaluate the evidence from `input/brs.md`, `architecture/architecture-review.md`, and `planning/delivery-structure.md`. Do not suppress a gate without explicit written justification.
+
+**BDD scenarios — trigger if ANY of the following is true:**
+- The initiative has role-based authorization rules (different personas can do different things)
+- The initiative has multi-step workflows or state transitions (e.g. pending → verified → failed)
+- The initiative has async execution paths (202 Accepted + job polling)
+- The initiative has dry-run, preview, or confirmation flows before a destructive action
+- The initiative has exception paths or retry/recovery flows that differ from the happy path
+- The initiative has complex validation rules derived from business rules (not just field presence)
+
+**Test strategy — trigger if ANY of the following is true:**
+- Multiple test levels are needed (unit, integration, E2E)
+- The initiative has regression risk from changing an existing system
+- Audit or compliance validation is required
+
+**Security review — trigger if ANY of the following is true:**
+- Authentication or authorization is involved
+- Sensitive or PII data is handled
+- External API exposure or new service boundary is introduced
+- Audit trail is required
+
+**API contract — trigger if:** a new or changed API endpoint is introduced or an existing consumer is affected.
+
+**Data contract — trigger if:** a new schema, migration, data ownership boundary, or PII handling is introduced.
+
+**Observability plan — trigger if:** a new operational flow, SLI/SLO requirement, or alerting need is introduced.
+
 ## Quality bar
 
 A good output must:
 
 - consume approved delivery shape rather than reconstructing it
-- apply trigger rules strictly
+- apply the gate trigger rules above explicitly for each gate — write the trigger evidence or the explicit justification for not triggering
 - mark triggered gates as required
 - include evidence for each decision
 - trigger API, data, and event contracts when governed boundaries exist
@@ -78,6 +107,8 @@ Do not produce outputs that:
 - ignore existing-system stability, compatibility, or rollback risk when brownfield impact exists
 - treat a small change as automatically safe without checking actual risk
 - skip gates because they are inconvenient
+- mark BDD scenarios as not triggered when the initiative has role-based authorization, async flows, multi-step workflows, dry-run/confirmation paths, or complex business rule validation — these always trigger BDD
+- suppress a gate with "No" without writing explicit justification for why none of the trigger conditions apply
 - treat an optional visual as mandatory without explicit clarity need
 - use generic text such as `security should be considered`
 

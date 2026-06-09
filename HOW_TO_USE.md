@@ -1,5 +1,15 @@
 # How to Use This Framework
 
+## Recommended first prompt
+
+Run:
+
+```text
+.github/prompts/brs-to-spec-run-workflow.prompt.md
+```
+
+Use it at the start of every working session. The workflow runner detects the active initiative workspace, checks content (not just file existence), identifies stale artifacts, and executes the next required stage automatically.
+
 ## Workspace rule
 
 Work inside one initiative workspace at a time.

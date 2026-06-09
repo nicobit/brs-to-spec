@@ -97,7 +97,7 @@ An artifact is `stale` if any of these are true:
 | `architecture/architecture-review.md` | Initiative-specific constraints; open decisions with owners |
 | `architecture/architecture-rules.md` | Binding rules with IDs; no AR-OPEN-* remaining for resolved decisions |
 | `planning/open-decisions.md` | All decisions present; blocking summary current |
-| `planning/delivery-structure.md` | Every feature has ≥2 user stories; every story traceable to requirement ID |
+| `planning/delivery-structure.md` | Every feature has at least one well-formed user story; single-story features include a splitting justification; every story traceable to requirement ID |
 | `engineering-readiness/readiness-check.md` | Explicit Ready/Not ready; every triggered gate listed; no placeholder owners |
 | `engineering-readiness/initiative-context.md` | No empty rows; specific technology choices; all resolved decisions reflected |
 | Quality gates | Real content, named reviewer, completed acceptance checklist |

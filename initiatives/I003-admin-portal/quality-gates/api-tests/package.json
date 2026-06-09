@@ -1,0 +1,17 @@
+{
+  "name": "i003-api-contract-tests",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "test": "jest --runInBand",
+    "start": "node mockServer.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.6.1",
+    "supertest": "^6.3.3"
+  }
+}

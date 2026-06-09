@@ -30,9 +30,11 @@ One task per independently reviewable unit of work (one PR boundary).
 ## Validation tasks
 
 <!-- One entry per AC that requires an explicit test or verification step. -->
+<!-- Link each validation task to the BDD scenario(s) it executes — use SCN-NNN IDs from proposal.md. -->
 
-- [ ] OS-{{F-XXX.X}}-V01: Verify {{criterion}} in staging
-  - Acceptance source:
+- [ ] OS-{{F-XXX.X}}-V01: Verify {{criterion}} — {{SCN-NNN}}
+  - Acceptance source: AC-NNN
+  - BDD scenario: SCN-NNN (see `quality-gates/bdd-scenarios.md`)
   - How to validate:
   - Evidence expected:
 
@@ -42,6 +44,7 @@ One task per independently reviewable unit of work (one PR boundary).
 <!-- Keep this short — these are the conditions, not implementation steps. -->
 
 - [ ] All implementation tasks merged and passing CI
+- [ ] All BDD scenarios referenced in proposal.md pass (SCN-NNN … SCN-NNN)
 - [ ] All validation tasks executed with evidence attached
 - [ ] Any telemetry signals from this story visible in staging
 - [ ] Dependent stories unblocked — notify team when done (see dependency-graph.md)

@@ -61,7 +61,7 @@ Step 3 — Check whether the file still contains the resolved decision as open, 
 - `input/architecture.md`: Open Decisions table must not list D-001..D-005 as open. DRAFT notice must be gone if OD-006 is Resolved. If still DRAFT or still showing open decisions → stale → fix now.
 - `architecture/architecture-rules.md`: Must not contain AR-OPEN-001 or AR-OPEN-002 as open items if OD-001 and OD-002 are Resolved → stale → promote to binding rules now.
 - `engineering-readiness/readiness-check.md`: If all blocking issues listed in it are resolved in the register, the Not ready decision is stale → re-evaluate readiness now.
-- `planning/delivery-structure.md`: Every feature must have ≥2 user stories. If any feature has only one story → incomplete → rebuild before advancing.
+- `planning/delivery-structure.md`: Every feature must have at least one well-formed user story. If a feature has only one story and no justification for why splitting is not needed → incomplete → add justification or split before advancing.
 - `engineering-readiness/initiative-context.md`: Must exist with real content before handoff. If missing → generate it now.
 
 Step 4 — Fix every stale or incomplete artifact found in Step 3 before doing anything else.
@@ -150,7 +150,8 @@ operational dependencies
 **Reading the state file:**
 - If `planning/workflow-state.json` exists and `state_validated` = true: use it as the starting point. Trust `stale_artifacts`, `open_decisions`, and `next_action` as a fast-path hint.
 - Do not blindly trust it. Always verify the `next_action` artifact with a quick content check before executing. If the content check disagrees, trust the content check and update the state file.
-- If the file does not exist or `state_validated` = false: ignore it and run the full stale check and stage assessment.
+- If the file does not exist: auto-initialise it before doing anything else — check which artifacts exist to detect the correct `current_stage` (pre-intake if no BRS, routing if BRS exists but no routing decision, etc.), write the file with `state_validated: false`, then run the full stale check and stage assessment.
+- If `state_validated` = false: ignore it as a fast path and run the full stale check and stage assessment.
 
 **Updating the state file:**
 - After completing any stage, update `planning/workflow-state.json` using `.brs2spec/3-planning-and-modular-delivery/01-maintain-workflow-state.md`.
@@ -181,17 +182,18 @@ Respect this order within the active initiative workspace:
 2.  input/architecture.md or input/architecture/*.md
 3.  input/input-package.md
 4.  business-intake/business-intake-summary.md
-5.  planning/delivery-structure.md
+5.  planning/delivery-structure.md (draft — epics and features)
 6.  architecture/architecture-review.md
 7.  architecture/architecture-rules.md
 8.  planning/open-decisions.md       ← single source of truth for all open decisions
-9.  planning/delivery-increments.md when the initiative uses Modular Delivery
-10. planning/traceability-matrix.md
-11. engineering-readiness/readiness-check.md
-12. quality-gates/*.md
-13. openspec/changes/... or standalone-delivery/...
-14. perspectives/agile-planning/gitlab-planning-view.md
-15. implementation and review helper outputs
+9.  planning/delivery-structure.md (confirmed — full stories, arch constraints reflected)
+10. planning/delivery-increments.md when the initiative uses Modular Delivery
+11. planning/traceability-matrix.md
+12. engineering-readiness/readiness-check.md
+13. quality-gates/*.md
+14. openspec/changes/... or standalone-delivery/...
+15. perspectives/agile-planning/gitlab-planning-view.md
+16. implementation and review helper outputs
 ```
 
 The Agile / GitLab Planning View is a projection only. It is not the source of truth.
@@ -603,9 +605,17 @@ Trigger phrases and their intent:
 | "pick up where we left off" | find first incomplete stage and execute it | stage assessment |
 | "check the initiative" | read open-decisions register, then assess workspace | `planning/open-decisions.md` |
 | "what is missing?" | read open-decisions register, then assess workspace | `planning/open-decisions.md` |
+| "create a BRS" | detect mode (convert/draft/interview) and run `.brs2spec/0-intake/00-create-brs.md` | `templates/input/brs.md` |
+| "write a BRS" | same as above | `templates/input/brs.md` |
+| "create a BRS for X" | interview mode — ask 3 rounds of questions before generating | `templates/input/brs.md` |
+| "convert this to a BRS" | convert mode — map pasted document to BRS structure | `templates/input/brs.md` |
 | "accept all quality gates" | change Status to Accepted in all triggered gate artifacts, update workflow-state.json, advance workflow | all `quality-gates/*.md` with Status ≠ Accepted |
 | "accept all gates and continue" | same as above | all `quality-gates/*.md` with Status ≠ Accepted |
 | "accept all and continue" | same as above | all `quality-gates/*.md` with Status ≠ Accepted |
+| "create the handoff" | read and follow `.brs2spec/5-handoff/01-create-openspec-change-for-active-deliverable.md` exactly | `planning/delivery-structure.md` |
+| "create openspec handoff" | same as above | `planning/delivery-structure.md` |
+| "generate the handoff" | same as above | `planning/delivery-structure.md` |
+| "create the openspec" | same as above | `planning/delivery-structure.md` |
 
 When any of these intents is detected:
 
@@ -635,6 +645,22 @@ When asked anything about an initiative — status, next steps, what to do, what
 10. **Terminal stage:** if `workflow-state.json` has `current_stage: "complete"`, the framework workflow is finished. Report this and stop. Do not invent additional steps (evidence attaching, planning import, issue creation). State: "The brs-to-spec workflow for this initiative is complete. The handoff is at `openspec/changes/<deliverable>/`. Copy it into the code repository and run `/opsx:apply`."
 11. When stopping, state exactly what is missing and what the user must provide before the workflow can continue.
 
+## Prompt file execution rule
+
+When a stage in the workflow sequence lists a `prompt:` path, you must **open and read that file** before generating the artifact for that stage. Do not generate from memory or from a general understanding of the task.
+
+This is mandatory for:
+- Handoff: read `.brs2spec/5-handoff/01-create-openspec-change-for-active-deliverable.md` before creating any file under `openspec/changes/`
+- Standalone handoff: read `.brs2spec/5-handoff/02-create-standalone-delivery-package.md` before creating any file under `standalone-delivery/`
+- Any other stage prompt listed in the stage sequence
+
+**The handoff format is not negotiable.** The output must be:
+- `openspec/changes/dependency-graph.md` generated first
+- One folder per user story named `F-XXX.X-<slug>/` — not `hand-off/`, not `T-NNN`, not increment folders
+- Each folder contains `proposal.md`, `design.md`, `tasks.md`, and `specs/` as defined in the prompt
+
+Generating `hand-off/`, `issues/T-NNN`, or any other folder structure for the OpenSpec handoff is a framework violation — delete and regenerate correctly.
+
 ## Forbidden responses
 
 Never produce any of the following in response to any question:
@@ -651,12 +677,27 @@ Never produce any of the following in response to any question:
 - "Shall I proceed with X or Y?"
 - Any offer of a choice between actions you could determine yourself from context
 - "I can [do X] — tell me if you want me to do that now"
+- "Would you like me to scaffold X now?"
+- "Would you like me to proceed with X?"
+- "Should I generate X?"
+- "Shall I create X now?"
+- Any sentence ending in "now?" when X is the obvious next stage in the workflow
 - Answering "what is the next step?" by reading raw artifacts (BRS, architecture-review, readiness-check) without first reading `planning/open-decisions.md`
 - Reporting only one blocking decision when the open-decisions register has multiple blocking decisions open
+- Generating the confirmed `planning/delivery-structure.md` (stage 9 — full user stories) before `engineering-readiness/readiness-check.md` exists with decision = Ready
+- Generating `architecture/architecture-review.md` before `business-intake/business-intake-summary.md` exists and before a draft `planning/delivery-structure.md` exists — the review must target real delivery slices
+- Generating `engineering-readiness/readiness-check.md` before `architecture/architecture-review.md` and `architecture/architecture-rules.md` both exist
+- Generating any artifact simultaneously with the artifact that gates it — stages are sequential, not parallel
+- Suggesting or offering to create a later-stage artifact when an earlier-stage artifact is missing — execute the earlier stage instead
+- Reasoning that "enough information is available" to skip a gate — the gate artifact must physically exist and be read first
 - Creating handoff artifacts (proposal, design, tasks) while `engineering-readiness/initiative-context.md` is missing
 - Creating handoff artifacts while any upstream artifact is stale (resolved decisions not reflected, DRAFT notice not cleared, Not ready not re-evaluated)
-- Accepting a delivery structure where any feature has only one user story
+- Accepting a delivery structure where any feature has only one user story and no justification for why further splitting is not needed
 - Creating folders not in the allowed workspace structure (e.g. `engineering-readiness/runbooks/`, `engineering-readiness/observability/`)
+- Creating an OpenSpec handoff as `openspec/changes/hand-off/` or `openspec/changes/<initiative-name>-handoff/` — the only valid structure is one `F-XXX.X-<slug>/` folder per user story
+- Creating handoff task files as `T-NNN-<name>.md` or `issues/T-NNN` — tasks belong inside `F-XXX.X-<slug>/tasks.md`
+- Generating any OpenSpec handoff artifact without first reading `.brs2spec/5-handoff/01-create-openspec-change-for-active-deliverable.md`
+- Generating the handoff without generating `openspec/changes/dependency-graph.md` first
 - Presenting sub-tasks within a quality gate as a menu of options ("which of these should I do next?")
 - Stopping after completing a quality gate to ask about implementation details instead of moving to the next gate
 - Marking a quality gate as complete in `planning/workflow-state.json` unless `Status: Accepted` appears in the gate artifact Metadata
@@ -678,16 +719,43 @@ If you catch yourself about to produce any of the above, stop.
 
 When you have completed what was asked — answer the question, execute the stage, scaffold the artifacts — stop. Do not append a menu. Do not solicit a follow-up choice. If the next action is obvious from the workflow state, do it. If it genuinely requires human input, state exactly what is needed in one sentence and stop.
 
+## Stage sequence — strict gate chain
+
+The workflow follows a fixed stage order. **Never skip a stage or jump ahead based on BRS content.** Each stage is gated by the prior stage's artifact existing and passing quality bar.
+
+```
+1.  routing/routing-decision.md                     ← gate: delivery mode + execution mode stated
+2.  business-intake/business-intake-summary.md      ← gate: requires (1)
+3.  input/architecture.md                           ← gate: draft if missing (skip if exists)
+4.  planning/delivery-structure.md  (DRAFT)         ← gate: requires (2); epics + features visible; stories may be stubs
+5.  architecture/architecture-review.md             ← gate: requires (2)(4 draft); targets real delivery slices
+6.  architecture/architecture-rules.md              ← gate: requires (5)
+7.  planning/open-decisions.md                      ← gate: requires (5)(6)
+8.  engineering-readiness/readiness-check.md        ← gate: requires (5)(6)(7)
+9.  planning/delivery-structure.md  (CONFIRMED)     ← gate: requires (8) with decision = Ready; full stories; arch constraints reflected
+10. planning/open-decisions.md update               ← gate: requires (8)
+11. engineering-readiness/initiative-context.md     ← gate: requires (9)
+12. quality-gates/<triggered gates>                 ← gate: requires (11); Status: Accepted
+13. openspec/changes/ handoff                       ← gate: requires (12); 0 blocking decisions
+```
+
+**Hard gates — never cross without prior artifact:**
+- Do not execute business intake (2) without routing decision (1)
+- Do not execute architecture review (5) without business intake (2) and draft delivery-structure (4)
+- Do not execute engineering readiness (8) without architecture review (5), architecture rules (6), and open decisions (7)
+- Do not execute delivery structure confirmed (9) without readiness decision = Ready in (8)
+- Do not execute handoff (13) without all triggered gates Accepted and 0 blocking open decisions
+
 ## Execution priority order
 
-When multiple incomplete items exist, always work through them in this fixed order. Never ask which one to do first.
+When multiple incomplete items exist within the stage sequence, always work through them in this fixed order. Never ask which one to do first.
 
 ```
 1. Fix stale artifacts          — input/architecture.md, architecture-rules.md, readiness-check.md
-2. Fix incomplete artifacts     — planning/delivery-structure.md (≥2 stories per feature)
+2. Fix incomplete artifacts     — planning/delivery-structure.md (every feature needs at least one well-formed story; single-story features need a splitting justification)
 3. Generate missing artifacts   — engineering-readiness/initiative-context.md (if missing)
 4. Complete quality gates       — in this order: security-review → data-contract → api-contract → observability-plan
-5. Handoff                      — proposal → design → tasks (only when all above are done)
+5. Handoff                      — dependency-graph.md first, then one folder per user story
 ```
 
 Within each group, pick the first item in the list and complete it fully before moving to the next. Do not jump to a later group because an earlier item requires human input — scaffold the blocker, state what is needed, then move to the next item in the same group.

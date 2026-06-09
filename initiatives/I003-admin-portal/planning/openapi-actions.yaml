@@ -1,0 +1,95 @@
+openapi: 3.0.3
+info:
+  title: Admin Portal Actions API
+  version: 0.1.0
+paths:
+  /actions/{actionId}/run:
+    post:
+      summary: Execute an operational action
+      parameters:
+        - name: actionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionRequest'
+      responses:
+        '200':
+          description: Synchronous execution result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionResult'
+        '202':
+          description: Accepted for asynchronous processing
+          headers:
+            Location:
+              description: URL to poll job status
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobAccepted'
+
+  /jobs/{jobId}:
+    get:
+      summary: Get job status
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Job status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobStatus'
+
+components:
+  schemas:
+    ActionRequest:
+      type: object
+      properties:
+        targetResources:
+          type: array
+          items:
+            type: string
+        parameters:
+          type: object
+    ActionResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        details:
+          type: object
+    JobAccepted:
+      type: object
+      properties:
+        job_id:
+          type: string
+        status_url:
+          type: string
+    JobStatus:
+      type: object
+      properties:
+        job_id:
+          type: string
+        status:
+          type: string
+          enum: [queued, running, succeeded, failed]
+        result:
+          type: object
+        errors:
+          type: array
+          items:
+            type: object
