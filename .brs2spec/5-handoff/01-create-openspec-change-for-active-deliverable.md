@@ -37,7 +37,7 @@ openspec/changes/{{deliverable-id}}-{{slug}}/
     observability.md ← distilled telemetry signals and alerts for this increment
 ```
 
-**One increment at a time.** Do not generate handoff for the whole initiative or multiple increments in one pass.
+**One folder per increment — generate all increments defined in `planning/delivery-structure.md` in sequence.** Each increment gets its own folder (`D1-<slug>/`, `D2-<slug>/`, `D3-<slug>/`) with its own scoped `proposal.md`, `design.md`, `tasks.md`, and `specs/`. After completing one folder, immediately continue to the next increment without stopping. Stop only when all increments in the delivery structure have a folder, or when a genuine stop condition is reached (missing input, unresolved dependency between increments).
 
 ## Output rules
 
@@ -85,6 +85,8 @@ A good output:
 
 ## Anti-patterns
 
+- Stopping after the first increment — continue until all increments in `delivery-structure.md` have a folder
+- Mixing features from different increments into one folder — each folder is scoped to exactly one increment
 - Inlining the full data contract table into `design.md` — put it in `specs/data.md` and reference it
 - Creating tasks without telemetry emission requirements
 - Generating `gitlab-issues.md` or any planning-tool export — that is downstream of this prompt

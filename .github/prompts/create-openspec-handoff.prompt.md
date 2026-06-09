@@ -45,7 +45,7 @@ openspec/changes/{{deliverable-id}}-{{slug}}/
 
 ## Key rules
 
-- One increment at a time — do not generate handoff for the whole initiative
+- One folder per increment — generate all increments defined in `planning/delivery-structure.md` in sequence, each in its own folder (`D1-<slug>/`, `D2-<slug>/`, etc.). Do not stop after D1.
 - `design.md` must be self-contained: engineer implements from `design.md` + `tasks.md` + `specs/` only
 - `specs/` distils the relevant slice of each gate artifact — do not inline the full gate content
 - Do not generate `gitlab-issues.md` or any planning-tool export
