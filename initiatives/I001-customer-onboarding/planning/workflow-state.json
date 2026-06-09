@@ -8,7 +8,7 @@
 
   "delivery_mode": "Standard",
   "execution_mode": "OpenSpec",
-  "current_stage": "handoff",
+  "current_stage": "complete",
   "readiness_decision": "ready",
 
   "artifacts": {
@@ -55,9 +55,9 @@
 
   "blocking_issues": [],
 
-    "next_action": {
-    "stage": "handoff",
-    "prompt": "Openspec handoff artifacts generated (proposal, design, tasks). Proceed to attach evidence and convert OS tasks into planning system.",
-    "reason": "OpenSpec artifacts created from delivery-structure and initiative-context; ready for planning/import."
+  "next_action": {
+    "stage": "complete",
+    "prompt": "Framework workflow complete. No further brs-to-spec steps remain. Handoff is at openspec/changes/D1-guided-onboarding/ — copy into code repository and run /opsx:apply. Resolve open questions in design.md before coding starts.",
+    "reason": "Handoff generated with proposal, design, tasks, and specs/. No evidence-attaching or planning-import steps exist in this framework."
   }
 }

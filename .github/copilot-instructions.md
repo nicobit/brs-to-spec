@@ -632,7 +632,8 @@ When asked anything about an initiative — status, next steps, what to do, what
 7. After completing the stage, re-assess and execute the next stage.
 8. Continue automatically until a genuine stop condition is reached.
 9. Stop conditions: blocking decisions unresolved, stale artifacts cannot be fixed without human input, readiness is Not ready and blockers are genuinely unresolved, a gate requires human sign-off, scope is ambiguous and cannot be resolved from existing artifacts.
-8. When stopping, state exactly what is missing and what the user must provide before the workflow can continue.
+10. **Terminal stage:** if `workflow-state.json` has `current_stage: "complete"`, the framework workflow is finished. Report this and stop. Do not invent additional steps (evidence attaching, planning import, issue creation). State: "The brs-to-spec workflow for this initiative is complete. The handoff is at `openspec/changes/<deliverable>/`. Copy it into the code repository and run `/opsx:apply`."
+11. When stopping, state exactly what is missing and what the user must provide before the workflow can continue.
 
 ## Forbidden responses
 

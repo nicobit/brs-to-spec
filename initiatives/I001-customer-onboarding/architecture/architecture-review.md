@@ -61,17 +61,11 @@ Generated from `input/brs.md` and `input/architecture.md` on 2026-06-09.
 
 The following decisions were recorded from the initiative input package (`input/input-package.md`) and have been applied to the draft architecture metadata and notes:
 
-- D-001: Identity Provider B verification mode — **sync** (synchronous verification). Owner: Architect / Integration.
-- D-002: Primary data store — **relational**. Owner: Data / Architect.
-- D-003: Deployment topology — multi-AZ on AKS. Owner: Ops / Architecture.
-- D-004: CRM sync — **Not in scope** for initial delivery. Owner: Product.
-- D-005: Notification provider — **SendGrid**. Owner: Product / Ops.
-
 - D-001: Identity Provider B verification mode — **asynchronous** (webhook/callback). Owner: Architect / Integration. Resolved: 2026-06-09.
 - D-002: Primary data store — **relational**. Owner: Data / Architect. Resolved: 2026-06-09.
 - D-003: Deployment topology — **Azure (AKS across Availability Zones)**. Owner: Ops / Architecture. Resolved: 2026-06-09.
 - D-004: CRM sync — **In scope** for initial delivery. Owner: Product. Resolved: 2026-06-09.
-- D-005: Notification provider — **SendGrid**. Owner: Product / Ops.
+- D-005: Notification provider — **SendGrid**. Owner: Product / Ops. Resolved: 2026-06-09.
 
 Notes:
 - Integration contracts (endpoints, webhooks, error semantics, SLAs) for Identity Provider B and Payment Provider A are still required and must be delivered before handoff.
