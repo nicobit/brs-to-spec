@@ -1,112 +1,150 @@
-# Prompt — Create OpenSpec Change for Active Deliverable
+# Prompt — Create OpenSpec Handoff per User Story
 
 ## Role
 
-You are an engineering lead preparing one delivery increment for implementation using OpenSpec.
-The output of this prompt is a self-contained folder that an engineer (or AI coding agent via `/opsx:apply`) can pick up and implement without opening any other artifact.
+You are an engineering lead preparing a complete OpenSpec handoff for an initiative.
+The output is one self-contained folder per user story — an engineer (or AI coding agent via `/opsx:apply`) picks up one folder and implements exactly one user story without opening any other artifact.
 
 ## When to use
 
 Only when `execution_mode` is `OpenSpec` and all of the following are true:
 - `engineering-readiness/readiness-check.md` exists and decision is `Ready`
 - All triggered quality gates have `Status: Accepted` in their Metadata
-- The active deliverable is identified in `planning/delivery-structure.md`
+- User stories are defined in `planning/delivery-structure.md`
 
 ## Inputs — read in this order
 
-1. `planning/workflow-state.json` — identify current stage and active deliverable
-2. `planning/delivery-structure.md` — epics, features, user stories, and increment definition
+1. `planning/workflow-state.json` — confirm current stage is `handoff` or `complete`
+2. `planning/delivery-structure.md` — epics, features, user stories (`F-XXX.X`), and increment grouping
 3. `engineering-readiness/initiative-context.md` — scope, integrations, constraints
-4. `architecture/architecture-rules.md` — binding rules that engineers must follow
+4. `architecture/architecture-rules.md` — binding rules engineers must follow
 5. `input/architecture.md` — deployment topology, integration decisions
 6. `quality-gates/security-review.md` — security checklist and accepted risks
 7. `quality-gates/api-contract.md` — API surface, auth, error codes, contracts
 8. `quality-gates/data-contract.md` — schema, PII mapping, retention, residency
 9. `quality-gates/observability-plan.md` — telemetry catalog, alert rules, runbooks
 
-## Output — one folder per active deliverable
+## Step 1 — generate the dependency graph first
+
+Before creating any story folder, generate:
 
 ```
-openspec/changes/{{deliverable-id}}-{{slug}}/
-  proposal.md        ← why, scope, constraints, reference table
-  design.md          ← self-contained technical context for the increment
-  tasks.md           ← ordered implementation checklist
+openspec/changes/dependency-graph.md
+```
+
+Use `templates/openspec-handoff/dependency-graph.md`.
+
+To build the graph:
+1. List all user stories (`F-XXX.X`) from `delivery-structure.md`
+2. Group them into waves based on:
+   - Increment grouping from `delivery-structure.md` (D1 stories before D2 stories, etc.)
+   - Shared schema dependencies (a story that creates a table blocks stories that read it)
+   - Shared API dependencies (a story that creates an endpoint blocks stories that consume it)
+3. Within a wave: stories that share no schema or API dependency can run in parallel
+4. Generate a Mermaid `graph LR` diagram showing the dependency arrows
+5. Add parallelism notes for stories in the same wave that share a component
+
+## Step 2 — generate one folder per user story
+
+For every user story in `delivery-structure.md`, in wave order, create:
+
+```
+openspec/changes/{{F-XXX.X}}-{{slug}}/
+  proposal.md        ← story, dependencies, AC, constraints, reference table
+  design.md          ← only what this story touches: API, data, integrations, observability
+  tasks.md           ← ordered tasks for this story only + done criteria
   specs/
-    api.md           ← distilled API surface for this increment
-    data.md          ← distilled data model changes for this increment
-    observability.md ← distilled telemetry signals and alerts for this increment
+    api.md           ← only endpoints/webhooks this story creates or modifies (delete if none)
+    data.md          ← only table changes this story introduces (delete if none)
+    observability.md ← only signals this story must emit (delete if none)
 ```
 
-**One folder per increment — generate all increments defined in `planning/delivery-structure.md` in sequence.** Each increment gets its own folder (`D1-<slug>/`, `D2-<slug>/`, `D3-<slug>/`) with its own scoped `proposal.md`, `design.md`, `tasks.md`, and `specs/`. After completing one folder, immediately continue to the next increment without stopping. Stop only when all increments in the delivery structure have a folder, or when a genuine stop condition is reached (missing input, unresolved dependency between increments).
+Use templates from `templates/openspec-handoff/`.
+
+After completing one story folder, immediately continue to the next — do not stop between stories.
 
 ## Output rules
 
-### proposal.md
-- State the business driver in one paragraph (why this, why now)
-- List concrete system changes as bullet points — no implementation detail
-- Include a scope table: features and user stories in scope, with requirement traceability
-- List explicit out-of-scope items — deferred features, integrations, increments
-- List success criteria with measurable targets sourced from BRS / NFRs
-- Include a reference table pointing to the full gate artifacts by path — do not inline the full gate content here
+### dependency-graph.md
+- Waves are the primary structure — one wave per row group
+- Every story appears exactly once
+- Dependencies table explains WHY each dependency exists (shared table, shared endpoint, logical ordering)
+- Mermaid diagram generated from the waves — use `graph LR`, one arrow per dependency
+- Parallelism notes call out stories in the same wave that share a component and need coordination
 
-### design.md
-- Must be self-contained: an engineer should be able to implement from `design.md` + `tasks.md` + `specs/` without opening any other artifact
-- API surface table: method, path, purpose, auth, request, response, contract artifact → `specs/api.md`
-- Data model table: table, change, key columns, PII flag, encryption, contract artifact → `specs/data.md`
-- Integration points table: integration, protocol, auth, async?, idempotency, contract artifact
-- Architecture constraints table: only rules from `architecture-rules.md` that apply to this increment
-- Security decisions table: derived from `quality-gates/security-review.md` — decisions relevant to this increment
-- Observability requirements table: signals engineers must emit — derived from `quality-gates/observability-plan.md`
-- Optional Mermaid sequence diagram: only if async flow or integration boundary is genuinely hard to follow from text. Do not add if a diagram already exists in `input/architecture.md`.
-- Open questions: unresolved items that must be answered before or during implementation
+### proposal.md (per story)
+- User story verbatim from `delivery-structure.md` — As a / I want / so that
+- Requirement ID and AC location
+- "Why now" — one sentence linking to the business driver or the story that unblocks this one
+- What changes — bullet list of concrete system changes, no implementation detail
+- Dependencies table — filled from the dependency graph: depends-on, parallel-with, blocks
+- AC table — each criterion with how to verify and evidence expected
+- Constraints — only rules that apply to this story
+- Reference table — paths to gate artifacts for full detail
 
-### tasks.md
-- Tasks are ordered — earlier tasks may be dependencies for later ones
-- One task per independently reviewable unit of work (one PR boundary)
-- Each task must include: user story, requirement, acceptance source, architecture constraint, data tables touched, API endpoints touched, telemetry events to emit, evidence expected
-- Validation tasks: one per acceptance criterion requiring an explicit test
-- Handoff checklist: standard items + increment-specific items from quality gates
+### design.md (per story)
+- Scoped to this story only — omit any section that does not apply
+- "What this story touches" — one paragraph naming components, boundaries, data stores
+- API surface — only endpoints this story creates or modifies; reference `specs/api.md`
+- Data model — only tables this story creates or modifies; reference `specs/data.md`
+- Integration points — only external calls this story makes
+- Architecture constraints — only rules that directly affect this story
+- Security decisions — only concerns relevant to this story
+- Observability — only signals this story must emit; reference `specs/observability.md`
+- Sequence diagram — only if async flow is genuinely hard to follow from text
+- Open questions — items blocking this specific story
 
-### specs/ folder
-- `specs/api.md`: endpoints and webhooks for this increment only. Include request/response schemas, error codes, auth, idempotency. Reference the contract artifact for sandbox credentials and full SLA — do not paste credentials.
-- `specs/data.md`: tables created or modified in this increment only. Include columns, PII classification, encryption approach, migration notes. Reference the gate artifact for full DDL and Legal sign-off.
-- `specs/observability.md`: telemetry signals, tracing approach, and alerts for components built in this increment only. Mark signals as mandatory. Reference runbooks by path — do not duplicate them.
+### tasks.md (per story)
+- Tasks scoped to this story only — no tasks from other stories
+- Task IDs use story prefix: `OS-F-XXX.X-NNN`
+- Each task: requirement, AC, architecture constraint, data tables, API endpoints, events to emit, evidence expected
+- Omit fields that don't apply to a task (e.g. no "Data" if task has no schema changes)
+- Done criteria — short list of conditions, not implementation steps
+- Reference `dependency-graph.md` for between-story ordering
+
+### specs/ files (per story)
+- `specs/api.md`: only endpoints this story touches. Delete if story has no API changes.
+- `specs/data.md`: only table changes this story introduces. Delete if story has no schema changes.
+- `specs/observability.md`: only signals this story emits. Delete if story emits nothing.
+- Each file is thin — if a story touches one endpoint and one table, each spec file has one section
 
 ## Quality bar
 
 A good output:
-- Can be handed to an engineer or `/opsx:apply` with no additional context
-- Has every task traceable to a requirement, user story, and acceptance source
-- Makes telemetry emission mandatory in each task that touches an instrumented component
-- Distills gate content into `specs/` without losing the detail an engineer needs
-- Does not inline full gate artifact content into `proposal.md` or `design.md`
-- Does not create tasks for the whole BRS or multiple increments
-- Does not produce vague tasks (`implement backend`, `add API`, `handle errors`)
+- `dependency-graph.md` is the first thing an engineering lead reads — it tells them who starts when
+- Each story folder can be handed to an engineer or `/opsx:apply` with no additional context
+- `design.md` + `tasks.md` + `specs/` are sufficient to implement the story — no gate artifacts needed
+- Tasks are small enough to review in one PR
+- Every task traces to a requirement, AC, and evidence expectation
+- Telemetry emission is mandatory in every task that touches an instrumented component
+- `specs/` files are thin — only the slice this story needs
 
 ## Anti-patterns
 
-- Stopping after the first increment — continue until all increments in `delivery-structure.md` have a folder
-- Mixing features from different increments into one folder — each folder is scoped to exactly one increment
-- Inlining the full data contract table into `design.md` — put it in `specs/data.md` and reference it
-- Creating tasks without telemetry emission requirements
-- Generating `gitlab-issues.md` or any planning-tool export — that is downstream of this prompt
-- Copying user stories directly as tasks — derive engineering tasks from stories + architecture + gate constraints
+- Generating one folder per increment instead of one per user story
+- Mixing tasks from multiple stories into one folder
+- Leaving `specs/api.md` in a folder for a story with no API changes — delete it
+- Generating a design.md with sections for the full initiative instead of this story
+- Creating vague tasks (`implement backend`, `add tests`, `handle errors`)
+- Copying the user story directly as a task — derive engineering tasks from story + architecture + gate constraints
 - Ignoring architecture rules in task definitions
+- Stopping after the first story — continue until all stories have a folder
+- Generating `gitlab-issues.md` or any planning-tool export
 - Generating code
 
 ## Stop conditions
 
-If any required input is missing or a quality gate is not Accepted: list what is missing, state the impact, stop. Do not generate partial output.
+If any required input is missing or a quality gate is not Accepted: list what is missing, state the impact, stop.
+If a story has an unresolvable dependency (blocked by a story with missing input): generate the graph and all unblocked stories, then stop and state which stories are blocked and why.
 
 ## Self-review checklist
 
 Before finalising, verify:
-- [ ] One increment only
-- [ ] `design.md` is self-contained — an engineer can implement from it without opening gate artifacts
-- [ ] Every task has: user story, requirement, acceptance, constraint, data, API, events to emit, evidence
-- [ ] `specs/api.md` covers all endpoints and webhooks for this increment
-- [ ] `specs/data.md` covers all table changes with PII and encryption noted
-- [ ] `specs/observability.md` marks all signals as mandatory and references runbooks by path
-- [ ] No gate artifact content duplicated — referenced by path instead
+- [ ] `dependency-graph.md` exists and covers all stories with wave grouping and Mermaid diagram
+- [ ] One folder per user story — no increment-level folders
+- [ ] Each `proposal.md` has the dependency table filled (depends-on, parallel-with, blocks)
+- [ ] Each `design.md` omits sections that don't apply to its story
+- [ ] Each task has: requirement, AC, evidence expected; telemetry if applicable
+- [ ] `specs/` files deleted when not applicable to the story
 - [ ] No tasks for out-of-scope features
 - [ ] No generated code

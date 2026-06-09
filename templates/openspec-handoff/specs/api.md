@@ -1,14 +1,14 @@
-# API Spec — {{Deliverable ID}}: {{Deliverable Name}}
+# API Spec — {{F-XXX.X}}: {{User Story Name}}
 
-> Distilled from `quality-gates/api-contract.md` for this increment only.
-> Full contract (auth details, sandbox credentials, SLA, rate limits) is in the source gate artifact.
+> Distilled from `quality-gates/api-contract.md` for this user story only.
+> Only endpoints created or modified by this story appear here.
+> Full contract (sandbox credentials, SLA, rate limits) is in `quality-gates/api-contract.md`.
+> Delete this file if this story has no API changes.
 
-## Endpoints
+## {{METHOD}} {{/path}}
 
-### {{METHOD}} {{/path}}
-
-**Purpose:** <!-- what this endpoint does -->
-**Auth:** <!-- API key / OAuth / mTLS / none -->
+**Purpose:** <!-- what this endpoint does for this story specifically -->
+**Auth:** <!-- API key / OAuth / mTLS -->
 **Consumer:** <!-- who calls this -->
 
 Request:
@@ -28,34 +28,15 @@ Response — errors:
 | HTTP status | Code | Meaning | Retry? |
 |---|---|---|---|
 
-**Idempotency:** <!-- how duplicate calls are handled -->
-**PII transmitted:** <!-- fields and classification -->
+**Idempotency:** <!-- how duplicate calls are handled, or "not required" -->
+**PII transmitted:** <!-- fields and classification, or "none" -->
+**Audit:** <!-- what gets written to audit_logs, or "none" -->
 
 ---
 
-## Webhook / callback endpoints
+## Integration contracts (if this story makes outbound calls)
 
-### {{METHOD}} {{/webhook/path}}
-
-**Purpose:**
-**Auth / signature verification:** <!-- HMAC-SHA256 / none -->
-**Idempotency key:** <!-- field name -->
-**Replay protection:** <!-- how implemented -->
-
-Expected payload:
-```json
-{
-}
-```
-
-Error handling:
-<!-- What happens on signature failure, duplicate delivery, timeout -->
-
----
-
-## Integration contracts (external)
-
-| Integration | Protocol | Sandbox endpoint | Auth | Contract artifact |
+| Integration | Protocol | Auth | Sandbox endpoint | Contract artifact |
 |---|---|---|---|---|
 
-<!-- Do not paste credentials here. Reference the contract artifact path. -->
+<!-- Do not paste credentials. Reference the contract artifact path. -->

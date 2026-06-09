@@ -1,27 +1,24 @@
-# Tasks — {{Deliverable ID}}: {{Deliverable Name}}
+# Tasks — {{F-XXX.X}}: {{User Story Name}}
 
 > Implementation checklist for `/opsx:apply`.
-> Each task is independently reviewable and traceable to a requirement, user story, and acceptance source.
-> Tasks are ordered: complete each before starting the next — later tasks may depend on earlier ones.
+> Scoped to this user story only. Tasks are ordered within this story — complete each before starting the next.
+> See `openspec/changes/dependency-graph.md` for the order between stories.
 
 ## Implementation tasks
 
 <!--
-One task block per unit of work. Keep tasks small enough to review in one PR.
-Format:
-- [ ] OS-NNN: <verb> <what> — <one-line outcome>
-  - User story: F-XXX.X — <story summary>
+One task per independently reviewable unit of work (one PR boundary).
+- [ ] OS-{{F-XXX.X}}-NNN: <verb> <what> — <one-line outcome>
   - Requirement: FR-NNN / NFR-NNN
-  - Acceptance: <where the AC lives — brs.md, design.md#section, specs/api.md>
-  - Architecture constraint: AR-XXX — <rule summary>
-  - Data: <tables created or modified>
-  - API: <endpoints created or modified>
-  - Events to emit: <telemetry signals from design.md#observability-requirements>
-  - Evidence expected: <what proves this task is done — test result, endpoint response, metric visible in staging>
+  - Acceptance: <AC ID or location>
+  - Architecture constraint: AR-XXX — <rule summary>  (omit if none)
+  - Data: <tables created or modified>  (omit if none)
+  - API: <endpoints created or modified>  (omit if none)
+  - Events to emit: <signal names from design.md#observability>  (omit if none)
+  - Evidence expected: <what proves this task is done>
 -->
 
-- [ ] OS-001: <!-- task -->
-  - User story:
+- [ ] OS-{{F-XXX.X}}-001:
   - Requirement:
   - Acceptance:
   - Architecture constraint:
@@ -32,26 +29,19 @@ Format:
 
 ## Validation tasks
 
-<!--
-One entry per acceptance criterion that requires an explicit test or check.
-These run after implementation tasks are complete.
--->
+<!-- One entry per AC that requires an explicit test or verification step. -->
 
-- [ ] OS-V01: Verify <criterion> in staging
+- [ ] OS-{{F-XXX.X}}-V01: Verify {{criterion}} in staging
   - Acceptance source:
   - How to validate:
   - Evidence expected:
 
-## Handoff checklist
+## Done criteria
 
-<!-- Gate items that must be true before this increment is considered done. -->
-<!-- Tick each when confirmed — do not mark tasks complete until this checklist is done. -->
+<!-- This story is done when ALL of the following are true. -->
+<!-- Keep this short — these are the conditions, not implementation steps. -->
 
 - [ ] All implementation tasks merged and passing CI
 - [ ] All validation tasks executed with evidence attached
-- [ ] Telemetry signals visible in staging dashboard
-- [ ] API contract verified against sandbox (happy path + failure modes)
-- [ ] Data contract: PII fields encrypted, retention rules applied
-- [ ] Security checklist items from `quality-gates/security-review.md` confirmed in staging
-- [ ] Runbooks linked to alert rules and reviewed by SRE
-- [ ] `specs/` folder copied into code repo alongside this handoff folder
+- [ ] Any telemetry signals from this story visible in staging
+- [ ] Dependent stories unblocked — notify team when done (see dependency-graph.md)

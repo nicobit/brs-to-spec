@@ -1,33 +1,42 @@
-# Proposal — {{Deliverable ID}}: {{Deliverable Name}}
+# Proposal — {{F-XXX.X}}: {{User Story Name}}
 
-> OpenSpec change proposal. Drive implementation with `/opsx:apply` against this folder.
-> Copy this folder (`openspec/changes/{{deliverable-id}}-{{slug}}/`) into the target code repository before applying.
+> OpenSpec change proposal for one user story. Drive implementation with `/opsx:apply` against this folder.
+> Copy this folder (`openspec/changes/{{F-XXX.X}}-{{slug}}/`) into the target code repository before applying.
 
-## Why
+## User story
 
-<!-- One paragraph: business driver, who is affected, what breaks if this is not built. -->
+**As a** {{role}},
+**I want** {{capability}},
+**so that** {{outcome}}.
+
+**Requirement:** {{FR-NNN / NFR-NNN}}
+**Acceptance criteria:** {{location in brs.md or inline}}
+
+## Why now
+
+<!-- One sentence: why this story is needed at this point in the sequence. -->
+<!-- Reference the business driver or the story that unblocks this one. -->
 
 ## What changes
 
-<!-- Bullet list of the concrete system changes this deliverable introduces. -->
-<!-- One line per change. No implementation detail — that belongs in design.md. -->
+<!-- Bullet list — one line per concrete system change this story introduces. -->
+<!-- No implementation detail — that belongs in design.md. -->
 
-## Scope
+## Dependencies
 
-### In scope
-
-| Feature | User story summary | Requirement |
+| Relationship | Story ID | Reason |
 |---|---|---|
+| Depends on (must be deployed first) | | |
+| Can run in parallel with | | |
+| Blocks (cannot start until this is done) | | |
 
-### Out of scope (explicitly)
+<!-- If no dependency, write "none" in the Story ID column. -->
+<!-- Derive from delivery-structure.md increment grouping and shared schema/API dependencies. -->
 
-<!-- List features or integrations deferred to a later increment. -->
-<!-- Being explicit here prevents scope creep during implementation. -->
+## Acceptance criteria
 
-## Success criteria
-
-| Criterion | Target | Source |
-|---|---|---|
+| AC | Criterion | How to verify | Evidence expected |
+|---|---|---|---|
 
 ## Constraints inherited from upstream
 
@@ -36,14 +45,10 @@
 
 ## Reference artifacts
 
-All detail is in `specs/` (distilled from quality gates) and the links below.
-Do not copy these files — reference them by path from the initiative workspace.
-
 | Artifact | Path | What to read there |
 |---|---|---|
-| Architecture review | `input/architecture.md` | Deployment topology, integration decisions |
-| Architecture rules | `architecture/architecture-rules.md` | Binding rules engineers must follow |
-| Data contract | `quality-gates/data-contract.md` | Full schema DDL, PII mapping, retention |
-| API contract | `quality-gates/api-contract.md` | Full endpoint specs, auth, error codes |
-| Security review | `quality-gates/security-review.md` | Security checklist and accepted risks |
-| Observability plan | `quality-gates/observability-plan.md` | Full telemetry catalog, alert rules, runbooks |
+| Architecture rules | `architecture/architecture-rules.md` | Binding rules that apply to this story |
+| Data contract | `quality-gates/data-contract.md` | Full schema, PII mapping, retention |
+| API contract | `quality-gates/api-contract.md` | Full endpoint specs, sandbox credentials |
+| Security review | `quality-gates/security-review.md` | Security checklist |
+| Observability plan | `quality-gates/observability-plan.md` | Full telemetry catalog, runbooks |

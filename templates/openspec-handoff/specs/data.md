@@ -1,47 +1,29 @@
-# Data Spec — {{Deliverable ID}}: {{Deliverable Name}}
+# Data Spec — {{F-XXX.X}}: {{User Story Name}}
 
-> Distilled from `quality-gates/data-contract.md` for this increment only.
-> Full schema DDL, retention schedule, and Legal sign-off are in the source gate artifact.
+> Distilled from `quality-gates/data-contract.md` for this user story only.
+> Only tables created or modified by this story appear here.
+> Full schema DDL, retention schedule, and Legal sign-off are in `quality-gates/data-contract.md`.
+> Delete this file if this story has no schema changes.
 
-## Tables created or modified in this increment
-
-### {{table_name}}
+## {{table_name}} — {{created | modified}}
 
 | Column | Type | PII | Encrypted | Notes |
 |---|---|---|---|---|
 
 Indexes:
-<!-- list indexes and rationale -->
+<!-- list indexes relevant to this story and their purpose -->
 
 Constraints:
-<!-- FK, unique, check constraints -->
+<!-- FK, unique, check constraints introduced by this story -->
 
 Migration notes:
-<!-- zero-downtime migration approach if altering an existing table -->
+<!-- zero-downtime approach if altering an existing table; "new table" if creating -->
 
 ---
 
-## PII handling
+## PII handling (this story)
 
 | Field | Table | Sensitivity | Control | Do not... |
 |---|---|---|---|---|
 
-Encryption: <!-- key management approach, e.g. Azure Key Vault field-level for email/phone -->
-Logging: <!-- which fields must never appear in logs or traces -->
-
-## Residency
-
-| Requirement | Value |
-|---|---|
-| Primary region | |
-| Backup region | |
-| Regulatory basis | |
-
-## Retention (this increment)
-
-| Data type | Retention | Deletion mechanism |
-|---|---|---|
-
-## Subject access / deletion
-
-<!-- How DELETE /profiles/{id} works — soft-delete, purge schedule, export endpoint -->
+<!-- Only fields touched by this story. -->

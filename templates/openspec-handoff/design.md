@@ -1,58 +1,64 @@
-# Design — {{Deliverable ID}}: {{Deliverable Name}}
+# Design — {{F-XXX.X}}: {{User Story Name}}
 
-> Technical decisions and constraints for this increment only.
+> Technical context for this user story only.
 > This file is the primary context for an AI coding agent running `/opsx:apply`.
-> Keep it self-contained: an engineer should be able to implement from this file + tasks.md without opening any other artifact.
+> Self-contained: an engineer implements from this file + tasks.md + specs/ without opening any other artifact.
+> Omit any section that does not apply to this story.
 
-## System context
+## What this story touches
 
-<!-- One paragraph: where this deliverable fits in the overall system. -->
-<!-- Name the components touched, the boundaries crossed, the data stores written. -->
+<!-- One short paragraph: which components are modified, which boundaries are crossed, which data stores are written. -->
+<!-- Be specific — name the service, the table, the endpoint. -->
 
 ## API surface
 
-| Method | Path | Purpose | Auth | Request body | Response | Contract artifact |
+<!-- Only endpoints created or modified by this story. Omit if this story has no API changes. -->
+
+| Method | Path | Purpose | Auth | Request | Response | Full spec |
 |---|---|---|---|---|---|---|
 
-<!-- Fill every column. If contract artifact is in specs/, link it. -->
-<!-- Example: POST | /onboarding | Create onboarding record | API key | {email, phone} | 202 {id} | specs/api.md#post-onboarding -->
+<!-- Full schemas in specs/api.md. -->
 
 ## Data model changes
 
-| Table / entity | Change | Key columns | PII? | Encryption | Contract artifact |
+<!-- Only tables created or modified by this story. Omit if this story has no schema changes. -->
+
+| Table | Change | Key columns | PII? | Encryption | Full spec |
 |---|---|---|---|---|---|
 
-<!-- Reference specs/data.md for full DDL. Only show the columns relevant to this increment here. -->
+<!-- Full DDL, indexes, migration notes in specs/data.md. -->
 
 ## Integration points
 
-| Integration | Protocol | Auth method | Async? | Idempotency | Contract artifact |
+<!-- Only integrations invoked by this story. Omit if no external calls. -->
+
+| Integration | Protocol | Auth | Async? | Idempotency | Full spec |
 |---|---|---|---|---|---|
 
 ## Architecture constraints applied
 
-| Rule ID | Constraint | How applied in this increment |
-|---|---|---|
+<!-- Only rules from architecture-rules.md that directly affect this story. -->
 
-<!-- Pull binding rules from architecture/architecture-rules.md. Only list rules that affect this increment. -->
+| Rule ID | Constraint | How applied |
+|---|---|---|
 
 ## Security decisions
 
-| Concern | Decision | Accepted risk? | Gate reference |
-|---|---|---|---|
+<!-- Only security concerns relevant to this story. Omit if none. -->
+
+| Concern | Decision | Gate reference |
+|---|---|---|
 
 ## Observability requirements
 
-| Signal | Type | Emitted by | Purpose | Gate reference |
+<!-- Signals this story must emit. Mark as mandatory — not optional. Omit if none. -->
+
+| Signal | Type | Emitted when | Labels | Gate reference |
 |---|---|---|---|---|
 
-<!-- Distilled from observability-plan.md. Only signals relevant to this increment. -->
-<!-- An engineer must emit these — do not leave them as optional. -->
+## Sequence view
 
-## Sequence / interaction view
-
-<!-- Add a Mermaid diagram ONLY if the async flow or integration boundary is hard to follow from text alone. -->
-<!-- If a diagram already exists in input/architecture.md, reference it instead of duplicating. -->
+<!-- Add a Mermaid diagram ONLY if an async flow or integration boundary is hard to follow from text. -->
 <!-- Delete this section if not needed. -->
 
 ```mermaid
@@ -61,8 +67,8 @@ sequenceDiagram
 
 ## Open questions
 
+<!-- Questions that must be resolved before coding starts. Remove when resolved. -->
+<!-- Delete this section if none. -->
+
 | # | Question | Owner | Needed before |
 |---|---|---|---|
-
-<!-- Questions that must be resolved before or during implementation. -->
-<!-- Remove resolved questions before handing to an agent. -->

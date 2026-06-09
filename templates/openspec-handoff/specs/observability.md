@@ -1,40 +1,33 @@
-# Observability Spec — {{Deliverable ID}}: {{Deliverable Name}}
+# Observability Spec — {{F-XXX.X}}: {{User Story Name}}
 
-> Distilled from `quality-gates/observability-plan.md` for this increment only.
-> Full alert rules, dashboard JSON, and runbooks are in the source gate artifact.
-> **These signals are mandatory — not optional.** Every implementation task that touches a listed component must emit the listed events.
+> Distilled from `quality-gates/observability-plan.md` for this user story only.
+> Only signals emitted by components built in this story appear here.
+> Full alert rules, dashboard queries, and runbooks are in `quality-gates/observability-plan.md`.
+> Delete this file if this story emits no telemetry signals.
+> **All signals listed here are mandatory — not optional.**
 
-## SLOs that apply to this increment
+## Signals to emit
 
-| SLO | Target | Measured by |
-|---|---|---|
-
-## Events to emit
-
-| Event / metric | Type | Emitted by | When | Labels |
+| Signal | Type | Emitted by | When | Labels |
 |---|---|---|---|---|
-
-<!-- Type: Counter / Histogram / Gauge -->
-<!-- When: on each occurrence — be specific (e.g. "on 202 response from POST /onboarding") -->
-<!-- Labels: key/value dimensions to attach -->
 
 ## Tracing
 
-- Correlation ID: <!-- how it flows through the system (header name, propagation) -->
-- Spans to create: <!-- list span names per component boundary -->
-- Sampling: <!-- e.g. 100% errors, 10% success -->
-- PII in traces: <!-- fields that must be redacted before trace export -->
+- Span name: <!-- span name for the operation this story adds -->
+- Correlation ID: <!-- how it flows through this story's components -->
+- PII in traces: <!-- fields that must be redacted, or "none" -->
 
-## Alerts (this increment)
+## Alerts (if this story introduces new alert conditions)
 
-| Alert | Condition | Severity | On-call channel |
+| Alert | Condition | Severity | Notification |
 |---|---|---|---|
 
-<!-- Paste only alerts relevant to components built in this increment. -->
+<!-- Omit this section if this story adds no new alert conditions. -->
 
-## Runbooks (links)
+## Runbooks (by reference)
 
-| Scenario | Runbook location |
+| Scenario | Location |
 |---|---|
 
-<!-- Reference runbooks in quality-gates/observability-plan.md — do not duplicate them here. -->
+<!-- Reference runbooks by path — do not duplicate content here. -->
+<!-- Omit if this story adds no new runbook scenarios. -->
