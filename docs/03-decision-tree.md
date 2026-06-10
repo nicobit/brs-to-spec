@@ -65,48 +65,201 @@ Override is always allowed with explicit justification in the routing decision.
 
 ---
 
-## Full flow by delivery mode
+## Full delivery flow
 
-```mermaid
-flowchart TD
-    START([Start]) --> Q1{Formal BRS?}
+<div class="dt-flow">
 
-    Q1 -->|Yes| BRS[Entry: BRS-first]
-    Q1 -->|No - existing system| BRW[Entry: Existing-system enhancement]
-    Q1 -->|No - narrow scope| SML[Entry: Small change / bug fix]
-    Q1 -->|No - large scope| LRG[Entry: Large modular initiative]
+  <!-- START -->
+  <div class="dt-start-node">
+    <span class="dt-start-icon">▶</span> Start here
+  </div>
 
-    BRS --> SCORE[Score delivery mode\n0–3 Fast · 4–7 Standard\n8–11 Enterprise · 12–14 Enterprise+Modular]
-    BRW --> SCORE
-    SML --> SCORE
-    LRG --> SCORE
+  <!-- PHASE 1: Entry mode -->
+  <div class="dt-connector"></div>
+  <div class="dt-phase-label">Phase 1 — Entry mode</div>
+  <div class="dt-gate">
+    <div class="dt-gate-icon">?</div>
+    <div class="dt-gate-text">Do you have a formal BRS document?</div>
+  </div>
+  <div class="dt-branch-bar dt-bar-four"></div>
+  <div class="dt-row dt-four">
+    <div class="dt-col">
+      <div class="dt-branch-tick"></div>
+      <div class="dt-badge dt-badge-yes">Yes</div>
+      <div class="dt-card dt-card-entry">
+        <div class="dt-card-icon">📄</div>
+        <div class="dt-card-title">BRS-first</div>
+        <div class="dt-card-desc">Start from a formal requirements document</div>
+      </div>
+    </div>
+    <div class="dt-col">
+      <div class="dt-branch-tick"></div>
+      <div class="dt-badge dt-badge-no">No — existing system</div>
+      <div class="dt-card dt-card-entry">
+        <div class="dt-card-icon">🔧</div>
+        <div class="dt-card-title">Existing-system enhancement</div>
+        <div class="dt-card-desc">Changing a live service, contract, or module</div>
+      </div>
+    </div>
+    <div class="dt-col">
+      <div class="dt-branch-tick"></div>
+      <div class="dt-badge dt-badge-no">No — narrow scope</div>
+      <div class="dt-card dt-card-entry">
+        <div class="dt-card-icon">⚡</div>
+        <div class="dt-card-title">Small change or bug fix</div>
+        <div class="dt-card-desc">Single story or fix — may qualify for Fast Path</div>
+      </div>
+    </div>
+    <div class="dt-col">
+      <div class="dt-branch-tick"></div>
+      <div class="dt-badge dt-badge-no">No — large scope</div>
+      <div class="dt-card dt-card-entry">
+        <div class="dt-card-icon">🏗️</div>
+        <div class="dt-card-title">Large modular initiative</div>
+        <div class="dt-card-desc">Spans multiple teams, capabilities, or increments</div>
+      </div>
+    </div>
+  </div>
 
-    SCORE --> FAST[Fast Path\nscore 0–3]
-    SCORE --> STD[Standard\nscore 4–7]
-    SCORE --> ENT[Enterprise\nscore 8–11]
-    SCORE --> MOD[Enterprise + Modular\nscore 12–14]
+  <!-- PHASE 2: Delivery mode -->
+  <div class="dt-merge-bar dt-bar-four"></div>
+  <div class="dt-connector"></div>
+  <div class="dt-phase-label">Phase 2 — Delivery mode</div>
+  <div class="dt-gate">
+    <div class="dt-gate-icon">#</div>
+    <div class="dt-gate-text">Score 7 criteria — max 14 points</div>
+  </div>
+  <div class="dt-branch-bar dt-bar-four"></div>
+  <div class="dt-row dt-four">
+    <div class="dt-col">
+      <div class="dt-branch-tick"></div>
+      <div class="dt-badge dt-badge-score" style="background:#dff6f3;color:#0f766e;border-color:#0f766e">Score 0–3</div>
+      <div class="dt-card dt-card-fast">
+        <div class="dt-card-title">Fast Path</div>
+        <div class="dt-card-desc">Clear scope, minimal artifacts, engineering-ready</div>
+      </div>
+    </div>
+    <div class="dt-col">
+      <div class="dt-branch-tick"></div>
+      <div class="dt-badge dt-badge-score" style="background:#eff6ff;color:#1d4ed8;border-color:#1d4ed8">Score 4–7</div>
+      <div class="dt-card dt-card-std">
+        <div class="dt-card-title">Standard</div>
+        <div class="dt-card-desc">Some clarification needed, one team</div>
+      </div>
+    </div>
+    <div class="dt-col">
+      <div class="dt-branch-tick"></div>
+      <div class="dt-badge dt-badge-score" style="background:#fef9c3;color:#92400e;border-color:#ca8a04">Score 8–11</div>
+      <div class="dt-card dt-card-ent">
+        <div class="dt-card-title">Enterprise</div>
+        <div class="dt-card-desc">Formal BRS, architecture impact, compliance</div>
+      </div>
+    </div>
+    <div class="dt-col">
+      <div class="dt-branch-tick"></div>
+      <div class="dt-badge dt-badge-score" style="background:#fce7f3;color:#9d174d;border-color:#be185d">Score 12–14</div>
+      <div class="dt-card dt-card-mod">
+        <div class="dt-card-title">Enterprise + Modular</div>
+        <div class="dt-card-desc">Multi-team, multi-quarter, modular delivery</div>
+      </div>
+    </div>
+  </div>
 
-    FAST --> EXEC{Execution mode}
-    STD --> EXEC
-    ENT --> EXEC
-    MOD --> EXEC
+  <!-- PHASE 3: Execution mode -->
+  <div class="dt-merge-bar dt-bar-four"></div>
+  <div class="dt-connector"></div>
+  <div class="dt-phase-label">Phase 3 — Execution mode</div>
+  <div class="dt-gate">
+    <div class="dt-gate-icon">?</div>
+    <div class="dt-gate-text">Which engineering contract format will you use?</div>
+  </div>
+  <div class="dt-branch-bar dt-bar-three"></div>
+  <div class="dt-row dt-three">
+    <div class="dt-col">
+      <div class="dt-branch-tick"></div>
+      <div class="dt-badge dt-badge-no">OpenSpec available</div>
+      <div class="dt-card dt-card-os">
+        <div class="dt-card-icon">📐</div>
+        <div class="dt-card-title">OpenSpec handoff</div>
+        <div class="dt-card-desc">openspec/changes/D1-.../</div>
+      </div>
+    </div>
+    <div class="dt-col">
+      <div class="dt-branch-tick"></div>
+      <div class="dt-badge dt-badge-no">No OpenSpec</div>
+      <div class="dt-card dt-card-sa">
+        <div class="dt-card-icon">📦</div>
+        <div class="dt-card-title">Standalone handoff</div>
+        <div class="dt-card-desc">standalone-delivery/D1-.../</div>
+      </div>
+    </div>
+    <div class="dt-col">
+      <div class="dt-branch-tick"></div>
+      <div class="dt-badge dt-badge-no">M365 review</div>
+      <div class="dt-card dt-card-bc">
+        <div class="dt-card-icon">☁️</div>
+        <div class="dt-card-title">Business Copilot</div>
+        <div class="dt-card-desc">SharePoint / Word / Teams intake</div>
+      </div>
+    </div>
+  </div>
 
-    EXEC -->|OpenSpec available| OS[OpenSpec handoff]
-    EXEC -->|No OpenSpec| SA[Standalone handoff]
-    EXEC -->|M365 business review| BC[Business Copilot]
+  <!-- PHASE 4: Pipeline -->
+  <div class="dt-merge-bar dt-bar-three"></div>
+  <div class="dt-connector"></div>
+  <div class="dt-phase-label">Phase 4 — Delivery pipeline</div>
 
-    OS --> READY[Engineering Readiness Check]
-    SA --> READY
-    BC --> READY
+  <div class="dt-pipeline">
+    <div class="dt-pipe-step">
+      <div class="dt-pipe-num">1</div>
+      <div class="dt-pipe-body">
+        <div class="dt-pipe-title">Engineering Readiness Check</div>
+        <div class="dt-pipe-desc">Proceed / not-proceed decision with evidence. Triggers conditional quality gates.</div>
+      </div>
+    </div>
+    <div class="dt-pipe-arrow">↓</div>
+    <div class="dt-pipe-step">
+      <div class="dt-pipe-num">2</div>
+      <div class="dt-pipe-body">
+        <div class="dt-pipe-title">Conditional Quality Gates</div>
+        <div class="dt-pipe-desc">BDD scenarios · API / Data / Event contracts · Security review · Observability plan — only if triggered.</div>
+      </div>
+    </div>
+    <div class="dt-pipe-arrow">↓</div>
+    <div class="dt-pipe-step">
+      <div class="dt-pipe-num">3</div>
+      <div class="dt-pipe-body">
+        <div class="dt-pipe-title">Implementation</div>
+        <div class="dt-pipe-desc">One approved task at a time from the handoff artifact.</div>
+      </div>
+    </div>
+    <div class="dt-pipe-arrow">↓</div>
+    <div class="dt-pipe-step">
+      <div class="dt-pipe-num">4</div>
+      <div class="dt-pipe-body">
+        <div class="dt-pipe-title">Code · Architecture · Security Review</div>
+        <div class="dt-pipe-desc">Review against the approved source artifacts, not the raw BRS.</div>
+      </div>
+    </div>
+    <div class="dt-pipe-arrow">↓</div>
+    <div class="dt-pipe-gate">
+      <div class="dt-gate-inline">
+        <span class="dt-gate-icon-sm">?</span> Is the spec correct?
+      </div>
+      <div class="dt-pipe-outcomes">
+        <div class="dt-outcome dt-outcome-yes">
+          <span class="dt-outcome-badge">Yes</span>
+          <span class="dt-outcome-text">✓ Done</span>
+        </div>
+        <div class="dt-outcome dt-outcome-no">
+          <span class="dt-outcome-badge">No</span>
+          <span class="dt-outcome-text">Spec Correction → back to Implementation</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    READY --> GATES[Conditional Quality Gates\nif triggered]
-    GATES --> IMPL[Implementation]
-    IMPL --> REVIEW[Code / Architecture / Security Review]
-    REVIEW --> CORR{Spec wrong?}
-    CORR -->|Yes| FIX[Spec Correction\n.brs2spec/9-reviewers/05-spec-correction.md]
-    CORR -->|No| DONE([Done])
-    FIX --> IMPL
-```
+</div>
 
 ---
 

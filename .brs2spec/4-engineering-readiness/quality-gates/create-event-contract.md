@@ -34,7 +34,7 @@ quality-gates/event-contract.md
 Use:
 
 ```text
-templates/quality-gates/event-contract.md
+.brs2spec/templates/quality-gates/event-contract.md
 ```
 
 Preserve the template headings and add structure only where the evidence demands it.

@@ -1,4 +1,4 @@
-# Prompt - Create Standalone Delivery Package
+﻿# Prompt - Create Standalone Delivery Package
 
 ## Role
 
@@ -38,11 +38,11 @@ standalone-delivery/D1-<deliverable-name>/
 Use:
 
 ```text
-templates/standalone-delivery/delivery-spec.md
-templates/standalone-delivery/implementation-plan.md
-templates/standalone-delivery/tasks.md
-templates/standalone-delivery/validation-plan.md
-templates/standalone-delivery/review-checklist.md
+.brs2spec/templates/standalone-delivery/delivery-spec.md
+.brs2spec/templates/standalone-delivery/implementation-plan.md
+.brs2spec/templates/standalone-delivery/tasks.md
+.brs2spec/templates/standalone-delivery/validation-plan.md
+.brs2spec/templates/standalone-delivery/review-checklist.md
 ```
 
 Preserve the template headings in each file and add detail only where the evidence demands it.

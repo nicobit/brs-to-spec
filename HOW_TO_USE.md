@@ -1,4 +1,4 @@
-# How to Use This Framework
+﻿# How to Use This Framework
 
 ## Recommended first prompt
 
@@ -23,7 +23,7 @@ initiatives/<initiative-id>-<slug>/
 Create a new workspace with:
 
 ```bash
-python tools/scripts/new_initiative.py onboarding-request --initiative-id I001 --mode enterprise --execution-mode openspec
+python .brs2spec/tools/scripts/new_initiative.py onboarding-request --initiative-id I001 --mode enterprise --execution-mode openspec
 ```
 
 ## Workflow status rule
@@ -127,8 +127,8 @@ At this stage, architecture input is often high-level solution architecture cont
 If the same initiative is described by more than one BRS or more than one architecture source, expand only that input family:
 
 ```bash
-python tools/scripts/add_brs.py initiatives/I001-onboarding-request compliance
-python tools/scripts/add_architecture.py initiatives/I001-onboarding-request security-constraints
+python .brs2spec/tools/scripts/add_brs.py initiatives/I001-onboarding-request compliance
+python .brs2spec/tools/scripts/add_architecture.py initiatives/I001-onboarding-request security-constraints
 ```
 
 After expansion, the workspace can look like:
@@ -271,7 +271,7 @@ architecture/existing-system-impact.md
 using:
 
 ```text
-templates/planning-and-modular-delivery/existing-system-impact.md
+.brs2spec/templates/planning-and-modular-delivery/existing-system-impact.md
 ```
 
 Transition to Step 3 only when:
@@ -447,13 +447,51 @@ Run:
 Output:
 
 ```text
-openspec/changes/D1-<deliverable-name>/
-  proposal.md
-  design.md
-  tasks.md
+openspec/changes/
+  dependency-graph.md
+  F-XXX.X-<slug>/
+    proposal.md
+    design.md
+    tasks.md
+    specs/
 ```
 
 The generated tasks are the engineering implementation contract for OpenSpec mode.
+
+### Multi-repository handoff (optional)
+
+If the initiative spans multiple repositories owned by different teams, you can tell the framework which repos are involved before generating the handoff. Create one descriptor file per repository in:
+
+```text
+input/repositories/
+  api.md        ← becomes the "api" subfolder in each story folder
+  ui.md         ← becomes the "ui" subfolder
+  db.md         ← becomes the "db" subfolder
+```
+
+Use `.brs2spec/templates/repositories/_template.md` as the starting point for each file. The file name (without `.md`) becomes the subfolder name inside every story folder in the handoff output.
+
+When descriptors are present the output structure becomes:
+
+```text
+openspec/changes/
+  dependency-graph.md
+  F-XXX.X-<slug>/
+    api/
+      proposal.md   ← API repo changes for this story only
+      design.md
+      tasks.md
+      specs/
+    ui/
+      proposal.md   ← UI repo changes for this story only
+      design.md
+      tasks.md
+      specs/
+```
+
+Each repo subfolder is self-contained — a team picks up their subfolder and implements without opening the other repos' folders. The `dependency-graph.md` at the root shows both story-to-story ordering and intra-story repo sequencing.
+
+If `input/repositories/` does not exist, the workflow runner will ask once before generating the handoff whether you need multi-repo structure. Answering no proceeds with the flat structure above.
 
 They should preserve traceability back to requirements, user stories when available, acceptance sources, architecture constraints, and quality gates.
 
@@ -522,7 +560,7 @@ Transition to Step 9 or Step 10 only when:
 Before asking a coding agent to implement, you may complete:
 
 ```text
-templates/quality-gates/ready-for-copilot-checklist.md
+.brs2spec/templates/quality-gates/ready-for-copilot-checklist.md
 ```
 
 Use it to confirm the active deliverable, implementation source, readiness state, and required quality gates.
@@ -656,11 +694,20 @@ This repository includes repository-level Copilot instructions:
 Useful prompt files:
 
 ```text
-.github/.brs2spec/brs-to-spec-run-workflow.prompt.md
-.github/.brs2spec/create-engineering-readiness.prompt.md
-.github/.brs2spec/create-openspec-handoff.prompt.md
-.github/.brs2spec/create-standalone-handoff.prompt.md
-.github/.brs2spec/create-gitlab-planning-view.prompt.md
+.github/prompts/brs-to-spec-run-workflow.prompt.md   ← recommended entry point
+.github/prompts/create-engineering-readiness.prompt.md
+.github/prompts/create-openspec-handoff.prompt.md
+.github/prompts/create-standalone-handoff.prompt.md
+.github/prompts/create-gitlab-planning-view.prompt.md
+.github/prompts/implement-one-task.prompt.md
+.github/prompts/spec-correction.prompt.md
+.github/prompts/describe-repository.prompt.md         ← run inside a target repo to generate input/repositories/ descriptor
+```
+
+Utility prompts (run standalone, not part of the delivery workflow):
+
+```text
+.brs2spec/tools/prompts/describe-repository.md   ← analyse a repository and produce a descriptor file for multi-repo handoff
 ```
 
 Recommended first Copilot request:

@@ -34,7 +34,7 @@ quality-gates/threat-model.md
 Use:
 
 ```text
-templates/quality-gates/threat-model.md
+.brs2spec/templates/quality-gates/threat-model.md
 ```
 
 Preserve the template headings and add structure only where the evidence demands it.

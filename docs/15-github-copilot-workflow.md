@@ -1,4 +1,4 @@
-# GitHub Copilot / VS Code Workflow
+﻿# GitHub Copilot / VS Code Workflow
 
 ## Purpose
 
@@ -41,21 +41,29 @@ Copilot should avoid duplicating source-of-truth content into projection or hand
 
 ## Prompt files
 
-Additional prompt files are provided under:
+Prompt wrappers for Copilot are provided under:
 
 ```text
-.github/.brs2spec/
+.github/prompts/
 ```
 
 Available prompts:
 
 ```text
 brs-to-spec-run-workflow.prompt.md
+create-brs.prompt.md
+draft-architecture-from-brs.prompt.md
 create-engineering-readiness.prompt.md
+generate-initiative-context.prompt.md
 create-openspec-handoff.prompt.md
 create-standalone-handoff.prompt.md
 create-gitlab-planning-view.prompt.md
+implement-one-task.prompt.md
+spec-correction.prompt.md
+describe-repository.prompt.md
 ```
+
+These files are thin wrappers only. All logic lives in `.brs2spec/`. Do not edit the wrapper files; edit the corresponding `.brs2spec/` prompt instead.
 
 The repository also includes implementation and review prompt groups:
 
@@ -69,7 +77,7 @@ Additional guidance:
 ```text
 docs/16-prompt-execution-environments.md
 docs/17-copilot-usage.md
-templates/quality-gates/ready-for-copilot-checklist.md
+.brs2spec/templates/quality-gates/ready-for-copilot-checklist.md
 ```
 
 ## Recommended VS Code flow
@@ -105,7 +113,7 @@ At the start of an initiative, architecture input is often high-level solution a
 Use:
 
 ```text
-.github/.brs2spec/brs-to-spec-run-workflow.prompt.md
+.github/prompts/brs-to-spec-run-workflow.prompt.md
 ```
 
 or ask:
@@ -193,7 +201,7 @@ If review findings come back, use:
 Optional pre-implementation gate:
 
 ```text
-templates/quality-gates/ready-for-copilot-checklist.md
+.brs2spec/templates/quality-gates/ready-for-copilot-checklist.md
 ```
 
 Only proceed when Copilot can point to the exact approved implementation task and its source artifacts.

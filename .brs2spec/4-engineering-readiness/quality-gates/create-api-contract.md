@@ -34,7 +34,7 @@ quality-gates/api-contract.md
 Use:
 
 ```text
-templates/quality-gates/api-contract.md
+.brs2spec/templates/quality-gates/api-contract.md
 ```
 
 Preserve the template headings and add structure only where the evidence demands it.

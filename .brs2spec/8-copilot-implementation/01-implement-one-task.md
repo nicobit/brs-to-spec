@@ -1,117 +1,73 @@
 # Prompt - Implement One Task
 
-## Recommended environment
+## Hard constraints
 
-- VS Code Copilot Agent mode
-- GitHub Copilot Coding Agent
-- Another approved coding agent with repository and test access
+- Implement exactly one task — do not implement future tasks or expand scope
+- Do not implement directly from raw BRS — use only the approved task artifact
+- Do not re-derive technology constraints — trust `initiative-context.md`
+- Do not perform unrelated refactoring
+- Do not invent business rules
+- Do not introduce new dependencies without approval
+- Do not weaken security, authorization, auditability, or validation
+- Do not ignore architecture constraints recorded in the initiative workspace
+- Do not treat the planning view as the execution source of truth
+
+## Stop conditions
+
+- No approved active task artifact → stop
+- `initiative-context.md` missing → run `.brs2spec/4-engineering-readiness/02-generate-initiative-context.md` first
+- `readiness-check.md` missing → stop
+- Required quality gate missing for this task → stop and report it
+- Architecture constraints unclear and materially affect implementation → stop and report it
+- No SCN-NNN referenced for the task → check `quality-gates/bdd-scenarios.md`; if none exist, note it as a risk before continuing
+
+## Done criteria
+
+A task is done when:
+
+- Every referenced SCN-NNN scenario passes in CI (or a stub exists with a documented failure reason)
+- All required tests are added or updated
+- The implementation summary is written
 
 ## Role
 
 You are implementing one approved engineering task for the active initiative workspace.
+All relative paths are relative to: `initiatives/<initiative-id>-<slug>/`
 
-## Context
+## Recommended environment
 
-This is a downstream implementation helper.
-
-It is not a source-of-truth creation prompt.
-
-The source of truth remains the active initiative workspace artifacts, especially:
-
-```text
-engineering-readiness/readiness-check.md
-quality-gates/*.md
-openspec/changes/D1-<deliverable-name>/...
-or standalone-delivery/D1-<deliverable-name>/...
-```
-
-## Workspace rule
-
-Work inside one initiative workspace at a time.
-
-All relative paths below are relative to:
-
-```text
-initiatives/<initiative-id>-<slug>/
-```
-
-## Purpose
-
-Implement exactly one task from the active downstream source of truth.
-
-## Source of truth
-
-Use one of:
-
-```text
-openspec/changes/D1-<deliverable-name>/tasks.md
-standalone-delivery/D1-<deliverable-name>/tasks.md
-```
-
-Do not implement directly from raw BRS inputs.
+- VS Code Copilot Agent mode
+- GitHub Copilot Coding Agent
 
 ## Inputs
 
-Load first — before reading any other artifact:
+Load in this order:
 
 ```text
-engineering-readiness/initiative-context.md
+1. engineering-readiness/initiative-context.md          ← load first, always
+2. quality-gates/bdd-scenarios.md                       ← identify SCN-NNN for this task
+3. openspec/changes/D1-<name>/tasks.md                  ← or standalone-delivery/D1-<name>/tasks.md
+4. openspec/changes/D1-<name>/design.md                 ← or standalone-delivery/D1-<name>/delivery-spec.md
+5. engineering-readiness/readiness-check.md
+6. quality-gates/*.md relevant to the task
 ```
 
-This file contains the technology constraints, architecture rules, governed boundaries, active gates, and rollback sensitivity for this deliverable. It is the single source of constraint truth for implementation. If it is missing, run `.brs2spec/4-engineering-readiness/02-generate-initiative-context.md` before continuing.
+Read only artifacts relevant to the selected execution mode and active task.
 
-Then use:
+## Output
 
-- the active downstream task artifact
-- the related design or delivery specification artifact
-- the relevant code, tests, and repository patterns
+Primary output: code changes, test changes, implementation summary in the PR / MR description.
 
-## Output path
-
-There is no mandatory new framework artifact.
-
-Primary output is:
-
-```text
-code changes
-test changes
-implementation summary in the coding session or PR / MR description
-```
-
-Optional saved review trail:
-
+Optional saved trail:
 ```text
 reviews/implementation/task-<task-id>-implementation-summary.md
 ```
 
-## Read before coding
-
-Load `engineering-readiness/initiative-context.md` first (see Inputs above).
-
-Then read the relevant artifacts that exist for the active initiative workspace:
-
-```text
-engineering-readiness/readiness-check.md
-quality-gates/*.md that apply to the task
-openspec/changes/D1-<deliverable-name>/proposal.md
-openspec/changes/D1-<deliverable-name>/design.md
-openspec/changes/D1-<deliverable-name>/tasks.md
-standalone-delivery/D1-<deliverable-name>/delivery-spec.md
-standalone-delivery/D1-<deliverable-name>/implementation-plan.md
-standalone-delivery/D1-<deliverable-name>/tasks.md
-standalone-delivery/D1-<deliverable-name>/validation-plan.md
-```
-
-Read only the artifacts that are relevant to the selected execution mode and active task.
-
-Do not re-derive technology constraints or architecture rules from raw inputs — trust `initiative-context.md` for those.
-
 ## Required output structure
-
-Return a final implementation summary using:
 
 ```markdown
 ## Task Implemented
+## BDD Scenarios Covered (SCN-NNN list)
 ## Files Changed
 ## Requirements / Artifacts Covered
 ## Validation Evidence
@@ -121,66 +77,33 @@ Return a final implementation summary using:
 ## Remaining Open Questions
 ```
 
+## Process
+
+1. Identify the exact task ID and scope
+2. Identify SCN-NNN scenarios from `quality-gates/bdd-scenarios.md` that cover this task
+3. Identify files likely to change
+4. Inspect existing similar implementation patterns before editing
+5. Implement only that task
+6. Add or update tests for every behavior change
+7. Write the implementation summary
+
 ## Quality bar
 
-A good implementation pass must:
-
-- implement one task only
-- preserve traceability to the active task and source artifacts
-- show validation evidence, not only code changes
-- update tests for behavior changes
-- respect architecture constraints and required quality gate actions
-- make any assumptions or remaining risks visible
-
-## Anti-patterns to avoid
-
-Do not:
-
-- implement directly from raw BRS
-- implement tasks for the whole BRS
-- ignore architecture constraints
-- skip required quality gate actions
-- invent missing requirements
-- silently change scope
-- treat the planning view as the execution source of truth
-
-## Stop conditions
-
-- If there is no approved active task artifact, stop.
-- If readiness-check is missing, stop.
-- If a required quality gate is missing for the task, stop and report it.
-- If architecture constraints are unclear and materially affect implementation, stop and report it.
+- One task only, traced to the task artifact
+- At least one SCN-NNN referenced as done criterion
+- Validation evidence present — not just code changes
+- Tests updated for every behavior change
+- Architecture constraints respected
+- Assumptions and risks explicit
 
 ## Self-review checklist
 
-Before finalizing, verify:
-
-- [ ] Exactly one task was implemented.
-- [ ] The implementation traces back to the active task artifact.
-- [ ] Required tests were added or updated.
-- [ ] Validation evidence is visible.
-- [ ] Scope was not silently expanded.
-- [ ] Assumptions and risks are explicit.
-
-## Required process
-
-1. Identify the exact task ID and scope.
-2. Identify the files likely to change.
-3. Inspect existing similar implementation patterns before editing.
-4. Provide a short implementation plan:
-   - files to change
-   - tests to add or update
-   - assumptions
-   - risks
-5. Implement only that task.
-6. Add or update tests for the behavior change.
-7. Summarize what was changed and any remaining questions.
-
-## Mandatory rules
-
-- Do not implement future tasks.
-- Do not perform unrelated refactoring.
-- Do not invent business rules.
-- Do not introduce new dependencies without approval.
-- Do not weaken security, authorization, auditability, or validation.
-- Do not ignore architecture constraints recorded in the initiative workspace.
+- [ ] Exactly one task implemented
+- [ ] Implementation traces back to the active task artifact
+- [ ] At least one SCN-NNN referenced as done criterion
+- [ ] Every implemented behavior covered by at least one SCN-NNN
+- [ ] Referenced BDD scenarios pass (or stubs exist with documented failure reason)
+- [ ] Tests added or updated for every behavior change
+- [ ] Validation evidence visible
+- [ ] Scope not silently expanded
+- [ ] Assumptions and risks explicit

@@ -1,4 +1,4 @@
-# Prompt - Maintain Open Decisions Register
+﻿# Prompt - Maintain Open Decisions Register
 
 ## Role
 
@@ -52,7 +52,7 @@ planning/open-decisions.md
 Use:
 
 ```text
-templates/planning/open-decisions.md
+.brs2spec/templates/planning/open-decisions.md
 ```
 
 ## Decision ID convention

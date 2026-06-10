@@ -1,4 +1,4 @@
----
+﻿---
 description: Run the BRS-to-spec workflow for the active initiative — detects current stage, executes the next step, then re-assesses automatically.
 ---
 
@@ -65,7 +65,7 @@ After identifying the workspace, check whether `planning/workflow-state.json` ex
   - If architecture-review exists but `engineering-readiness/readiness-check.md` does not → `current_stage: "engineering-readiness"`
   - If readiness exists with decision = Ready but delivery-structure has stub stories → `current_stage: "delivery-structure-confirmed"`
   - Otherwise → scan remaining artifacts and set `current_stage` to the first incomplete stage
-- Write `planning/workflow-state.json` using `templates/planning/workflow-state.json` with `state_validated: false` and the detected `current_stage`.
+- Write `planning/workflow-state.json` using `.brs2spec/templates/planning/workflow-state.json` with `state_validated: false` and the detected `current_stage`.
 - Then proceed with the full stale check and stage assessment (Steps 2 and 3).
 
 **If it exists but `state_validated` = false:**
@@ -261,41 +261,39 @@ Before generating any artifact, run this checklist. If any item fails, do not ge
 - [ ] `engineering-readiness/readiness-check.md` exists → read it → confirm decision = Ready
 - [ ] `architecture/architecture-review.md` exists → read constraints and open decisions that affect delivery slices
 - If readiness missing or decision ≠ Ready: stop. Do not promote delivery-structure to confirmed.
+- [ ] Check whether `input/repositories/` exists and contains at least one `.md` file.
+  - If **yes**: proceed — repo descriptors are ready for handoff.
+  - If **no**: check whether `architecture/architecture-review.md` mentions multiple repositories or distinct system components in separate repos. If it does, remind the user once:
+    > "The architecture describes a multi-repo system. Consider creating `input/repositories/` descriptors now (using `.brs2spec/templates/repositories/_template.md`) while the delivery structure is being confirmed — this is the right moment since FR-NNN assignments are now clear. The handoff will use them to generate per-repo task folders. You can skip this and create them later, but doing it now produces more accurate scoping."
+  - If the architecture is single-repo or repo boundaries are not described, skip this check silently.
 
 **For handoff (`openspec/changes/`):**
 - [ ] All triggered quality gates have `Status: Accepted` in Metadata — read each gate artifact to confirm
 - [ ] `planning/open-decisions.md` has zero blocking open decisions — read it to confirm
 - If either fails: stop. State exactly what is blocking and what the user must do.
 
+### Repository descriptors check — special rule
+
+Before generating the handoff, check whether `input/repositories/` exists and contains at least one `.md` file.
+
+- **If it exists with at least one descriptor:** proceed — the handoff will use repo subfolders (Case B). Read all descriptor files before generating any story folder.
+- **If it does not exist or is empty:** surface this decision to the user once before starting:
+  > "This initiative will generate a flat handoff (one folder per story). If it spans multiple repositories owned by different teams, create `input/repositories/` now using `.brs2spec/templates/repositories/_template.md` — one file per repo, named after the folder you want in the handoff (e.g. `api.md`, `ui.md`, `db.md`). Reply to proceed with the flat structure, or provide the repo descriptors first."
+  Then wait for the user's reply before generating any handoff artifact.
+- **Do not ask this question more than once.** If the user has already replied (or if the handoff has already been partially generated), proceed without asking again.
+
 **This checklist is not optional.** Do not reason around it. Do not generate the artifact because "enough information is available." The gate artifact must exist and be read before the dependent artifact is generated.
 
 ## Step 6 — Execute the next stage
 
-Run the prompt for the identified next stage against the available inputs.
+Run the prompt for the identified next stage. Use all available workspace artifacts as inputs.
 
-Use:
-- `input/brs.md` or `input/brs/*.md`
-- `input/architecture.md` or `input/architecture/*.md`
-- `input/input-package.md`
-- All previously completed artifacts in the workspace
-
-Generate the full artifact content. Do not create a skeleton or placeholder. Do not leave sections empty.
-
-Save the output to the correct path inside the initiative workspace.
+- Generate full artifact content — no skeletons, no placeholders, no empty sections
+- Save to the correct path inside the initiative workspace
 
 ## Step 7 — Re-assess after completing the stage
 
-After generating the artifact, re-run the stage assessment from Step 2.
-
-State:
-- what stage was just completed
-- what artifact was created or updated
-- what the next stage is
-- whether you will proceed automatically or need user input first
-
-Then proceed to execute the next stage unless:
-- user input is required (missing information, ambiguous scope, a gate requires human review)
-- a Stop condition is reached (see below)
+Re-run the stage assessment from Step 2. Then report using the response format below and proceed automatically unless user input is required or a stop condition is reached.
 
 ## Execution priority order
 
@@ -321,29 +319,26 @@ The only valid reason to stop and wait for the user is when **all remaining item
 
 ## Stop conditions and scaffold behavior
 
-When a genuine stop condition is reached, follow this sequence — do not skip straight to stopping:
+**Never stop without first scaffolding.** For every blocking item requiring human input, create a stub artifact immediately, then stop.
 
-**Step A — Scaffold everything that can be created now.**
-For every blocking item that requires human input, create a stub collection artifact immediately:
-- Missing vendor contract details → create `input/contracts/<vendor>-contract.md` with the questions that need answering
-- Missing numeric targets or PO decisions → add stub rows to `input/input-package.md` under "Decisions and Clarifications Received"
-- Missing architect sign-off → add a note to `input/architecture.md` architect review section listing what must be confirmed
-- Missing security or compliance input → create a stub in `input/constraints/<topic>.md`
+| Blocker | Scaffold target |
+|---|---|
+| Missing vendor contract details | `input/contracts/<vendor>-contract.md` with questions to answer |
+| Missing numeric targets or PO decisions | Stub rows in `input/input-package.md` → "Decisions and Clarifications Received" |
+| Missing architect sign-off | Note in `input/architecture.md` architect review section |
+| Missing security or compliance input | Stub in `input/constraints/<topic>.md` |
 
-**Step B — Then stop and state clearly:**
-- What was scaffolded and where
-- What a human must provide in each scaffolded artifact before the workflow can continue
-- What the next workflow stage will be once the blockers are resolved
+After scaffolding, stop and state: what was scaffolded, what the human must provide, what the next stage will be once blockers are resolved.
 
-**Do not** present a numbered menu. **Do not** ask for permission to scaffold. **Do not** ask "shall I proceed?". Just scaffold and stop.
+Do not present a menu. Do not ask for permission to scaffold. Do not ask "shall I proceed?".
 
-Genuine stop conditions:
+**Genuine stop conditions:**
 
-- The BRS is missing, empty, or too vague to generate a meaningful artifact — scaffold an input-package stub with the questions that must be answered
-- Routing requires a judgment call only the user can make (team size, compliance scope, OpenSpec availability) — ask the single specific question, then stop
-- Readiness result is **Not ready** — scaffold collection artifacts for every blocker, then stop
-- A quality gate requires human-produced input that cannot be inferred — scaffold the gate artifact as a questionnaire stub, then stop
-- Scope is ambiguous and cannot be resolved from existing inputs — scaffold a scope-clarification stub in input-package, then stop
+- BRS missing, empty, or too vague → scaffold input-package stub with questions
+- Routing requires a judgment call only the user can make → ask the single specific question, then stop
+- Readiness = Not ready → scaffold collection artifacts for every blocker, then stop
+- Quality gate requires human-produced input → scaffold gate artifact as questionnaire stub, then stop
+- Scope ambiguous and unresolvable from existing inputs → scaffold scope-clarification stub in input-package, then stop
 
 ## Delivery mode behavior
 

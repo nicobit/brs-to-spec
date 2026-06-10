@@ -1,4 +1,4 @@
-# Prompt - Generate Initiative Context
+﻿# Prompt - Generate Initiative Context
 
 ## Role
 
@@ -50,12 +50,16 @@ engineering-readiness/initiative-context.md
 Use:
 
 ```text
-templates/engineering-readiness/initiative-context.md
+.brs2spec/templates/engineering-readiness/initiative-context.md
 ```
 
 Preserve all headings. Complete every section from evidence in the source artifacts.
 Do not add sections not in the template.
 Do not copy full artifact content — extract only binding constraints and active facts.
+
+Populate the `AI model version` field in the Metadata table with your own model identifier
+(e.g. `claude-sonnet-4-6`, `gpt-4o`). Do not leave it blank or ask the user to fill it in —
+you know which model you are.
 
 ## Quality bar
 

@@ -33,7 +33,7 @@ modules/software-modules.md
 Use:
 
 ```text
-templates/planning-and-modular-delivery/software-modules.md
+.brs2spec/templates/planning-and-modular-delivery/software-modules.md
 ```
 
 Preserve the template headings and add structure only where the evidence demands it.

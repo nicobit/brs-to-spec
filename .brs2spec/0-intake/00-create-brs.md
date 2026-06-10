@@ -1,4 +1,4 @@
-# Prompt — Create Business Requirements Specification
+﻿# Prompt — Create Business Requirements Specification
 
 ## Role
 
@@ -23,7 +23,7 @@ Detect which mode to use based on what the user provides. Do not ask which mode 
 The user has pasted an existing document (Word export, Confluence page, PDF text, email thread).
 
 1. Read the full pasted content.
-2. Map it to `templates/input/brs.md` structure — do not invent requirements not in the source.
+2. Map it to `.brs2spec/templates/input/brs.md` structure — do not invent requirements not in the source.
 3. Assign FR-NNN IDs sequentially to all functional requirements found.
 4. Assign NFR-NNN IDs to all non-functional requirements found. Add measurable targets where the source gives numbers; flag as `[TARGET NEEDED]` where the source is vague ("must be fast", "should be secure").
 5. Extract acceptance criteria per FR. Assign AC-NNN IDs. If a FR has no AC in the source, add a placeholder row and flag as `[AC NEEDED]`.
@@ -44,7 +44,7 @@ The user has provided bullet points, meeting notes, or a short description.
 
 1. Read the provided notes.
 2. Infer the initiative name, business context, and target users from the notes.
-3. Expand into `templates/input/brs.md` structure — stay faithful to what the notes say; do not invent scope.
+3. Expand into `.brs2spec/templates/input/brs.md` structure — stay faithful to what the notes say; do not invent scope.
 4. Where the notes imply a requirement but don't state it explicitly, include it and flag as `[INFERRED — confirm with stakeholder]`.
 5. Assign FR-NNN, NFR-NNN, AC-NNN IDs.
 6. For any section where the notes provide no information, add a placeholder: `[INPUT NEEDED — {{what to ask}}]`.
@@ -90,7 +90,7 @@ Ask these questions together:
 
 ### After all rounds complete
 
-Generate `input/brs.md` from the interview answers using `templates/input/brs.md`.
+Generate `input/brs.md` from the interview answers using `.brs2spec/templates/input/brs.md`.
 - Flag anything not answered as `[INPUT NEEDED]`
 - Add a `## Interview summary` section at the end listing which answers came from which round
 - Produce a gap report listing open items
@@ -99,7 +99,7 @@ Generate `input/brs.md` from the interview answers using `templates/input/brs.md
 
 ## Output rules (all modes)
 
-- Use `templates/input/brs.md` as the structure — preserve all section headings
+- Use `.brs2spec/templates/input/brs.md` as the structure — preserve all section headings
 - FR IDs: FR-001, FR-002, ... sequentially
 - NFR IDs: NFR-001, NFR-002, ... sequentially
 - AC IDs: AC-001, AC-002, ... sequentially across all FRs

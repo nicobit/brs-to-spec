@@ -46,7 +46,7 @@ Generate code directly from input/brs.md.
 ### Workflow status
 
 ```text
-Use .github/.brs2spec/brs-to-spec-run-workflow.prompt.md to identify the active initiative workspace, current stage, missing artifacts, and next prompt to run.
+Use .github/prompts/brs-to-spec-run-workflow.prompt.md to identify the active initiative workspace, current stage, missing artifacts, and next prompt to run.
 ```
 
 ### Artifact generation

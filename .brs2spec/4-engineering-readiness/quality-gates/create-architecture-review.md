@@ -34,7 +34,7 @@ quality-gates/architecture-review.md
 Use:
 
 ```text
-templates/quality-gates/architecture-review.md
+.brs2spec/templates/quality-gates/architecture-review.md
 ```
 
 Preserve the template headings and add structure only where the evidence demands it.

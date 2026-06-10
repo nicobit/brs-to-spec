@@ -141,6 +141,8 @@ Before finalizing, verify:
 - [ ] Findings are scoped to the implemented task.
 - [ ] Missing tests are called out explicitly.
 - [ ] The review does not redefine the source of truth.
+- [ ] The implementation references at least one SCN-NNN as its done criterion — if not, flag it as a finding.
+- [ ] Referenced SCN-NNN scenarios are covered by tests — if not, flag the gap.
 
 ## Check
 

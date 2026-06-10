@@ -106,3 +106,30 @@ recommendation
 owner
 required-before stage
 ```
+
+## Execution artifact guidelines
+
+Prompts fed to LLMs (`.github/prompts/`, `.brs2spec/8-copilot-implementation/`) are
+execution artifacts — they are sensitive to model upgrades. A new model version is a
+change of interpreter. Apply these rules to keep execution artifacts durable:
+
+**Constraints first.** Hard rules and the quality bar must appear before any narrative
+description. The model reads top-down — what it reads first shapes everything after.
+A prompt that buries its constraints in section 5 will produce inconsistent output as
+models change.
+
+**Short over long.** Prefer constraint lists over narrative paragraphs. Every sentence
+of narrative is an additional interpretation surface. If a rule can be expressed as a
+bullet, express it as a bullet.
+
+**Anchor to IDs, not prose.** Done criteria and traceability references must use
+machine-verifiable IDs (SCN-NNN, FR-NNN, REQ-NNN), not prose descriptions. A prompt
+that says "implement the login feature" is less stable than one that says "implement
+the behavior covered by SCN-004 and SCN-005".
+
+**Treat a model upgrade as a regression trigger.** After upgrading the model, run a
+smoke test on the 2–3 most-used execution prompts and compare output structure to a
+known-good previous run. If sections are missing or reordered, tighten the prompt.
+
+See [Artifact Durability](23-artifact-durability.md) for the full classification of
+human vs execution artifacts and the upgrade strategy for each.

@@ -1,0 +1,85 @@
+site_name: BRS to Spec Framework
+site_description: Enterprise BRS-to-delivery-readiness adapter — prompts, templates, and conventions for structured AI-assisted delivery
+site_url: https://nicobit.github.io/brs-to-spec/
+repo_url: https://github.com/nicobit/brs-to-spec
+repo_name: nicobit/brs-to-spec
+use_directory_urls: true
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - toc.integrate
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+  palette:
+    - scheme: default
+      primary: blue grey
+      accent: cyan
+  font:
+    text: false
+    code: false
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Overview: 01-overview.md
+      - Decision Tree: 03-decision-tree.md
+      - Entry Modes: 18-entry-modes.md
+      - Delivery & Execution Modes: 02-delivery-and-execution-modes.md
+  - Workflow:
+      - Input Preparation: 00-input-preparation.md
+      - Architecture-Aware Flow: 07-architecture-aware-flow.md
+      - Conditional Quality Gates: 06-conditional-quality-gates.md
+      - Handoff: 05-handoff.md
+      - Agile Planning View: 14-agile-planning-view.md
+  - Guides:
+      - GitHub Copilot Workflow: 15-github-copilot-workflow.md
+      - Prompt Execution Environments: 16-prompt-execution-environments.md
+      - Copilot Usage: 17-copilot-usage.md
+      - Brownfield Mode: 19-brownfield-existing-system-mode.md
+      - Small-Change Paths: 20-small-change-paths.md
+      - Real Project Guidance: 10-real-project-guidance.md
+      - Artifact Quality Review: 21-artifact-quality-review.md
+  - Business Copilot:
+      - Overview: 04-business-copilot/README.md
+      - Run Business Intake in M365: 04-business-copilot/how-to-run-business-intake-in-m365-copilot.md
+      - Create the M365 Copilot Agent: 04-business-copilot/how-to-create-m365-copilot-agent.md
+  - Reference:
+      - Template Quality Guidelines: 11-template-quality-guidelines.md
+      - Prompt Quality Guidelines: 12-prompt-quality-guidelines.md
+      - Prompt Quality Patterns: 13-prompt-quality-patterns.md
+      - Wiring Quality Gates to CI: 22-wiring-quality-gates-to-ci.md
+      - Artifact Durability: 23-artifact-durability.md
+      - Model Upgrade Guide: 24-model-upgrade-guide.md
+      - Version History: 09-branch-analysis.md
+      - Migration from 0.x: 08-migration-from-0.x.md
+
+plugins:
+  - search
+
+extra_css:
+  - assets/stylesheets/extra.css
+
+markdown_extensions:
+  - admonition
+  - tables
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+extra_javascript:
+  - https://unpkg.com/mermaid@11/dist/mermaid.min.js
+  - assets/javascripts/mermaid-init.js

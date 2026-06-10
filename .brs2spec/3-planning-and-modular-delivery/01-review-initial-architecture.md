@@ -1,4 +1,4 @@
-# Prompt - Review Initial Architecture
+﻿# Prompt - Review Initial Architecture
 
 ## Role
 
@@ -33,7 +33,7 @@ architecture/architecture-review.md
 Use:
 
 ```text
-templates/planning-and-modular-delivery/architecture-review.md
+.brs2spec/templates/planning-and-modular-delivery/architecture-review.md
 ```
 
 Preserve the template headings. Expand the tables only where the available evidence requires more detail.
@@ -78,6 +78,18 @@ Do not produce outputs that:
 - List missing inputs and explain the impact.
 - Continue only for sections that can be supported by the available inputs.
 
+## Multi-repository signal
+
+While reviewing `input/architecture.md`, check whether the initiative spans multiple repositories (e.g. separate repos for API, UI, database, background workers, or shared libraries owned by different teams).
+
+If yes, surface this to the user at the end of the review output:
+
+> **Multi-repo initiative detected.** The architecture describes components across multiple repositories. Before the handoff stage, create one descriptor file per repository in `input/repositories/` using `.brs2spec/templates/repositories/_template.md`. The file name (without `.md`) becomes the subfolder name inside each story's handoff folder. Doing this now — while the architecture boundaries are fresh — produces more accurate handoff scoping than deferring it to handoff time.
+>
+> Repositories identified from the architecture: {{list repo names or system components that map to separate repos}}
+
+If the initiative is single-repo or the architecture does not distinguish repo boundaries, omit this notice entirely.
+
 ## Self-review checklist
 
 Before finalizing, verify:
@@ -91,3 +103,4 @@ Before finalizing, verify:
 - [ ] Open decisions include owners.
 - [ ] Risks and gaps are visible.
 - [ ] The output supports architecture rule creation and delivery planning.
+- [ ] If the initiative spans multiple repositories, the multi-repo signal notice was included in the output.

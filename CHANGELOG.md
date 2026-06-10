@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 ## v1.0.5-copilot-instructions
 
@@ -13,7 +13,7 @@
 
 - Added Agile / GitLab Planning View as a read-only projection.
 - Added `.brs2spec/7-perspectives/agile-planning/`.
-- Added `templates/perspectives/agile-planning/`.
+- Added `.brs2spec/templates/perspectives/agile-planning/`.
 - Added `docs/14-agile-planning-view.md`.
 - Added an example GitLab planning view.
 - Preserved the rule that core artifacts remain the source of truth.

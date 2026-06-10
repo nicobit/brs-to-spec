@@ -1,4 +1,4 @@
-# Brownfield / Existing-System Mode
+﻿# Brownfield / Existing-System Mode
 
 ## Purpose
 
@@ -34,7 +34,7 @@ architecture/existing-system-impact.md
 Use:
 
 ```text
-templates/planning-and-modular-delivery/existing-system-impact.md
+.brs2spec/templates/planning-and-modular-delivery/existing-system-impact.md
 ```
 
 This artifact is lightweight.

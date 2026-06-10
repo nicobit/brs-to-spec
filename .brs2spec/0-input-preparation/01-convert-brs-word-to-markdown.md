@@ -1,4 +1,4 @@
-# Prompt - Convert BRS Word to Markdown
+﻿# Prompt - Convert BRS Word to Markdown
 
 ## Role
 
@@ -40,7 +40,7 @@ input/brs/<short-name>.md
 Use:
 
 ```text
-templates/input-preparation/brs.md
+.brs2spec/templates/input-preparation/brs.md
 ```
 
 Preserve the template headings and extend them only when the source evidence requires more detail.

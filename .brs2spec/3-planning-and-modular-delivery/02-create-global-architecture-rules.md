@@ -33,7 +33,7 @@ architecture/architecture-rules.md
 Use:
 
 ```text
-templates/planning-and-modular-delivery/architecture-rules.md
+.brs2spec/templates/planning-and-modular-delivery/architecture-rules.md
 ```
 
 Preserve the template headings. Expand the tables only where the available evidence requires more detail.

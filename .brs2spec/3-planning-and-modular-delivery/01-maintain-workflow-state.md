@@ -1,4 +1,4 @@
-# Prompt — Maintain Workflow State
+﻿# Prompt — Maintain Workflow State
 
 ## Role
 
@@ -27,7 +27,7 @@ planning/workflow-state.json
 ## Template
 
 ```text
-templates/planning/workflow-state.json
+.brs2spec/templates/planning/workflow-state.json
 ```
 
 ## How to update the state

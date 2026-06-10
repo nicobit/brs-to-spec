@@ -1,4 +1,4 @@
-# Prompt — Create OpenSpec Handoff per User Story
+﻿# Prompt — Create OpenSpec Handoff per User Story
 
 ## Role
 
@@ -17,15 +17,16 @@ Only when `execution_mode` is `OpenSpec` and all of the following are true:
 1. `planning/workflow-state.json` — confirm current stage is `handoff` or `complete`
 2. `planning/delivery-structure.md` — epics, features, user stories (`F-XXX.X`), increment grouping; derive the full story list from here
 3. `input/brs.md` or `input/brs/*.md` — acceptance criteria (AC-NNN IDs) and functional requirements (FR-NNN); copy AC text verbatim into proposal.md, do not paraphrase
-4. `engineering-readiness/initiative-context.md` — scope, integrations, constraints
-5. `architecture/architecture-review.md` — initiative-specific constraints and open decisions; map each constraint to the stories it affects
-6. `architecture/architecture-rules.md` — binding rules (AR-NNN IDs) engineers must follow; reference specific rule IDs in each story's constraints table
-7. `input/architecture.md` — deployment topology, integration decisions
-8. `quality-gates/bdd-scenarios.md` — BDD scenarios (SCN-NNN) grouped by story ID; copy the scenario IDs into each story's proposal.md BDD section
-9. `quality-gates/security-review.md` — security checklist and accepted risks
-10. `quality-gates/api-contract.md` — API surface, auth, error codes, contracts
-11. `quality-gates/data-contract.md` — schema, PII mapping, retention, residency
-12. `quality-gates/observability-plan.md` — telemetry catalog, alert rules, runbooks
+4. `input/repositories/` — **if this folder exists**, read every `.md` file in it; each file describes one repository and its file name (without extension) is the subfolder name used in the handoff output; if the folder does not exist or is empty, skip and use the flat folder structure (no repo subfolders)
+5. `engineering-readiness/initiative-context.md` — scope, integrations, constraints
+6. `architecture/architecture-review.md` — initiative-specific constraints and open decisions; map each constraint to the stories it affects
+7. `architecture/architecture-rules.md` — binding rules (AR-NNN IDs) engineers must follow; reference specific rule IDs in each story's constraints table
+8. `input/architecture.md` — deployment topology, integration decisions
+9. `quality-gates/bdd-scenarios.md` — BDD scenarios (SCN-NNN) grouped by story ID; copy the scenario IDs into each story's proposal.md BDD section
+10. `quality-gates/security-review.md` — security checklist and accepted risks
+11. `quality-gates/api-contract.md` — API surface, auth, error codes, contracts
+12. `quality-gates/data-contract.md` — schema, PII mapping, retention, residency
+13. `quality-gates/observability-plan.md` — telemetry catalog, alert rules, runbooks
 
 **Reading rule:** read ALL inputs before generating the first story folder. Do not generate story-by-story while reading — read everything first, then generate. This ensures architecture constraints and BDD scenarios are correctly distributed across stories.
 
@@ -37,7 +38,7 @@ Before creating any story folder, generate:
 openspec/changes/dependency-graph.md
 ```
 
-Use `templates/openspec-handoff/dependency-graph.md`.
+Use `.brs2spec/templates/openspec-handoff/dependency-graph.md`.
 
 To build the graph:
 1. List all user stories (`F-XXX.X`) from `delivery-structure.md`
@@ -51,7 +52,13 @@ To build the graph:
 
 ## Step 2 — generate one folder per user story
 
-For every user story in `delivery-structure.md`, in wave order, create:
+For every user story in `delivery-structure.md`, in wave order, create one folder. The internal structure depends on whether `input/repositories/` exists:
+
+---
+
+### Case A — no `input/repositories/` folder (or folder is empty)
+
+Flat structure, same as before:
 
 ```
 openspec/changes/{{F-XXX.X}}-{{slug}}/
@@ -64,11 +71,73 @@ openspec/changes/{{F-XXX.X}}-{{slug}}/
     observability.md ← only signals this story must emit (delete if none)
 ```
 
-Use templates from `templates/openspec-handoff/`.
+---
+
+### Case B — `input/repositories/` exists and contains at least one descriptor file
+
+One subfolder per repository that this story touches. The subfolder name is the descriptor file name without its `.md` extension (e.g. `input/repositories/api.md` → subfolder `api/`).
+
+```
+openspec/changes/{{F-XXX.X}}-{{slug}}/
+  dependency-graph.md   ← story-level dependency graph (same as Case A; only the cross-repo one lives here)
+  {{repo-a}}/
+    proposal.md         ← story scope scoped to this repo's changes only
+    design.md           ← only what this story changes in this repo
+    tasks.md            ← tasks for this repo only + done criteria referencing SCN-NNN
+    specs/
+      api.md            ← only endpoints this repo creates or modifies (delete if none)
+      data.md           ← only schema changes in this repo (delete if none)
+      observability.md  ← only signals this repo emits (delete if none)
+  {{repo-b}}/
+    proposal.md
+    design.md
+    tasks.md
+    specs/
+      ...
+```
+
+#### Inferring which repos a story touches
+
+Read each repo descriptor in `input/repositories/`. Apply the following inference in order — stop at the first match:
+
+1. **Primary signal — Functional areas list:** if the descriptor has a `## Functional areas` section, check whether the story's FR-NNN appears in that list. If yes, this repo gets a subfolder for this story. If no, move to step 2.
+2. **Fallback — Responsibility description:** if the story's AC or FR references capabilities described in the repo's `## Responsibility` section (API endpoints, database tables, UI views, background jobs), include the repo.
+3. **Architecture fallback:** if the architecture assigns this story's functional area to this repo (e.g. via an AR-NNN rule or topology note), include the repo.
+
+Include only repos where at least one criterion matched. A story that is purely a backend API change does not get a `ui/` subfolder. A story that only changes the UI does not get a `db/` subfolder. When uncertain between two repos, include both and add an open question to the story's `proposal.md`.
+
+#### Per-repo proposal.md scope
+
+Each `{{repo}}/proposal.md` describes only the changes in that repo:
+- **Repository scope line** — fill the "Repository scope" line at the top of the template with the descriptor file name (without `.md`) as `{{repo-name}}` and the story ID as `{{F-XXX.X}}`; e.g. `This proposal covers the \`api\` repository slice of story F-001.1.` Remove this line entirely in Case A (flat structure).
+- "What changes in this repo" — bullet list scoped to this repo's responsibilities
+- AC table — only ACs that this repo's changes satisfy
+- BDD scenarios — only SCN-NNN scenarios that test this repo's behavior
+- Out of scope — what this story does NOT change in this specific repo
+- Dependencies — on other repos' outputs; **uncomment and fill the cross-repo dependency table** in the template for any intra-story repo dependency that applies (e.g. `ui` depends on `api` for the endpoint contract); leave the table commented out only if this repo has no intra-story dependency on another repo
+
+#### Per-repo tasks.md scope
+
+Each `{{repo}}/tasks.md`:
+- **Repository scope line** — fill the same way as proposal.md: descriptor file name as `{{repo-name}}`, story ID as `{{F-XXX.X}}`; remove the line in Case A.
+- Tasks scoped to this repo's work only — no tasks from other repos' subfolders
+- Done criteria references the cross-repo dependency: "notify `{{other-repo}}` team when this repo's contract is stable" where applicable
+
+#### Cross-repo dependency note in dependency-graph.md
+
+When Case B applies, the story-level `dependency-graph.md` (at `openspec/changes/dependency-graph.md`) gains a cross-repo section listing, for each story: which repo subfolder depends on which other repo subfolder (e.g. `F-001.1/ui` depends on `F-001.1/api` contract being stable).
+
+---
+
+Use templates from `.brs2spec/templates/openspec-handoff/` for all `proposal.md`, `design.md`, `tasks.md`, and `specs/` files regardless of case.
 
 After completing one story folder, immediately continue to the next — do not stop between stories.
 
 ## Output rules
+
+### Folder structure decision (repeat of Step 2 — apply consistently)
+
+Check once at the start: does `input/repositories/` contain at least one `.md` file? If yes → Case B (repo subfolders) for every story. If no → Case A (flat) for every story. Do not mix cases across stories in the same handoff.
 
 ### dependency-graph.md
 - Waves are the primary structure — one wave per row group
@@ -144,6 +213,11 @@ A good output:
 - Generating the handoff before reading ALL inputs — reading inputs story-by-story causes architecture constraints to be missed
 - Generating `gitlab-issues.md` or any planning-tool export
 - Generating code
+- Using repo subfolders when `input/repositories/` does not exist or is empty — only add subfolders when repo descriptors are present
+- Using flat structure when `input/repositories/` exists with at least one descriptor — the subfolder structure is mandatory in that case
+- Creating a repo subfolder for a repo that the story does not touch — infer from story AC, BRS, and architecture; do not create empty or placeholder repo subfolders
+- Using a subfolder name that does not match the descriptor file name (e.g. using `backend/` when the descriptor file is `api.md`)
+- Mixing Case A and Case B across stories in the same handoff run
 
 ## Stop conditions
 
@@ -154,6 +228,10 @@ If a story has an unresolvable dependency (blocked by a story with missing input
 
 Before finalising, verify:
 - [ ] `dependency-graph.md` exists and covers all stories with wave grouping and Mermaid diagram
+- [ ] Folder structure is consistent: all stories use Case A (flat) or all use Case B (repo subfolders) — never mixed
+- [ ] If Case B: every repo subfolder name matches the corresponding `input/repositories/` descriptor file name (without `.md`)
+- [ ] If Case B: no empty or placeholder repo subfolders — only repos the story actually touches have a subfolder
+- [ ] If Case B: cross-repo dependencies are noted in `dependency-graph.md`
 - [ ] One folder per user story — no increment-level folders
 - [ ] Each `proposal.md` has the user story verbatim (not paraphrased)
 - [ ] Each `proposal.md` AC table uses verbatim AC-NNN criteria from the BRS — not summaries

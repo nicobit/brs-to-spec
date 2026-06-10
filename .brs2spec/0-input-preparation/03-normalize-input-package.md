@@ -1,4 +1,4 @@
-# Prompt - Normalize Input Package
+﻿# Prompt - Normalize Input Package
 
 ## Purpose
 
@@ -22,7 +22,7 @@ input/input-package.md
 Use:
 
 ```text
-templates/input-preparation/input-package.md
+.brs2spec/templates/input-preparation/input-package.md
 ```
 
 Preserve the template headings and fill every section that can be supported by evidence.

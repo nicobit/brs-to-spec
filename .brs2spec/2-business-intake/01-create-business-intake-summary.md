@@ -31,7 +31,7 @@ business-intake/business-intake-summary.md
 Use:
 
 ```text
-templates/business-intake/business-intake-summary.md
+.brs2spec/templates/business-intake/business-intake-summary.md
 ```
 
 Preserve the template headings. Add the source-document inventory, traceability columns, and consolidation detail required by the current evidence.

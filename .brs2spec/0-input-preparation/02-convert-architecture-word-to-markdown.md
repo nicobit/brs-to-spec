@@ -1,4 +1,4 @@
-# Prompt - Convert Architecture Document to Markdown
+﻿# Prompt - Convert Architecture Document to Markdown
 
 ## Role
 
@@ -40,7 +40,7 @@ input/architecture/<short-name>.md
 Use:
 
 ```text
-templates/input-preparation/architecture.md
+.brs2spec/templates/input-preparation/architecture.md
 ```
 
 Preserve the template headings and extend them only when the source evidence requires more detail.

@@ -34,7 +34,7 @@ quality-gates/release-readiness-review.md
 Use:
 
 ```text
-templates/quality-gates/release-readiness-review.md
+.brs2spec/templates/quality-gates/release-readiness-review.md
 ```
 
 Preserve the template headings and add structure only where the evidence demands it.

@@ -33,7 +33,7 @@ planning/traceability-matrix.md
 Use:
 
 ```text
-templates/planning-and-modular-delivery/traceability-matrix.md
+.brs2spec/templates/planning-and-modular-delivery/traceability-matrix.md
 ```
 
 Preserve the template headings and add structure only where the evidence demands it.

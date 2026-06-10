@@ -1,4 +1,4 @@
-# Prompt - Refresh GitLab Planning View
+﻿# Prompt - Refresh GitLab Planning View
 
 ## Role
 
@@ -53,8 +53,8 @@ perspectives/agile-planning/gitlab-planning-view.md
 Use:
 
 ```text
-templates/perspectives/agile-planning/gitlab-planning-view.md
-templates/perspectives/agile-planning/gitlab-refresh-report.md
+.brs2spec/templates/perspectives/agile-planning/gitlab-planning-view.md
+.brs2spec/templates/perspectives/agile-planning/gitlab-refresh-report.md
 ```
 
 Preserve the template headings and add detail only where the evidence demands it.

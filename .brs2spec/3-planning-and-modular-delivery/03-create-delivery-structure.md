@@ -1,4 +1,4 @@
-# Prompt - Create Delivery Structure
+﻿# Prompt - Create Delivery Structure
 
 ## Role
 
@@ -31,7 +31,7 @@ planning/delivery-structure.md
 Use:
 
 ```text
-templates/planning-and-modular-delivery/delivery-structure.md
+.brs2spec/templates/planning-and-modular-delivery/delivery-structure.md
 ```
 
 Preserve the template headings. Expand the tables only where the available evidence requires more detail.

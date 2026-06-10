@@ -103,6 +103,16 @@ test context
 
 These are best run in VS Code Copilot Chat, GitHub PR review, or another diff-aware review surface.
 
+## Model upgrades
+
+A model upgrade is a change of interpreter. Human artifacts (business summaries, architecture
+reviews, delivery specs) are validated by human review and are unaffected. Execution artifacts
+— prompts fed to LLMs to drive automated action — may produce structurally different output
+after an upgrade and should be smoke-tested.
+
+After any model upgrade, run the smoke tests in [Model Upgrade Guide](24-model-upgrade-guide.md)
+before using the framework on a live initiative.
+
 ## Anti-patterns
 
 Do not:
@@ -112,4 +122,5 @@ ask a coding agent to implement directly from raw BRS inputs
 ask a business-facing Copilot surface to create engineering tasks
 run review prompts without the relevant diff or changed files
 mix artifacts from multiple initiative workspaces in one run
+upgrade the model mid-initiative — upgrade between initiatives only
 ```

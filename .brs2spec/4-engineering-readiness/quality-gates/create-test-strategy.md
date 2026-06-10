@@ -34,7 +34,7 @@ quality-gates/test-strategy.md
 Use:
 
 ```text
-templates/quality-gates/test-strategy.md
+.brs2spec/templates/quality-gates/test-strategy.md
 ```
 
 Preserve the template headings and add structure only where the evidence demands it.

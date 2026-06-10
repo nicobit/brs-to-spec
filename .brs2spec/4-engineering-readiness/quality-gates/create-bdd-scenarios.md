@@ -1,4 +1,4 @@
-# Prompt — Create BDD Scenarios
+﻿# Prompt — Create BDD Scenarios
 
 ## Role
 
@@ -38,7 +38,7 @@ quality-gates/bdd-scenarios.md
 Use:
 
 ```text
-templates/quality-gates/bdd-scenarios.md
+.brs2spec/templates/quality-gates/bdd-scenarios.md
 ```
 
 Preserve the template structure including the `## Acceptance checklist` section at the end — do not omit it.

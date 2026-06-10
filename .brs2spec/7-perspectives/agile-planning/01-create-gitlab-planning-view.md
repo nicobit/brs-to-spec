@@ -1,4 +1,4 @@
-# Prompt - Create GitLab Planning View
+﻿# Prompt - Create GitLab Planning View
 
 ## Role
 
@@ -52,7 +52,7 @@ perspectives/agile-planning/gitlab-planning-view.md
 Use:
 
 ```text
-templates/perspectives/agile-planning/gitlab-planning-view.md
+.brs2spec/templates/perspectives/agile-planning/gitlab-planning-view.md
 ```
 
 Preserve the template headings and add detail only where the evidence demands it.

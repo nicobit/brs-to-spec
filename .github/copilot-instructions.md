@@ -191,9 +191,12 @@ Respect this order within the active initiative workspace:
 11. planning/traceability-matrix.md
 12. engineering-readiness/readiness-check.md
 13. quality-gates/*.md
-14. openspec/changes/... or standalone-delivery/...
-15. perspectives/agile-planning/gitlab-planning-view.md
-16. implementation and review helper outputs
+14. input/repositories/*.md (optional — consumed at handoff stage only; each file describes one
+    repository and its file name without .md becomes the subfolder name inside each story folder
+    in openspec/changes/; if the folder does not exist the flat handoff structure is used instead)
+15. openspec/changes/... or standalone-delivery/...
+16. perspectives/agile-planning/gitlab-planning-view.md
+17. implementation and review helper outputs
 ```
 
 The Agile / GitLab Planning View is a projection only. It is not the source of truth.
@@ -605,10 +608,10 @@ Trigger phrases and their intent:
 | "pick up where we left off" | find first incomplete stage and execute it | stage assessment |
 | "check the initiative" | read open-decisions register, then assess workspace | `planning/open-decisions.md` |
 | "what is missing?" | read open-decisions register, then assess workspace | `planning/open-decisions.md` |
-| "create a BRS" | detect mode (convert/draft/interview) and run `.brs2spec/0-intake/00-create-brs.md` | `templates/input/brs.md` |
-| "write a BRS" | same as above | `templates/input/brs.md` |
-| "create a BRS for X" | interview mode — ask 3 rounds of questions before generating | `templates/input/brs.md` |
-| "convert this to a BRS" | convert mode — map pasted document to BRS structure | `templates/input/brs.md` |
+| "create a BRS" | detect mode (convert/draft/interview) and run `.brs2spec/0-intake/00-create-brs.md` | `.brs2spec/templates/input/brs.md` |
+| "write a BRS" | same as above | `.brs2spec/templates/input/brs.md` |
+| "create a BRS for X" | interview mode — ask 3 rounds of questions before generating | `.brs2spec/templates/input/brs.md` |
+| "convert this to a BRS" | convert mode — map pasted document to BRS structure | `.brs2spec/templates/input/brs.md` |
 | "accept all quality gates" | change Status to Accepted in all triggered gate artifacts, update workflow-state.json, advance workflow | all `quality-gates/*.md` with Status ≠ Accepted |
 | "accept all gates and continue" | same as above | all `quality-gates/*.md` with Status ≠ Accepted |
 | "accept all and continue" | same as above | all `quality-gates/*.md` with Status ≠ Accepted |
@@ -657,7 +660,9 @@ This is mandatory for:
 **The handoff format is not negotiable.** The output must be:
 - `openspec/changes/dependency-graph.md` generated first
 - One folder per user story named `F-XXX.X-<slug>/` — not `hand-off/`, not `T-NNN`, not increment folders
-- Each folder contains `proposal.md`, `design.md`, `tasks.md`, and `specs/` as defined in the prompt
+- **If `input/repositories/` contains descriptor files:** each story folder contains one subfolder per repo that the story touches (subfolder name = descriptor file name without `.md`); `proposal.md`, `design.md`, `tasks.md`, and `specs/` live inside each repo subfolder
+- **If `input/repositories/` does not exist or is empty:** flat structure — `proposal.md`, `design.md`, `tasks.md`, and `specs/` live directly inside the story folder (no repo subfolders)
+- Never mix flat and repo-subfolder structures across stories in the same handoff
 
 Generating `hand-off/`, `issues/T-NNN`, or any other folder structure for the OpenSpec handoff is a framework violation — delete and regenerate correctly.
 
@@ -698,6 +703,11 @@ Never produce any of the following in response to any question:
 - Creating handoff task files as `T-NNN-<name>.md` or `issues/T-NNN` — tasks belong inside `F-XXX.X-<slug>/tasks.md`
 - Generating any OpenSpec handoff artifact without first reading `.brs2spec/5-handoff/01-create-openspec-change-for-active-deliverable.md`
 - Generating the handoff without generating `openspec/changes/dependency-graph.md` first
+- Adding repo subfolders (`api/`, `ui/`, `db/`) inside story folders when `input/repositories/` does not exist or is empty
+- Using flat story folder structure (no repo subfolders) when `input/repositories/` contains at least one descriptor file
+- Creating a repo subfolder whose name does not match the corresponding descriptor file name in `input/repositories/`
+- Creating repo subfolders for repos the story does not touch — infer from AC, BRS, and architecture; empty repo subfolders are forbidden
+- Mixing flat and repo-subfolder structures across stories in the same handoff run
 - Producing a `quality-gates/bdd-scenarios.md` that contains scenario titles or a coverage summary without the corresponding `Given/When/Then` Gherkin blocks — a list of scenario names is not a BDD artifact
 - Submitting a BDD artifact where the number of rows in the coverage summary does not equal the number of `#### SCN-NNN` Gherkin blocks in the document
 - Appending a second generation to an existing `quality-gates/bdd-scenarios.md` — if the file exists, overwrite it completely with one clean document; never append

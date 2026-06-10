@@ -48,6 +48,25 @@ These visuals are optional.
 Use them when they help reviewers understand the governed boundary faster than text alone.
 Do not create a separate diagram workflow or require visuals when the gate is already clear in text.
 
+## Artifact durability hierarchy
+
+Not all quality gate artifacts have the same durability across model upgrades.
+Write and wire them in this order — most durable first:
+
+| Tier | Artifact type | Why it is durable | Action |
+|---|---|---|---|
+| 1 — Machine-verifiable | BDD scenarios wired to a test runner | Exit code — no model interpretation | Write before implementation; wire to CI |
+| 2 — Structured and human-reviewed | API / data / event contracts, threat model | Stable table structure; human validates before use | Review at implementation gate |
+| 3 — Prose and human-reviewed | Architecture review, delivery spec, test strategy | Human-interpreted; stable if reviewed | Review when initiative resumes after a long pause |
+
+**BDD scenarios are the primary durable artifact in the initiative workspace.**
+Write them before implementation begins — they are the acceptance criterion for each task,
+not a post-hoc description. A scenario wired to a test runner survives model upgrades
+because it does not pass through model interpretation. It passes through a test runner exit code.
+
+See [Wiring Quality Gates to CI](22-wiring-quality-gates-to-ci.md) for how to connect
+each artifact type to a CI gate.
+
 ## Anti-pattern
 
 Do not say:

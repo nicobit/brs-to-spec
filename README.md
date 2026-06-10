@@ -1,4 +1,4 @@
-# Enterprise BRS to Delivery Readiness Framework
+﻿# Enterprise BRS to Delivery Readiness Framework
 
 This framework transforms one or more raw **Business Requirements Specification (BRS)** documents, plus optional architecture source material, into business-approved, architecture-aligned, delivery-ready increments.
 
@@ -72,17 +72,19 @@ Use `input/input-package.md` to record inventory, completeness, overlap, conflic
 
 It is an adaptive front door for enterprise delivery.
 
-```text
-one or more BRS inputs + optional architecture inputs
-  -> normalized source set
-  -> business intake summary
-  -> early delivery shape
-  -> architecture-aware refinement
-  -> traceability
-  -> engineering readiness
-  -> conditional quality gates
-  -> planning projection when needed
-  -> OpenSpec change or standalone delivery package
+```mermaid
+flowchart TD
+    A[BRS and Architecture inputs] --> B[Routing]
+    B --> C[Business Intake]
+    C --> D[Architecture Review]
+    D --> E[Delivery Structure]
+    E --> F[Engineering Readiness]
+    F -->|Ready| G{Quality gates if triggered}
+    F -->|Not ready - iterate| E
+    G --> H[Handoff]
+    H --> I[OpenSpec - one folder per story]
+    H --> J[Standalone package]
+    K[input/repositories - optional multi-repo] -.-> H
 ```
 
 The framework is designed so generated artifacts are evidence-based, traceable, decision-oriented, and ready for structured review.
@@ -145,6 +147,34 @@ initiatives/<initiative-id>-<slug>/
   quality-gates/*.md
   openspec/changes/... or standalone-delivery/...
   perspectives/agile-planning/gitlab-planning-view.md
+```
+
+```mermaid
+flowchart LR
+    subgraph inputs [input]
+        BRS[brs.md]
+        ARCH[architecture.md]
+    end
+    subgraph planning [planning]
+        DS[delivery-structure.md]
+        WS[workflow-state.json]
+    end
+    subgraph readiness [engineering-readiness]
+        RC[readiness-check.md]
+        IC[initiative-context.md]
+    end
+    subgraph gates [quality-gates]
+        BDD[bdd-scenarios.md]
+        SEC[security-review.md]
+    end
+    subgraph handoff [openspec changes]
+        DG[dependency-graph.md]
+        FLAT[F-001.1 flat - proposal and tasks]
+        MULTI[F-001.1 multi-repo - api and ui subfolders]
+    end
+
+    REPOS[repositories optional] -.->|multi-repo| MULTI
+    inputs --> planning --> readiness --> gates --> handoff
 ```
 
 This keeps artifacts for separate initiatives isolated from each other while still allowing an initiative to grow from a simple single-document input model into a multi-document one when needed.
@@ -295,7 +325,7 @@ architecture/existing-system-impact.md
 using:
 
 ```text
-templates/planning-and-modular-delivery/existing-system-impact.md
+.brs2spec/templates/planning-and-modular-delivery/existing-system-impact.md
 ```
 
 ## Architecture handling rule
@@ -379,13 +409,7 @@ User stories in that view provide business intent and traceability.
 
 OpenSpec or standalone tasks remain the engineering implementation contract.
 
-Those tasks should be derived from the planned user stories plus architecture constraints, readiness decisions, and quality gates.
-
-without becoming a new workflow or a parallel technical-planning track.
-
-User stories in that view provide business intent and traceability.
-
-OpenSpec or standalone tasks remain the engineering implementation contract.
+Those tasks should be derived from the planned user stories plus architecture constraints, readiness decisions, and quality gates — without becoming a new workflow or a parallel technical-planning track.
 
 Generated output:
 
@@ -428,7 +452,7 @@ Relevant support files include:
 
 ```text
 .github/copilot-instructions.md
-.github/.brs2spec/
+.github/prompts/
 docs/15-github-copilot-workflow.md
 docs/16-prompt-execution-environments.md
 docs/17-copilot-usage.md
@@ -442,7 +466,7 @@ For implementation and review, the framework also includes:
 ```text
 .brs2spec/8-copilot-implementation/
 .brs2spec/9-reviewers/
-templates/quality-gates/ready-for-copilot-checklist.md
+.brs2spec/templates/quality-gates/ready-for-copilot-checklist.md
 ```
 
 Quality gate artifacts and reviewer prompts are intentionally separate:
@@ -489,19 +513,19 @@ If the answer is weak, revise the artifact before proceeding.
 Create an initiative workspace:
 
 ```bash
-python tools/scripts/new_initiative.py onboarding-request --initiative-id I001 --mode enterprise --execution-mode openspec
+python .brs2spec/tools/scripts/new_initiative.py onboarding-request --initiative-id I001 --mode enterprise --execution-mode openspec
 ```
 
 Add another BRS source only if the initiative really has more than one source document:
 
 ```bash
-python tools/scripts/add_brs.py initiatives/I001-onboarding-request compliance
+python .brs2spec/tools/scripts/add_brs.py initiatives/I001-onboarding-request compliance
 ```
 
 Add another architecture source only if needed:
 
 ```bash
-python tools/scripts/add_architecture.py initiatives/I001-onboarding-request security-constraints
+python .brs2spec/tools/scripts/add_architecture.py initiatives/I001-onboarding-request security-constraints
 ```
 
 Then run the prompts against that initiative workspace, treating every input and output path as relative to:

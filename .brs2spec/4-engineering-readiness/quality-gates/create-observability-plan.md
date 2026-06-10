@@ -34,7 +34,7 @@ quality-gates/observability-plan.md
 Use:
 
 ```text
-templates/quality-gates/observability-plan.md
+.brs2spec/templates/quality-gates/observability-plan.md
 ```
 
 Preserve the template headings and add structure only where the evidence demands it.

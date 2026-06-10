@@ -1,4 +1,4 @@
----
+﻿---
 Title: Routing decision
 Date: 2026-06-09
 Entry mode: BRS-first
@@ -16,4 +16,4 @@ Next action: business-intake
 
 ## Recommended next steps (automated)
 - Run the Business Intake stage to capture stakeholder clarifications and intake summary.
-- Create `business-intake/business-intake-summary.md` using the `templates/business-intake` template.
+- Create `business-intake/business-intake-summary.md` using the `.brs2spec/templates/business-intake` template.

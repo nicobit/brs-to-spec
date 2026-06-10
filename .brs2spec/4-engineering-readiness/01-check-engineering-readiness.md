@@ -1,4 +1,4 @@
-# Prompt - Check Engineering Readiness
+﻿# Prompt - Check Engineering Readiness
 
 ## Role
 
@@ -40,7 +40,7 @@ engineering-readiness/readiness-check.md
 Use:
 
 ```text
-templates/engineering-readiness/readiness-check.md
+.brs2spec/templates/engineering-readiness/readiness-check.md
 ```
 
 Preserve the template headings and complete every section that can be supported by evidence.

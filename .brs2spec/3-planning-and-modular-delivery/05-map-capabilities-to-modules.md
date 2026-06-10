@@ -33,7 +33,7 @@ planning/capability-module-map.md
 Use:
 
 ```text
-templates/planning-and-modular-delivery/capability-module-map.md
+.brs2spec/templates/planning-and-modular-delivery/capability-module-map.md
 ```
 
 Preserve the template headings and add structure only where the evidence demands it.

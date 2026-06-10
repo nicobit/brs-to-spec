@@ -33,7 +33,7 @@ planning/delivery-increments.md
 Use:
 
 ```text
-templates/planning-and-modular-delivery/delivery-increments.md
+.brs2spec/templates/planning-and-modular-delivery/delivery-increments.md
 ```
 
 Preserve the template headings and add structure only where the evidence demands it.
