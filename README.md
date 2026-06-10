@@ -1,18 +1,43 @@
 ﻿# Enterprise BRS to Delivery Readiness Framework
 
-This framework transforms one or more raw **Business Requirements Specification (BRS)** documents, plus optional architecture source material, into business-approved, architecture-aligned, delivery-ready increments.
+**From enterprise BRS to AI-safe engineering handoff.**
+
+`brs-to-spec` is the missing upstream layer before OpenSpec, GitHub Copilot, Codex, or any AI-assisted delivery tool. It transforms one or more raw **Business Requirements Specification (BRS)** documents, plus optional architecture source material, into business-approved, architecture-aligned, delivery-ready increments — structured so that an AI coding agent can implement safely, one story at a time.
+
+## What problem does this solve?
+
+Enterprise delivery fails when AI coding agents are pointed at raw BRS documents. A real initiative carries ambiguity, implicit assumptions, architecture constraints, regulatory expectations, and cross-team dependencies that no coding agent can resolve from a Word file. This framework creates the controlled path between business intent and safe engineering execution.
 
 OpenSpec is the default engineering downstream, but it is not mandatory. The framework also supports standalone execution, Microsoft 365 Copilot / Copilot Studio business intake, and GitHub Copilot / VS Code guided delivery workflows.
+
+## Start here
+
+Run the workflow runner at the start of every session:
+
+```text
+.brs2spec/brs-to-spec-run-workflow.md
+```
+
+It detects where you are, executes the next stage, and continues automatically until a genuine human decision is required. No menus, no permission requests.
+
+## Example output
+
+See `initiatives/I001-customer-onboarding/` for a complete worked example. Key files:
+
+- `planning/workflow-state.json` — machine-readable stage tracker
+- `planning/delivery-structure.md` — epics, features, user stories with traceability
+- `openspec/changes/dependency-graph.md` — wave-ordered story execution plan
+- `openspec/changes/F-001.1-onboarding-submission/` — one self-contained story folder (proposal, design, tasks, specs)
 
 ## Recommended first prompt
 
 Run:
 
 ```text
-.github/prompts/brs-to-spec-run-workflow.prompt.md
+.brs2spec/brs-to-spec-run-workflow.md
 ```
 
-Use it when you want Copilot or a Codex agent to inspect the current initiative workspace and continue from the correct next step.
+Use it when you want Copilot or a Codex agent to inspect the current initiative workspace and continue from the correct next step. See `HOW_TO_USE.md` for the full step-by-step walkthrough.
 
 The workflow runner:
 - Detects the active initiative workspace
@@ -265,8 +290,8 @@ docs/20-small-change-paths.md
 
 | Execution mode | Use when | Output |
 |---|---|---|
-| OpenSpec | OpenSpec is available and should be the engineering source of truth | `openspec/changes/D1-<name>/` inside the initiative workspace |
-| Standalone | OpenSpec is not used | `standalone-delivery/D1-<name>/` inside the initiative workspace |
+| OpenSpec | OpenSpec is available and should be the engineering source of truth | `openspec/changes/dependency-graph.md` + one `F-XXX.X-<slug>/` folder per user story inside the initiative workspace |
+| Standalone | OpenSpec is not used | `standalone-delivery/<deliverable-name>/` inside the initiative workspace |
 | Business Copilot | Business users work in Microsoft 365 / SharePoint / Word / Teams | SharePoint/Word review outputs plus initiative-scoped framework artifacts |
 
 ## Official normalized inputs
@@ -451,15 +476,17 @@ The repository includes guidance for GitHub Copilot and VS Code so assistants un
 Relevant support files include:
 
 ```text
-.github/copilot-instructions.md
-.github/prompts/
+.github/instructions/brs-to-spec.instructions.md   ← behavioral rules, scoped to initiatives/**
+.github/prompts/brs2spec/                          ← Copilot Chat slash command stubs
+.brs2spec/agent-instructions.md                    ← behavioral rules for Claude Code / Cursor / Codex
+.brs2spec/module.md                                ← full index of all prompts with descriptions
 docs/15-github-copilot-workflow.md
 docs/16-prompt-execution-environments.md
 docs/17-copilot-usage.md
 .vscode/settings.json
 ```
 
-The Copilot instructions also define a critical operating rule: work inside one initiative workspace at a time, and treat all workflow paths as relative to that workspace.
+The framework behavioral rules define a critical operating rule: work inside one initiative workspace at a time, and treat all workflow paths as relative to that workspace.
 
 For implementation and review, the framework also includes:
 

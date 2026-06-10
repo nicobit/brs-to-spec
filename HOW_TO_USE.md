@@ -5,7 +5,7 @@
 Run:
 
 ```text
-.github/prompts/brs-to-spec-run-workflow.prompt.md
+.brs2spec/brs-to-spec-run-workflow.md
 ```
 
 Use it at the start of every working session. The workflow runner detects the active initiative workspace, checks content (not just file existence), identifies stale artifacts, and executes the next required stage automatically.
@@ -685,35 +685,32 @@ To refresh the view after readiness or quality gates change, run:
 
 ## Using GitHub Copilot / VS Code
 
-This repository includes repository-level Copilot instructions:
+Framework behavioral rules load automatically from:
 
 ```text
-.github/copilot-instructions.md
+.github/instructions/brs-to-spec.instructions.md   ← scoped to initiatives/**
 ```
 
-Useful prompt files:
+Copilot Chat slash commands (under `.github/prompts/brs2spec/`):
 
 ```text
-.github/prompts/brs-to-spec-run-workflow.prompt.md   ← recommended entry point
-.github/prompts/create-engineering-readiness.prompt.md
-.github/prompts/create-openspec-handoff.prompt.md
-.github/prompts/create-standalone-handoff.prompt.md
-.github/prompts/create-gitlab-planning-view.prompt.md
-.github/prompts/implement-one-task.prompt.md
-.github/prompts/spec-correction.prompt.md
-.github/prompts/describe-repository.prompt.md         ← run inside a target repo to generate input/repositories/ descriptor
+/start                        ← recommended entry point — detects workspace and runs workflow
+/brs-to-spec-run-workflow     ← run the full workflow orchestrator
+/create-engineering-readiness
+/create-openspec-handoff
+/create-standalone-handoff
+/create-gitlab-planning-view
+/implement-one-task
+/spec-correction
+/describe-repository          ← run inside a target repo to generate input/repositories/ descriptor
 ```
 
-Utility prompts (run standalone, not part of the delivery workflow):
-
-```text
-.brs2spec/tools/prompts/describe-repository.md   ← analyse a repository and produce a descriptor file for multi-repo handoff
-```
+All actual prompt content lives in `.brs2spec/`. See `.brs2spec/module.md` for the full index of available prompts with descriptions and token sizes.
 
 Recommended first Copilot request:
 
 ```text
-Based on .github/copilot-instructions.md, identify the active initiative workspace, the current workflow stage, and the next artifact to create.
+Run .brs2spec/brs-to-spec-run-workflow.md for the active initiative workspace.
 ```
 
 Do not ask Copilot to implement directly from raw BRS sources.

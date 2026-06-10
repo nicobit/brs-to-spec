@@ -30,6 +30,18 @@ Only when `execution_mode` is `OpenSpec` and all of the following are true:
 
 **Reading rule:** read ALL inputs before generating the first story folder. Do not generate story-by-story while reading — read everything first, then generate. This ensures architecture constraints and BDD scenarios are correctly distributed across stories.
 
+## Mermaid syntax rules — mandatory for all diagrams
+
+- **Never use HTML tags in node labels.** `<br/>`, `<b>`, `<i>` cause parse errors. Use ` / ` or ` — ` as separators.
+  Wrong: `F001_1["Story name<br/>(React)"]`
+  Correct: `F001_1["Story name (React)"]`
+- **Always quote node labels that contain parentheses, commas, slashes, or spaces.**
+  Correct: `F001_1["F-001.1 — Story name"]`
+  Wrong: `F001_1[F-001.1 — Story name]`
+- **`graph LR` node IDs must use only letters, digits, and underscores** — replace hyphens and dots with underscores: `F-001.1` → `F001_1`.
+- **`sequenceDiagram` participant names with spaces must be quoted:** `participant "API Gateway"` not `participant API Gateway`.
+- **Never put raw parentheses inside `[]` without wrapping the whole label in double quotes.**
+
 ## Step 1 — generate the dependency graph first
 
 Before creating any story folder, generate:

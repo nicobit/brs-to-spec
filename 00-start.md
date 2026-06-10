@@ -84,18 +84,66 @@ Override is always allowed with explicit justification.
 | No OpenSpec in project | Standalone |
 | Business stakeholders need to review and approve in M365 | Business Copilot |
 
-## Required output sections
+## Required output structure
 
-Produce a `# Routing Recommendation` document with these sections in order:
+```markdown
+# Routing Recommendation
 
-1. **Answers Summary** — table: Question / Answer / Confidence (High/Medium/Low) for all five questions
-2. **Routing Score** — table: each criterion / score (0–2) / reason; total at the bottom
-3. **Recommendation** — table: Entry mode / Delivery mode / Execution mode, each with a reason
-4. **First Prompt to Run** — single specific path, no alternatives
-5. **Minimum Artifact Set** — only artifacts for the recommended path; nothing from heavier paths
-6. **Uncertainty Flags** — one row per Low-confidence answer: question / uncertainty / routing impact / recommendation
-7. **Risks of Under-Routing** — one or two sentences
-8. **Risks of Over-Routing** — one or two sentences
+## Answers Summary
+
+| Question | Answer | Confidence |
+|---|---|---|
+| Formal BRS? |  | High / Medium / Low |
+| Brownfield? |  | High / Medium / Low |
+| Scope |  | High / Medium / Low |
+| Compliance? |  | High / Medium / Low |
+| OpenSpec? |  | High / Medium / Low |
+
+## Routing Score
+
+| Criterion | Score (0–2) | Reason |
+|---|---|---|
+| Requirement ambiguity |  |  |
+| Architecture impact |  |  |
+| Compliance / audit relevance |  |  |
+| Business criticality |  |  |
+| Number of teams |  |  |
+| Delivery size |  |  |
+| Brownfield regression risk |  |  |
+| **Total** |  |  |
+
+## Recommendation
+
+| Decision | Value | Reason |
+|---|---|---|
+| Entry mode |  |  |
+| Delivery mode |  |  |
+| Execution mode |  |  |
+
+## First Prompt to Run
+
+```text
+<path to first prompt>
+```
+
+## Minimum Artifact Set
+
+List only the artifacts expected for the recommended path. Do not list artifacts from heavier paths.
+
+| Artifact | Required? | Notes |
+|---|---|---|
+
+## Uncertainty Flags
+
+List any answers marked Low confidence and their impact on the routing decision.
+
+| Question | Uncertainty | Routing impact | Recommendation |
+|---|---|---|---|
+
+## Risks of Under-Routing
+
+## Risks of Over-Routing
+```
 
 ## Quality bar
 

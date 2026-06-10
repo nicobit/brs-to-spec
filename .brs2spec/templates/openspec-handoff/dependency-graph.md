@@ -61,6 +61,12 @@
 
 > Generate a Mermaid `graph LR` diagram from the waves and cross-repo dependencies above.
 >
+> **Mermaid syntax rules — these prevent parse errors:**
+> - Node IDs must use only letters, digits, and underscores. Replace hyphens and dots: `F-001.1` → `F001_1`.
+> - Always quote node labels: `F001_1["F-001.1 — Story name"]` — never `F001_1[F-001.1 — Story name]`.
+> - Labels containing `()`, `,`, `/`, or spaces must be in double quotes inside `[]`.
+> - Never use HTML tags (`<br/>`, `<b>`, etc.) in node labels — they cause parse errors. Use ` / ` or ` — ` as separators.
+>
 > **Without repo descriptors (Case A — flat):** one node per story, one arrow per story-to-story dependency.
 > Node format: `F001_1["F-001.1 — Story name"]`
 >

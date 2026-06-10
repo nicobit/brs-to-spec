@@ -1,6 +1,7 @@
-# GitHub Copilot Instructions - BRS to Delivery Readiness Framework
+# BRS to Spec Framework — Copilot Instructions
 
-<!-- Framework behavioral rules are maintained in the standalone prompt file below.
-     Reference it here so this file stays thin and the rules can be reused by any agent. -->
+Framework behavioral rules are in `.github/instructions/brs-to-spec.instructions.md`,
+scoped to `initiatives/**` via `applyTo` frontmatter.
 
-#file:.github/prompts/brs-to-spec-instructions.md
+This file is intentionally minimal. Do not add project rules here —
+the framework has no project-specific coding conventions of its own.

@@ -17,6 +17,7 @@
 | Context version |  |
 | Generated date |  |
 | Generated from | `engineering-readiness/readiness-check.md` |
+| AI model version | (e.g. claude-sonnet-4-6, gpt-4o) |
 
 ## Technology Constraints
 

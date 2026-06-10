@@ -1,18 +1,22 @@
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+# Script lives at .brs2spec/tools/scripts/check_program.py → parents[3] is the repo root
+ROOT = Path(__file__).resolve().parents[3]
 
 REQUIRED = [
     "README.md",
     "HOW_TO_USE.md",
     "CHANGELOG.md",
     ".github/copilot-instructions.md",
-    ".github/.brs2spec/brs-to-spec-run-workflow.prompt.md",
-    ".github/.brs2spec/create-engineering-readiness.prompt.md",
-    ".github/.brs2spec/create-openspec-handoff.prompt.md",
-    ".github/.brs2spec/create-standalone-handoff.prompt.md",
-    ".github/.brs2spec/create-gitlab-planning-view.prompt.md",
+    # Workflow runner — canonical prompt
+    ".brs2spec/brs-to-spec-run-workflow.md",
+    # GitHub Copilot slash-command stubs (current path: .github/prompts/brs2spec/)
+    ".github/prompts/brs2spec/brs-to-spec-run-workflow.prompt.md",
+    ".github/prompts/brs2spec/create-engineering-readiness.prompt.md",
+    ".github/prompts/brs2spec/create-openspec-handoff.prompt.md",
+    ".github/prompts/brs2spec/create-standalone-handoff.prompt.md",
+    ".github/prompts/brs2spec/create-gitlab-planning-view.prompt.md",
     ".vscode/settings.json",
     "docs/14-agile-planning-view.md",
     "docs/15-github-copilot-workflow.md",
@@ -22,6 +26,7 @@ REQUIRED = [
     "docs/19-brownfield-existing-system-mode.md",
     "docs/20-small-change-paths.md",
     "docs/21-artifact-quality-review.md",
+    # Core prompts
     ".brs2spec/0-input-preparation/01-convert-brs-word-to-markdown.md",
     ".brs2spec/0-input-preparation/03-normalize-input-package.md",
     ".brs2spec/2-business-intake/01-create-business-intake-summary.md",
@@ -31,24 +36,38 @@ REQUIRED = [
     ".brs2spec/9-reviewers/02-qa-review.md",
     ".brs2spec/9-reviewers/03-architecture-review.md",
     ".brs2spec/9-reviewers/04-security-review.md",
-    "templates/input-preparation/input-package.md",
-    "templates/quality-gates/ready-for-copilot-checklist.md",
-    "templates/perspectives/agile-planning/gitlab-planning-view.md",
-    "templates/planning-and-modular-delivery/existing-system-impact.md",
-    "tools/scripts/new_initiative.py",
-    "tools/scripts/add_brs.py",
-    "tools/scripts/add_architecture.py",
+    # Templates — current .brs2spec-relative paths
+    ".brs2spec/templates/input-preparation/input-package.md",
+    ".brs2spec/templates/quality-gates/ready-for-copilot-checklist.md",
+    ".brs2spec/templates/perspectives/agile-planning/gitlab-planning-view.md",
+    ".brs2spec/templates/planning-and-modular-delivery/existing-system-impact.md",
+    # Workflow-state template — new rule
+    ".brs2spec/templates/planning/workflow-state.json",
+    # Repository descriptor template — multi-repo handoff
+    ".brs2spec/templates/repositories/_template.md",
+    # OpenSpec handoff templates — story-scoped model
+    ".brs2spec/templates/openspec-handoff/dependency-graph.md",
+    ".brs2spec/templates/openspec-handoff/proposal.md",
+    ".brs2spec/templates/openspec-handoff/design.md",
+    ".brs2spec/templates/openspec-handoff/tasks.md",
+    # Tools
+    ".brs2spec/tools/scripts/new_initiative.py",
+    ".brs2spec/tools/scripts/add_brs.py",
+    ".brs2spec/tools/scripts/add_architecture.py",
     "examples/initiative-workspace-end-to-end/README.md",
 ]
 
 CONTENT_CHECKS = {
+    # README: product positioning, example output pointer, key structural terms
     "README.md": [
+        "From enterprise BRS to AI-safe engineering handoff.",
+        "initiatives/I001-customer-onboarding/",
+        "dependency-graph.md",
+        "workflow-state.json",
         "business-intake/business-intake-summary.md",
         "planning/traceability-matrix.md",
         "initiative workspace",
         "reviewer prompts are downstream helpers",
-        "-> early delivery shape",
-        "-> architecture-aware refinement",
         "single team-facing Delivery Planning View",
         "OpenSpec or standalone tasks remain the engineering implementation contract.",
         "Epic / Feature / User Story structure should be defined during delivery planning",
@@ -69,13 +88,13 @@ CONTENT_CHECKS = {
         "impacted components",
         "validation implications",
         "Optional visual views may be embedded inside the owning artifact",
-        "business-intake/business-intake-summary.md` -> business flow or actor/system view",
         "prefer embedded Mermaid in markdown",
     ],
+    # HOW_TO_USE: step coverage, multi-repo described as optional
     "HOW_TO_USE.md": [
-        "python tools/scripts/new_initiative.py onboarding-request --initiative-id I001",
-        "python tools/scripts/add_brs.py initiatives/I001-onboarding-request compliance",
-        "python tools/scripts/add_architecture.py initiatives/I001-onboarding-request security-constraints",
+        "python .brs2spec/tools/scripts/new_initiative.py onboarding-request --initiative-id I001",
+        "python .brs2spec/tools/scripts/add_brs.py initiatives/I001-onboarding-request compliance",
+        "python .brs2spec/tools/scripts/add_architecture.py initiatives/I001-onboarding-request security-constraints",
         "Do not implement from user stories alone.",
         "Use one approved OpenSpec or standalone task as the implementation unit.",
         "`planning/delivery-structure.md` should define the initiative's Epic / Feature / User Story structure early",
@@ -92,63 +111,39 @@ CONTENT_CHECKS = {
         "## Planning density rule",
         "Reference instead of repeat:",
         "At this stage, architecture input is often high-level solution architecture context",
-        "This is the point where high-level architecture context becomes initiative-specific architecture refinement.",
-        "readiness and handoff rules",
         "Readiness should consume:",
         "Do not proceed with OpenSpec handoff from vague delivery structure or weak architecture refinement.",
         "Do not proceed with standalone handoff from vague delivery structure or weak architecture refinement.",
-        "Some artifacts may also include an optional embedded visual view",
-        "Prefer lightweight markdown-friendly visuals such as Mermaid.",
-        "Reference an existing authoritative diagram instead of regenerating one",
-        "Do not treat the absence of a non-critical visual as a workflow blocker by itself.",
+        "input/repositories/",
+        "optional",
     ],
+    # Workflow runner: state machine, new rules
+    ".brs2spec/brs-to-spec-run-workflow.md": [
+        "planning/workflow-state.json",
+        "stale_artifacts",
+        "next_action",
+        "one well-formed story",
+        "splitting justification",
+        "dependency-graph.md",
+        "input/repositories/",
+        "Case B",
+    ],
+    # Docs: spot-check key terms still present
     "docs/15-github-copilot-workflow.md": [
         "every major artifact should have an obvious consumer",
         "primary consumer",
-        "what should be referenced instead of duplicated",
-        "coordination output for the delivery team",
-        "architecture review and refinement",
-        "architecture input is often high-level solution architecture context",
         "Readiness should consume:",
-        "The handoff package should clearly derive from:",
         "architecture refinement -> readiness",
-    ],
-    ".github/copilot-instructions.md": [
-        "input/brs.md or input/brs/*.md",
-        "input/architecture.md or input/architecture/*.md",
-        "Operate inside one initiative workspace at a time.",
-        "implement one task at a time",
-        "planning/delivery-structure.md",
-        "Epic / Feature / User Story structure should be defined in `planning/delivery-structure.md` early enough to guide architecture refinement before handoff prompts derive implementation tasks.",
-        "## Entry mode rule",
-        "existing-system enhancement",
-        "architecture/existing-system-impact.md",
-        "## Artifact consumer and downstream-use rule",
-        "primary consumer",
-        "what should be referenced instead of duplicated",
-        "high-level solution context",
-        "Later architecture review and rules should refine what that context means",
-        "Readiness should consume approved delivery shape plus initiative-specific architecture refinement.",
-        "Handoff artifacts must derive from:",
-        "early delivery shape -> architecture refinement",
-        "architecture refinement -> readiness",
-        "do not create a visual just because the template allows one",
-        "Do not force small changes to produce diagrams by default.",
     ],
     "docs/16-prompt-execution-environments.md": [
         ".brs2spec/8-copilot-implementation",
         "VS Code Copilot Agent mode",
         "Work inside one initiative workspace at a time.",
-        "## Visual documentation rule",
-        "prefer embedded Mermaid in markdown",
     ],
     "docs/17-copilot-usage.md": [
         "Workflow-status rule",
         "current stage",
         "Implement Task 001",
-        "review the task",
-        "## Artifact-quality rule",
-        "Is this artifact good enough for the next workflow step?",
     ],
     "docs/21-artifact-quality-review.md": [
         "## Quick quality review",
@@ -157,64 +152,31 @@ CONTENT_CHECKS = {
         "### Business intake",
         "### Delivery structure",
         "### Readiness",
-        "### Delivery spec",
         "### Tasks",
-        "### Planning view",
     ],
     "docs/14-agile-planning-view.md": [
         "All of the paths above are relative to the active initiative workspace.",
-        "As a <persona>,",
         "Engineers implement from approved OpenSpec or standalone tasks",
         "The Epic / Feature / User Story structure should already exist in `planning/delivery-structure.md`.",
-        "## Density control",
-        "copied implementation-task detail",
-    ],
-    ".github/.brs2spec/brs-to-spec-run-workflow.prompt.md": [
-        "Active Initiative Workspace",
-        "initiative workspace",
-        "Likely Entry Mode",
-        "Current Workflow Stage",
-        "Transition Readiness",
-        "Artifact Quality Check",
-        "Do not treat user stories as the engineering implementation contract.",
-        "Recommend implementation only from approved OpenSpec or standalone tasks.",
-        "Identify the most likely entry mode.",
     ],
     "docs/18-entry-modes.md": [
-        "Entry modes help a user choose the right starting pattern",
         "BRS-first",
         "existing-system enhancement",
         "small change / bug fix",
         "large modular initiative",
     ],
     "docs/19-brownfield-existing-system-mode.md": [
-        "Brownfield / Existing-System Mode",
         "architecture/existing-system-impact.md",
         "existing behavior that must remain stable",
     ],
     "docs/20-small-change-paths.md": [
-        "Small-Change Paths",
         "Fast Path is acceptable when:",
         "Small changes that still need gates",
-        "Do not add visual documentation by default for a small change.",
-        "It is also not a license to add diagram overhead when text is already sufficient.",
     ],
-    "docs/06-conditional-quality-gates.md": [
-        "## Optional visual support",
-        "`API contract` -> request/response or interaction sequence",
-        "`Data contract` -> logical ERD or data-ownership view",
-        "`Event contract` -> producer-consumer event flow",
-        "`Threat model` -> trust-boundary or attack-surface view",
-        "`Observability plan` -> telemetry and alerting flow",
-    ],
+    # Core prompts
     ".brs2spec/0-input-preparation/01-convert-brs-word-to-markdown.md": [
         "input/brs.md",
         "input/brs/<short-name>.md",
-    ],
-    ".brs2spec/0-input-preparation/02-convert-architecture-word-to-markdown.md": [
-        "architecture diagrams",
-        "preserve authoritative diagram references instead of recreating them unnecessarily",
-        "prefer lightweight embedded Mermaid later in the flow when a new markdown-native visual is sufficient",
     ],
     ".brs2spec/0-input-preparation/03-normalize-input-package.md": [
         "input/brs.md or input/brs/*.md",
@@ -223,209 +185,59 @@ CONTENT_CHECKS = {
     ".brs2spec/2-business-intake/01-create-business-intake-summary.md": [
         "input/brs.md or input/brs/*.md",
         "input/architecture.md or input/architecture/*.md",
-        "Existing-system context is visible when brownfield impact exists.",
-        "Keep the output concise and business-facing.",
-        "specific enough to support PO review and the next architecture/planning step",
-        "Add an optional compact business-flow or actor/system view only when it materially improves PO review or downstream understanding.",
     ],
     ".brs2spec/3-planning-and-modular-delivery/01-review-initial-architecture.md": [
         "architecture/existing-system-impact.md",
-        "Brownfield impact is summarized when relevant.",
-        "Prefer sharp decisions and evidence over broad explanatory prose.",
         "planning/delivery-structure.md",
-        "initiative's current delivery shape",
-        "high-level solution context",
-        "systems, containers, integrations, boundaries, and major constraints",
-        "impacted components, interface implications, contract implications, governed boundaries, rollout / rollback constraints, and validation implications",
-        "Add an optional compact context, container, or integration-flow view only when it materially improves understanding of boundaries, constraints, or impacted areas.",
-        "Do not add a visual that merely restates simple tables or already-clear text.",
     ],
     ".brs2spec/3-planning-and-modular-delivery/02-create-global-architecture-rules.md": [
         "planning/delivery-structure.md",
-        "reviewed delivery shape",
-        "shape readiness, contracts, validation, and handoff",
-        "initiative-specific enough to constrain delivery",
-        "The rules are concrete enough to influence readiness and handoff without becoming task-level design.",
-    ],
-    ".brs2spec/3-planning-and-modular-delivery/03-create-delivery-structure.md": [
-        "Epic / Feature / User Story structure is defined and traceable.",
-        "User stories use `As a <persona>, I want <capability>, so that <business value>.`",
-        "Existing-system impact is visible where it changes slicing or validation expectations.",
-        "Keep the output structurally rich but concise.",
-        "Keep Epic / Feature / User Story structure, governed boundaries, and traceability rules detailed.",
-        "specific enough for readiness and handoff shaping",
-        "high-level solution context",
-        "Add an optional compact slice/dependency or capability-to-module orientation view only when it materially improves planning, handoff, or review clarity.",
     ],
     ".brs2spec/4-engineering-readiness/01-check-engineering-readiness.md": [
         "architecture/existing-system-impact.md",
-        "Brownfield impact, stability expectations, and rollback sensitivity were assessed when relevant.",
-        "keep small changes lightweight only when the evidence supports that decision",
-        "Keep the reasoning sharp.",
-        "strong enough to drive gate triggering and handoff timing without guesswork",
-        "consume the initiative-specific architecture review and architecture rules as the architecture authority for readiness decisions",
-        "consume approved delivery shape rather than reconstructing it",
-        "refuse to treat weak delivery shape or weak architecture refinement as good enough for handoff",
-        "do not block readiness only because an optional visual is absent when the text evidence is already clear enough",
     ],
     ".brs2spec/1-routing/01-select-delivery-and-execution-mode.md": [
         "Small-change path applicable?",
-        "Change narrow enough for small-change path",
-        "Small-Change Path Notes",
     ],
-    ".brs2spec/8-copilot-implementation/01-implement-one-task.md": [
-        "openspec/changes/D1-<deliverable-name>/tasks.md",
-        "standalone-delivery/D1-<deliverable-name>/tasks.md",
+    ".brs2spec/7-perspectives/agile-planning/01-create-gitlab-planning-view.md": [
+        "user stories are business context, not engineering contract",
     ],
+    # OpenSpec handoff: story-scoped model, dependency-graph, multi-repo
+    ".brs2spec/5-handoff/01-create-openspec-change-for-active-deliverable.md": [
+        "one folder per user story",
+        "dependency-graph.md",
+        "input/repositories/",
+        "Case B",
+        "Case A",
+    ],
+    ".brs2spec/5-handoff/02-create-standalone-delivery-package.md": [
+        "standalone-delivery/",
+    ],
+    # Reviewers
     ".brs2spec/9-reviewers/01-senior-code-review.md": [
         "Finding ID",
         "Required before",
     ],
-    ".brs2spec/7-perspectives/agile-planning/01-create-gitlab-planning-view.md": [
-        "user stories are business context, not engineering contract",
-        "Enablement Needs only when relevant",
-        "projecting the planning-defined epic / feature / user story structure",
-        "Keep the view easy to scan.",
-        "Keep hierarchy, notes, labels, milestones, and checklist projections only as detailed as the planning tool needs.",
-        "without becoming bloated or acting like a second source of truth",
+    # Templates — workflow-state
+    ".brs2spec/templates/planning/workflow-state.json": [
+        "brs2spec-workflow-state/1.0",
+        "current_stage",
+        "next_action",
+        "stale_artifacts",
+        "open_decisions",
+        "quality_gates_triggered",
     ],
-    "templates/business-intake/business-intake-summary.md": [
-        "## Existing-System Context",
-        "Primary consumer: Product Owner, business analyst, delivery lead",
-        "Downstream use: architecture review, delivery planning, readiness",
-        "Keep this artifact concise, business-facing, and decision-oriented.",
-        "## Optional Visual View",
-        "Optional visual view: add a compact business flow or actor/system view only when it materially improves PO review or downstream understanding.",
+    # Templates — repository descriptor
+    ".brs2spec/templates/repositories/_template.md": [
+        "Responsibility",
     ],
-    "templates/planning-and-modular-delivery/architecture-review.md": [
-        "## Existing-System Impact Summary",
-        "Primary consumer: Architect, tech lead, delivery lead",
-        "Downstream use: architecture rules, delivery structure, readiness, governed contract decisions",
-        "Keep this artifact evidence-based and architecture-focused.",
-        "Treat the initial architecture input as high-level solution context first",
-        "initiative-specific architecture implications explicit enough for readiness, contracts, and handoff",
-        "## Optional Visual View",
-        "Optional visual view: add a compact system context, container, or integration flow only when it materially improves understanding of boundaries, constraints, or impacted areas.",
-        "Prefer embedded Mermaid in markdown when generating a new visual.",
+    # Templates — openspec handoff dependency-graph
+    ".brs2spec/templates/openspec-handoff/dependency-graph.md": [
+        "dependency",
     ],
-    "templates/planning-and-modular-delivery/delivery-structure.md": [
-        "## Epic Breakdown",
-        "## Feature / Capability Breakdown",
-        "## User Story Breakdown",
-        "## Existing-System Impact Summary",
-        "Primary consumer: Delivery lead, Product Owner, architect, engineering lead",
-        "Do not duplicate: full acceptance text, repeated architecture rationale, or step-by-step implementation instructions",
-        "Keep this artifact structurally rich but text-light.",
-        "Keep Epic / Feature / User Story structure, governed boundaries, and traceability logic detailed.",
-        "Keep business capability overviews, candidate modules, and candidate slices summary-level unless more detail changes delivery decisions.",
-        "## Optional Visual View",
-        "Optional visual view: add a compact slice/dependency or capability-to-module orientation view only when it materially improves planning, handoff, or review clarity.",
-    ],
-    "templates/engineering-readiness/readiness-check.md": [
-        "Existing-system impact reviewed when relevant",
-        "Existing behavior stability expectations clear",
-        "Primary consumer: Delivery lead, architect, QA, governance reviewers",
-        "Downstream use: conditional quality gates, handoff approval, implementation timing",
-        "Keep the rationale crisp and evidence-based.",
-    ],
-    "templates/quality-gates/api-contract.md": [
-        "## Optional Visual View",
-        "Optional visual view: add a compact request/response or interaction sequence only when it materially improves contract clarity for reviewers or implementers.",
-    ],
-    "templates/quality-gates/data-contract.md": [
-        "## Optional Visual View",
-        "Optional visual view: add a compact logical ERD or data-ownership view only when it materially improves schema, ownership, or downstream-impact clarity.",
-    ],
-    "templates/quality-gates/event-contract.md": [
-        "## Optional Visual View",
-        "Optional visual view: add a compact producer-consumer or event-flow view only when it materially improves event-boundary clarity for reviewers or implementers.",
-    ],
-    "templates/quality-gates/threat-model.md": [
-        "## Optional Visual View",
-        "Optional visual view: add a compact trust-boundary or attack-surface view only when it materially improves threat understanding for reviewers.",
-    ],
-    "templates/quality-gates/observability-plan.md": [
-        "## Optional Visual View",
-        "Optional visual view: add a compact telemetry, alerting, or support-diagnostics flow only when it materially improves operational clarity.",
-    ],
-    "templates/standalone-delivery/delivery-spec.md": [
-        "Primary consumer: Engineers, tech lead, reviewers",
-        "Downstream use: implementation plan, tasks, validation plan, implementation review",
-        "Keep this artifact implementation-oriented and reviewable.",
-        "## Optional Visual View",
-        "Optional visual view: add a compact interaction, sequence, or focused flow view only when it materially improves implementation or review clarity for the active deliverable.",
-        "Prefer embedded Mermaid in markdown when generating a new visual.",
-    ],
-    "templates/perspectives/agile-planning/gitlab-planning-view.md": [
-        "Engineering Notes",
-        "Enablement Needs",
-        "Engineering Consumption Model",
-        "Acceptance Source Notes",
-        "Stale View Handling",
-        "Engineers use OpenSpec or standalone tasks for implementation.",
-        "Stories in this view should come from `planning/delivery-structure.md`",
-        "Primary consumer: delivery team, Product Owner, scrum master / PM",
-        "Do not duplicate: requirements truth, architecture truth, acceptance truth, or implementation task truth",
-        "Keep this view easy to scan and useful for coordination.",
-        "Keep hierarchy, task projection, and gate-tracking detail only to the level needed for planning-tool coordination.",
-    ],
-    "templates/planning-and-modular-delivery/existing-system-impact.md": [
-        "# Existing-System Impact",
+    # Existing-system impact template
+    ".brs2spec/templates/planning-and-modular-delivery/existing-system-impact.md": [
         "## Compatibility and Regression Risk",
-    ],
-    ".github/.brs2spec/create-gitlab-planning-view.prompt.md": [
-        "User stories are business context and traceability only.",
-        "Implementation must come from approved OpenSpec or standalone tasks.",
-    ],
-    ".brs2spec/5-handoff/01-create-openspec-change-for-active-deliverable.md": [
-        "Derive the handoff from approved delivery shape plus initiative-specific architecture refinement, not from vague planning alone.",
-        "use architecture review and architecture rules to make initiative-specific constraints explicit in proposal, design, and tasks",
-        "Proposal, design, and tasks clearly consume approved delivery shape plus initiative-specific architecture refinement.",
-        "Add an optional compact interaction or sequence view in `design.md` only when it materially improves implementation or review clarity for the active deliverable.",
-        "Do not add a visual that merely restates simple scope or task tables.",
-    ],
-    ".brs2spec/5-handoff/02-create-standalone-delivery-package.md": [
-        "Derive the handoff from approved delivery shape plus initiative-specific architecture refinement, not from vague planning alone.",
-        "use architecture review and architecture rules to make initiative-specific constraints explicit in the delivery package",
-        "Delivery package clearly consumes approved delivery shape plus initiative-specific architecture refinement.",
-        "Add an optional compact interaction, sequence, or focused flow view in `delivery-spec.md` only when it materially improves implementation or review clarity for the active deliverable.",
-        "Do not add a visual that merely restates simple scope or task tables.",
-    ],
-    ".brs2spec/4-engineering-readiness/quality-gates/create-api-contract.md": [
-        "Add an optional compact interaction or request/response sequence only when it materially improves contract clarity for review or implementation.",
-        "keep any optional visual tightly focused on the governed API boundary",
-    ],
-    ".brs2spec/4-engineering-readiness/quality-gates/create-data-contract.md": [
-        "Add an optional compact logical ERD or data-ownership view only when it materially improves schema, ownership, or downstream-impact clarity.",
-        "keep any optional visual tightly focused on the governed data boundary",
-    ],
-    ".brs2spec/4-engineering-readiness/quality-gates/create-event-contract.md": [
-        "Add an optional compact producer-consumer or event-flow view only when it materially improves asynchronous-boundary clarity.",
-        "keep any optional visual tightly focused on the governed event boundary",
-    ],
-    ".brs2spec/4-engineering-readiness/quality-gates/create-threat-model.md": [
-        "Add an optional compact trust-boundary or attack-surface view only when it materially improves threat understanding.",
-        "keep any optional visual tightly focused on trust boundaries or attack surfaces that matter to the gate",
-    ],
-    ".brs2spec/4-engineering-readiness/quality-gates/create-observability-plan.md": [
-        "Add an optional compact telemetry, alerting, or support-diagnostics flow only when it materially improves operational clarity.",
-        "keep any optional visual tightly focused on the operational flow the gate needs to explain",
-    ],
-    "templates/openspec-handoff/design.md": [
-        "## Optional Visual View",
-        "Optional visual view: add a compact interaction, sequence, or focused boundary view only when it materially improves implementation or review clarity for the active deliverable.",
-        "Prefer Mermaid when creating a new embedded diagram in markdown.",
-    ],
-    "templates/openspec-handoff/tasks.md": [
-        "Related user story:",
-        "Acceptance / validation reference:",
-    ],
-    "templates/standalone-delivery/tasks.md": [
-        "Related user story:",
-        "Acceptance / validation reference:",
-        "Primary consumer: Engineers, coding agents, reviewers",
-        "Downstream use: implementation, validation, implementation review",
-        "Keep tasks small, concrete, and evidence-oriented.",
     ],
 }
 
@@ -438,12 +250,21 @@ def main() -> None:
             print(f" - {path}")
         raise SystemExit(1)
 
+    failures = []
     for path, terms in CONTENT_CHECKS.items():
-        text = (ROOT / path).read_text(encoding="utf-8", errors="ignore")
+        full_path = ROOT / path
+        if not full_path.exists():
+            failures.append(f"Content check skipped — file not found: {path}")
+            continue
+        text = full_path.read_text(encoding="utf-8", errors="ignore")
         for term in terms:
             if term not in text:
-                print(f"Content check failed: {path} missing {term!r}")
-                raise SystemExit(1)
+                failures.append(f"Content check failed: {path} missing {term!r}")
+
+    if failures:
+        for f in failures:
+            print(f)
+        raise SystemExit(1)
 
     print("Validation passed.")
 

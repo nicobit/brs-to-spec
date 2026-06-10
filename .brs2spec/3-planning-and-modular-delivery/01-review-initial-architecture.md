@@ -43,6 +43,18 @@ Use it to understand systems, containers, integrations, boundaries, and major co
 Add an optional compact context, container, or integration-flow view only when it materially improves understanding of boundaries, constraints, or impacted areas.
 Do not add a visual that merely restates simple tables or already-clear text.
 
+## Mermaid syntax rules — mandatory for any diagram included
+
+- **Never use HTML tags in node labels.** `<br/>`, `<b>`, `<i>` are invalid in graph/flowchart nodes and will cause a parse error. Use ` / ` or ` — ` as separators instead.
+  Wrong: `UI["Admin Portal UI<br/>(React)"]`
+  Correct: `UI["Admin Portal UI (React)"]`
+- **Always quote node labels that contain parentheses, commas, slashes, or special characters.**
+  Correct: `RBAC["RBAC Service (Azure AD)"]`
+  Wrong: `RBAC[RBAC Service (Azure AD)]`
+- **C4 diagrams use function-call syntax** — `System(id, "Label", "Description")` — labels are already string arguments, no extra quoting needed.
+- **`graph` / `flowchart` node labels must be quoted if they contain `()`, `/`, or `,`.**
+- **Test every node label before writing it.** If the label contains any of `(`, `)`, `,`, `/`, `<`, `>`, or `&` — wrap the whole label in double quotes. A bare `/` inside `[]` without quotes is a parse error.
+
 ## Quality bar
 
 A good output must:

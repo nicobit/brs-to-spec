@@ -62,7 +62,7 @@ This document summarizes the initiative intent, primary scope, external integrat
 - Security: complete `quality-gates/security-review.md`, attach evidence, and sign off.
 - Integration: finalize `input/contracts/*` with webhook examples, signed SLAs, and staging endpoints.
 - Legal: append residency sign-off to `input/input-package.md`.
-- Architecture/Planning: rebuild `planning/delivery-structure.md` to ensure each feature has ≥2 user stories.
+- Architecture/Planning: confirm `planning/delivery-structure.md` has at least one well-formed user story per feature with AC reference and requirement ID; single-story features require splitting justification.
 - Platform/SRE: finalize `quality-gates/observability-plan.md` deliverables (dashboards, alerts, runbooks).
 
 ## Quick links

@@ -1,95 +1,102 @@
 # Agent Integration
 
-The framework ships its behavioral rules as a standalone referenceable prompt file:
+## The problem
+
+When you adopt this framework in an existing repository, that repo likely already has its own `copilot-instructions.md`, `CLAUDE.md`, or `.cursorrules`. You cannot replace those files — they contain your project-specific rules. And inlining the framework rules into them creates a maintenance burden: every framework upgrade requires a manual merge.
+
+## The solution
+
+The framework uses a different file for each integration layer:
+
+| File | Who reads it | What it does |
+|---|---|---|
+| `.brs2spec/agent-instructions.md` | Canonical source | All framework rules live here |
+| `.github/instructions/brs-to-spec.instructions.md` | GitHub Copilot | Scoped to `initiatives/**` — does not touch your `copilot-instructions.md` |
+| `.github/prompts/brs2spec/*.prompt.md` | GitHub Copilot Chat | Slash command stubs (`/start`, `/create-brs`, etc.) |
+| `.brs2spec/brs-to-spec-run-workflow.md` | All agents | Full workflow prompt content |
+
+Your existing `copilot-instructions.md`, `CLAUDE.md`, and `.cursorrules` are **untouched**.
+
+---
+
+## What to copy into your existing repo
 
 ```
-.github/prompts/brs-to-spec-instructions.md
+.brs2spec/                                        ← all framework content
+.github/instructions/brs-to-spec.instructions.md  ← Copilot scoped rules
+.github/prompts/brs2spec/                         ← Copilot slash command stubs
 ```
 
-This file contains all framework rules — workspace conventions, artifact hierarchy, forbidden responses, intent recognition, stage gates — and nothing project-specific (no tech stack, no coding conventions, no team processes).
+That is the complete adoption. Nothing else needs to change in your repo.
 
-## Why a standalone file
+---
 
-When you adopt the framework in an existing repository, that repository likely already has its own `copilot-instructions.md` (or equivalent). Merging the framework rules into that file causes two problems:
+## How it works per agent
 
-1. The file becomes a maintenance burden — framework upgrades must be manually merged with project-specific content.
-2. Conflicts arise when project-specific rules and framework rules overlap.
+### GitHub Copilot (existing repo)
 
-The standalone file solves both: the project keeps its own instructions, and the framework is pulled in by reference.
+GitHub Copilot automatically loads **all** `.instructions.md` files under `.github/instructions/` alongside `copilot-instructions.md`. Each file can declare an `applyTo` glob to limit when it activates.
 
-## How to reference it
+`brs-to-spec.instructions.md` uses:
 
-### GitHub Copilot
-
-Add one line to your project's `.github/copilot-instructions.md`:
-
-```markdown
-## BRS to Spec Framework
-
-#file:.github/prompts/brs-to-spec-instructions.md
+```yaml
+---
+applyTo: "initiatives/**"
+---
 ```
 
-Copilot resolves the `#file:` reference and loads the full set of behavioral rules into context.
+This means the framework rules only activate when Copilot is working inside an `initiatives/` workspace. Your project rules in `copilot-instructions.md` apply everywhere else. There is no conflict.
 
 ### Claude Code
 
-Add to your project's `CLAUDE.md` or `.github/agents.md`:
+Reference the canonical file from your `CLAUDE.md` or `AGENTS.md`:
 
 ```markdown
 ## BRS to Spec Framework
-
-<include path=".github/prompts/brs-to-spec-instructions.md" />
+@.brs2spec/agent-instructions.md
 ```
 
-Or reference it directly in a Claude Code session with `@.github/prompts/brs-to-spec-instructions.md`.
+Claude Code reads the file at session start. On framework upgrade, the file updates automatically — no change needed in your `CLAUDE.md`.
 
 ### Cursor
 
-Add to your `.cursorrules` file:
+Add to `.cursorrules`:
 
 ```
-@.github/prompts/brs-to-spec-instructions.md
+@.brs2spec/agent-instructions.md
 ```
 
-### Codex / OpenAI Agents
+### Codex
 
-In your `AGENTS.md`, add a section that pastes the file path and instructs the agent to read it at session start:
+Add to `AGENTS.md`:
 
 ```markdown
 ## BRS to Spec Framework
-
-Read and apply all rules from `.github/prompts/brs-to-spec-instructions.md` before processing any request.
+Read and apply all rules from `.brs2spec/agent-instructions.md` before processing any request.
 ```
 
-## What the file contains
+---
 
-The instructions file covers:
+## Agent support summary
 
-| Section | What it governs |
-|---|---|
-| Required behavior (Rules 1–7) | What the agent must never do regardless of user request |
-| Initiative workspace rule | Folder structure and canonical source set |
-| Entry mode rule | How to identify BRS-first vs brownfield vs small-change |
-| Workflow state file rule | How to read and update `planning/workflow-state.json` |
-| Open decisions register rule | Single source of truth for blocking decisions |
-| Source of truth hierarchy | Which artifact wins when they conflict |
-| Stage sequence | The 13-stage gate chain with hard gates |
-| Intent recognition | Trigger phrases that activate the full workflow |
-| Forbidden responses | Exact patterns the agent must never produce |
-| Output quality | What counts as "good enough" for each artifact type |
+| Agent | Mechanism | Your existing instructions | Framework instructions |
+|---|---|---|---|
+| GitHub Copilot | `.github/instructions/brs-to-spec.instructions.md` with `applyTo: "initiatives/**"` | Untouched | Scoped — active only inside `initiatives/` |
+| Claude Code | `@.brs2spec/agent-instructions.md` in `CLAUDE.md` | Untouched | Always active |
+| Cursor | `@.brs2spec/agent-instructions.md` in `.cursorrules` | Untouched | Always active |
+| Codex | Read instruction in `AGENTS.md` | Untouched | Always active |
 
-## What the file does NOT contain
+---
 
-- Project tech stack or language conventions
-- Team-specific naming conventions
-- Repository-specific file paths outside the framework workspace
-- Coding style rules
-- Secrets, credentials, or environment-specific config
+## Keeping up to date
 
-These belong in your project's own instructions file, kept separate from the framework reference.
+When you upgrade the framework (pull a new version of `.brs2spec/`):
 
-## Keeping the framework up to date
+- **Claude Code / Cursor / Codex**: no change needed — they reference the file by path and pick up the new content automatically.
+- **GitHub Copilot**: `.github/instructions/brs-to-spec.instructions.md` is part of the framework folder pattern — replace it with the new version as part of the upgrade. Your `copilot-instructions.md` remains untouched.
 
-When you upgrade the framework (pull a new version of the `.brs2spec/` folder), the instructions file is updated automatically as part of the upgrade. Your project's `copilot-instructions.md` (or equivalent) does not need to change — it just references the file by path.
+---
 
-If you have customized `brs-to-spec-instructions.md` for your project, treat those customizations as a patch layer and reapply them after each framework upgrade.
+## This framework's own repo
+
+This repo uses `copilot-instructions.md` with the rules inlined directly — because this repo has no project-specific Copilot instructions to protect. For any other repo, the `.github/instructions/` approach above is the correct integration pattern.

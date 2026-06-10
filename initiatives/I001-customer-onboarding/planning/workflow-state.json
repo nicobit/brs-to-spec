@@ -20,7 +20,7 @@
     "architecture/architecture-review.md":                 { "status": "complete",           "note": "" },
     "architecture/architecture-rules.md":                  { "status": "complete",           "note": "Resolved rules promoted and recorded." },
     "planning/open-decisions.md":                          { "status": "complete",           "note": "All 10 decisions Resolved; 0 blocking open" },
-    "planning/delivery-structure.md":                      { "status": "complete",           "note": "Rebuilt: every feature has ≥2 user stories." },
+    "planning/delivery-structure.md":                      { "status": "complete",           "note": "Confirmed: every feature has at least one well-formed user story with AC reference and requirement ID." },
     "engineering-readiness/readiness-check.md":            { "status": "complete",           "note": "Re-evaluated and marked Ready for handoff." },
     "engineering-readiness/initiative-context.md":         { "status": "complete",           "note": "" },
     "quality-gates/bdd-scenarios.md":                      { "status": "not-triggered",      "note": "" },
@@ -57,7 +57,7 @@
 
   "next_action": {
     "stage": "complete",
-    "prompt": "Framework workflow complete. No further brs-to-spec steps remain. Handoff is at openspec/changes/D1-guided-onboarding/ — copy into code repository and run /opsx:apply. Resolve open questions in design.md before coding starts.",
+    "prompt": "Framework workflow complete. No further brs-to-spec steps remain. Handoff is at openspec/changes/ — one folder per user story (F-XXX.X-<slug>/). Copy the relevant story folder into the code repository and run /opsx:apply. Resolve open questions in each story's design.md before coding starts.",
     "reason": "Handoff generated with proposal, design, tasks, and specs/. No evidence-attaching or planning-import steps exist in this framework."
   }
 }

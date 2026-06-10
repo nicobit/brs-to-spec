@@ -1,5 +1,11 @@
 # BDD Scenarios
 
+> **This is the most durable artifact in the initiative workspace.**
+> It survives model upgrades because it is machine-verifiable — it does not pass through model
+> interpretation, it passes through a test runner exit code.
+> Write it before implementation begins. It is the acceptance criterion for each task, not a
+> post-hoc description. Wire it to CI as soon as it is accepted.
+>
 > Primary consumer: QA, PO, engineering lead, coding agent
 > Purpose: executable acceptance specification — one scenario per distinct behavior, grouped by user story
 > Downstream use: OpenSpec handoff (proposal references SCN-NNN IDs); implementation tasks done criteria; test automation
@@ -140,3 +146,27 @@ Then ...
 | Every measurable, observable NFR from the BRS has at least one scenario in the NFR scenarios section | | |
 | Each NFR scenario's Then clause states the exact threshold from the BRS (not vague language) | | |
 | NFR scenarios appear in the coverage summary with Story = NFR-NNN | | |
+
+## CI Gate
+
+> Add this section when the artifact reaches Status: Accepted.
+> A gate with Status: Accepted but Gate status: Not wired is a delivery risk.
+
+| Field | Value |
+|---|---|
+| Test runner / tool | (e.g. pytest-bdd, Cucumber, SpecFlow, Cucumber-js) |
+| CI command | (e.g. pytest features/ -v --tb=short) |
+| CI step name | (e.g. BDD acceptance gate) |
+| Gate status | Not wired / Wired / Passing |
+
+To generate the CI step configuration, run:
+
+```text
+.brs2spec/quality-gates/generate-ci-gate-config.md
+```
+
+To generate runnable test stubs from the scenarios above, run:
+
+```text
+.brs2spec/8-copilot-implementation/03-generate-test-stubs-from-bdd.md
+```

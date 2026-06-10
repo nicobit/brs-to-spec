@@ -62,4 +62,23 @@ Status: `In progress` → change to `Accepted` when all checklist items are tick
 
 When accepted, update the `Status` field in Metadata to `Accepted`. The git commit records who accepted and when.
 
+## CI Gate
+
+> Add this section when the artifact reaches Status: Accepted.
+> A gate with Status: Accepted but Gate status: Not wired is a delivery risk.
+> The security gate should be present from the first commit — it is not conditional on this artifact.
+
+| Field | Value |
+|---|---|
+| Test runner / tool | (e.g. Semgrep, Trivy, Bandit, GitLeaks) |
+| CI command | (e.g. semgrep --config=auto --error) |
+| CI step name | (e.g. Security gate) |
+| Gate status | Not wired / Wired / Passing |
+
+To generate the CI step configuration, run:
+
+```text
+.brs2spec/quality-gates/generate-ci-gate-config.md
+```
+
 ## Final Security Decision

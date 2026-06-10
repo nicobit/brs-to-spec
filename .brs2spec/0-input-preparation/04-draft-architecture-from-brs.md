@@ -57,6 +57,21 @@ The output MUST contain all of the following sections in this exact order. Do no
 
 If any section is missing from the output, the output is incomplete and must not be saved.
 
+## Mermaid syntax rules — mandatory for all diagrams
+
+These rules apply to every diagram in this output. A diagram that violates them will fail to render.
+
+- **Never use HTML tags in node labels.** `<br/>`, `<b>`, `<i>`, `<br>` are all invalid in standard Mermaid graph/flowchart nodes. Use ` / ` or a newline-safe separator instead.
+  Wrong: `UI["Admin Portal UI<br/>(React)"]`
+  Correct: `UI["Admin Portal UI (React)"]`
+- **Always quote node labels that contain parentheses, commas, slashes, or special characters.**
+  Correct: `RBAC["RBAC Service (Azure AD)"]`
+  Wrong: `RBAC[RBAC Service (Azure AD)]`
+- **C4 diagrams use function-call syntax — labels are already quoted as string arguments.** `System(id, "Label", "Description")` — no extra quoting needed inside the function call itself.
+- **`graph` / `flowchart` node labels must be quoted if they contain `()`, `/`, `-` followed by text, or `,`.**
+- **Never put raw parentheses inside `[]` without wrapping the whole label in double quotes.**
+- **Test every single node label before writing it.** If the label contains any of `(`, `)`, `,`, `/`, `<`, `>`, `&`, or an HTML tag — it must be wrapped in double quotes and stripped of HTML. A bare `/` inside `[]` without quotes is a parse error.
+
 ## Draft status marker
 
 The output must begin with a clearly visible draft notice:
