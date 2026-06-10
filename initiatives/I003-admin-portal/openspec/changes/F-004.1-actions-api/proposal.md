@@ -18,4 +18,10 @@ Acceptance Criteria:
 Constraints:
 - Follow API contract in `quality-gates/api-contract.md` (2026-06-09)
 
-BDD scenarios: not triggered
+BDD scenarios (from `quality-gates/bdd-scenarios.md`):
+| SCN | Type | One-line summary |
+|---:|---|---|
+| SCN-025 | Short-op happy path | sync start/stop returns success |
+| SCN-026 | Async submission | long op returns 202 + job_id |
+| SCN-027 | Job lifecycle | job status transitions recorded |
+| SCN-028 | Idempotency | repeated requests are safe |

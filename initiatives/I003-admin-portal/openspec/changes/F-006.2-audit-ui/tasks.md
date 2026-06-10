@@ -3,4 +3,4 @@
 OS-F-006.2-001: Implement audit timeline UI and export controls
 
 Done criteria:
-- AC-006 validated in UI tests and export verified
+ - BDD scenarios: SCN-045, SCN-046, SCN-047, SCN-048 pass in CI

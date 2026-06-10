@@ -4,6 +4,11 @@
 > Purpose: executable acceptance specification — one scenario per distinct behavior, grouped by user story
 > Downstream use: OpenSpec handoff (proposal references SCN-NNN IDs); implementation tasks done criteria; test automation
 > Do not duplicate: full AC text from BRS; architecture rationale; implementation steps
+>
+> IMPORTANT: Every SCN-NNN in the coverage summary MUST have a full Gherkin block (Given/When/Then) in the scenarios section.
+> A scenario title or bullet point with no Gherkin is a stub — this artifact is incomplete until every scenario has Gherkin.
+> The coverage summary row count must equal the number of SCN-NNN Gherkin blocks.
+> NFR scenarios are mandatory for every measurable, observable NFR in the BRS. Group them under "## NFR scenarios" after functional story groups.
 
 ## Metadata
 
@@ -88,6 +93,34 @@ Then ...
 
 ---
 
+---
+
+## NFR scenarios
+
+> Group scenarios for non-functional requirements here — after all functional story groups.
+> Only include NFRs that are measurable and observable (performance targets, security boundaries, availability SLOs, compliance audit requirements).
+> Each NFR scenario's Story field is the NFR-NNN identifier; Requirement is also NFR-NNN; AC is the exact measurable threshold from the BRS.
+
+### NFR-NNN — {{NFR name}} (e.g. Performance / Security / Availability / Observability / Compliance)
+
+#### SCN-NNN — {{Scenario name}} ({{NFR type}})
+
+| Field | Value |
+|---|---|
+| Story | NFR-NNN |
+| Requirement | NFR-NNN |
+| AC | {{exact threshold or rule verbatim from BRS — e.g. "renders within 2 seconds for 2,000 items"}} |
+| Scenario type | Performance / Security / Availability / Observability / Compliance |
+| Priority | Must |
+
+```gherkin
+Given ...
+When ...
+Then ...
+```
+
+---
+
 ## Coverage gaps and open questions
 
 | Question ID | Story | Question | Impact | Owner |
@@ -104,3 +137,6 @@ Then ...
 | Every scenario references the AC it validates | | |
 | No scenario merely restates the feature name — each tests a distinct behavior | | |
 | Coverage summary table is complete and matches the scenario blocks below | | |
+| Every measurable, observable NFR from the BRS has at least one scenario in the NFR scenarios section | | |
+| Each NFR scenario's Then clause states the exact threshold from the BRS (not vague language) | | |
+| NFR scenarios appear in the coverage summary with Story = NFR-NNN | | |

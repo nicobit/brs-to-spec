@@ -20,7 +20,13 @@ Acceptance Criteria (verbatim from BRS):
 
 - AC-004: APIs return inventory and action status with proper auth and role checks.
 
-BDD scenarios: not triggered
+BDD scenarios (from `quality-gates/bdd-scenarios.md`):
+| SCN | Type | One-line summary |
+|---:|---|---|
+| SCN-005 | Happy path | UI shows paginated inventory |
+| SCN-006 | Empty state | shows guidance when no items |
+| SCN-007 | Pagination | page 2 loads within performance SLO |
+| SCN-008 | Export boundary | export handles large sets via link |
 
 Out of scope:
 - Implementing backend ingestion (covered by F-001.1)

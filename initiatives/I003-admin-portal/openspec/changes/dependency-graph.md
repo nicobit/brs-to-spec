@@ -2,6 +2,8 @@
 
 This document lists all user stories (wave order) and the dependency graph for the OpenSpec handoff.
 
+> Regenerated: 2026-06-10 — `quality-gates/bdd-scenarios.md` accepted; handoff aligned to latest BDD scenarios.
+
 ## Story list (canonical)
 - F-001.1 — Inventory API (backend)
 - F-001.2 — Inventory UI (frontend)

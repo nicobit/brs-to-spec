@@ -15,4 +15,4 @@ OS-F-001.1-003: Add API integration tests
 
 Done criteria:
 - AC-004 verified by integration tests
-- BDD scenarios: not triggered
+- BDD scenarios: SCN-001, SCN-002, SCN-003, SCN-004 pass in CI

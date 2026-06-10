@@ -15,4 +15,11 @@ Dependencies:
 Acceptance Criteria:
 - AC-006
 
-BDD scenarios: not triggered
+BDD scenarios (from `quality-gates/bdd-scenarios.md`):
+| SCN | Type | One-line summary |
+|---:|---|---|
+| SCN-033 | Happy path | probe/link happy path (shared) |
+| SCN-041 | Happy path | append-only audit entries written |
+| SCN-042 | Immutability negative | ensure audit entries are immutable |
+| SCN-043 | Export masking | export respects masking rules |
+| SCN-044 | Boundary | export size handling |

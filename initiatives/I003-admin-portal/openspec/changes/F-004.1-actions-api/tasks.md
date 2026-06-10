@@ -10,3 +10,4 @@ OS-F-004.1-003: Add integration tests validating 200 (sync) and 202 (async) flow
 
 Done criteria:
 - ACs validated; API contract conformance; Metrics emitted
+- BDD scenarios: SCN-025, SCN-026, SCN-027, SCN-028 pass in CI

@@ -6,3 +6,4 @@ OS-F-006.1-002: Implement export endpoint and validation
 
 Done criteria:
 - Audit entries written for sample actions and export validated
+- BDD scenarios: SCN-041, SCN-042, SCN-043, SCN-044 pass in CI

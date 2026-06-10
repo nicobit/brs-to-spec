@@ -15,4 +15,10 @@ Dependencies:
 Acceptance Criteria:
 - AC-006
 
-BDD scenarios: not triggered
+BDD scenarios (from `quality-gates/bdd-scenarios.md`):
+| SCN | Type | One-line summary |
+|---:|---|---|
+| SCN-045 | UI happy path | audit UI shows append-only entries |
+| SCN-046 | Authorization | UI enforces access control |
+| SCN-047 | No-results negative | handles empty state |
+| SCN-048 | Observability correlation | audit links to observability traces |

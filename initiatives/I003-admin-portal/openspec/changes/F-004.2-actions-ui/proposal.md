@@ -15,4 +15,10 @@ Dependencies:
 Acceptance Criteria:
 - AC-002, AC-004
 
-BDD scenarios: not triggered
+BDD scenarios (from `quality-gates/bdd-scenarios.md`):
+| SCN | Type | One-line summary |
+|---:|---|---|
+| SCN-029 | UI happy path | action UI triggers job and shows status |
+| SCN-030 | Cancel job | cancel flow behaves correctly |
+| SCN-031 | Progress UI | progress updates shown |
+| SCN-032 | Authorization | UI enforces role checks |

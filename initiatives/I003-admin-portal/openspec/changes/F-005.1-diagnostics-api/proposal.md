@@ -15,4 +15,10 @@ Dependencies:
 Acceptance Criteria:
 - AC-003
 
-BDD scenarios: not triggered
+BDD scenarios (from `quality-gates/bdd-scenarios.md`):
+| SCN | Type | One-line summary |
+|---:|---|---|
+| SCN-033 | Happy path | diagnostics probe returns health and link |
+| SCN-034 | Link correctness | diagnostics include correct deep-link |
+| SCN-035 | Boundary | query size handling |
+| SCN-036 | Authorization | 403 when unauthorized |

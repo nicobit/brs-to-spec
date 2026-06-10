@@ -9,3 +9,4 @@ OS-F-001.2-002: Implement CSV export action (client-triggered)
 
 Done criteria:
 - AC-004 verified in UI tests
+- BDD scenarios: SCN-005, SCN-006, SCN-007, SCN-008 pass in CI

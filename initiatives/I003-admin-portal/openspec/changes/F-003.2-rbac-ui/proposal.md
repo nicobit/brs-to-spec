@@ -15,4 +15,10 @@ Dependencies:
 Acceptance Criteria:
 - AC-001
 
-BDD scenarios: not triggered
+BDD scenarios (from `quality-gates/bdd-scenarios.md`):
+| SCN | Type | One-line summary |
+|---:|---|---|
+| SCN-021 | Happy path | Auditor views role assignment history |
+| SCN-022 | Validation error | UI handles invalid input |
+| SCN-023 | Authorization | RBAC enforcement in UI |
+| SCN-024 | History paging | paging through history works |

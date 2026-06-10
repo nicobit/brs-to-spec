@@ -17,7 +17,13 @@ Acceptance Criteria (verbatim from BRS):
 
 - AC-002: IT Operator can filter by tenant and stage and perform start/stop operations when authorized; audit log contains the action and user.
 
-BDD scenarios: not triggered
+BDD scenarios (from `quality-gates/bdd-scenarios.md`):
+| SCN | Type | One-line summary |
+|---:|---|---|
+| SCN-009 | Happy path | Tenant mapping backend returns sample data |
+| SCN-010 | Invalid tenant | returns appropriate error |
+| SCN-011 | Persistence | tenant mapping persisted correctly |
+| SCN-012 | Authorization | 403 when unauthorized |
 
 Constraints:
 - Must validate tenant mapping with sample subscription IDs (see `engineering-readiness/initiative-context.md`).

@@ -18,4 +18,10 @@ Acceptance Criteria:
 Constraints:
 - Follow least-privilege rules in `architecture/architecture-rules.md` and use service principal role guidance.
 
-BDD scenarios: not triggered
+BDD scenarios (from `quality-gates/bdd-scenarios.md`):
+| SCN | Type | One-line summary |
+|---:|---|---|
+| SCN-017 | Happy path | Assign Operator role and resolve membership |
+| SCN-018 | Invalid group | handles invalid group input |
+| SCN-019 | Nested roles | supports nested group role resolution |
+| SCN-020 | Audit linkage | assignment writes audit entries |

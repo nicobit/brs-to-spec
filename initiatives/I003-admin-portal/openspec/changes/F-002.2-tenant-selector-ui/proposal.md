@@ -15,4 +15,10 @@ Dependencies:
 Acceptance Criteria:
 - AC-002
 
-BDD scenarios: not triggered
+BDD scenarios (from `quality-gates/bdd-scenarios.md`):
+| SCN | Type | One-line summary |
+|---:|---|---|
+| SCN-013 | Happy path | Tenant selector persists selection |
+| SCN-014 | No results UX | shows appropriate no-results state |
+| SCN-015 | Performance | search returns within target |
+| SCN-016 | Authorization | 403 when unauthorized |

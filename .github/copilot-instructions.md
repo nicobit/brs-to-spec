@@ -698,6 +698,15 @@ Never produce any of the following in response to any question:
 - Creating handoff task files as `T-NNN-<name>.md` or `issues/T-NNN` — tasks belong inside `F-XXX.X-<slug>/tasks.md`
 - Generating any OpenSpec handoff artifact without first reading `.brs2spec/5-handoff/01-create-openspec-change-for-active-deliverable.md`
 - Generating the handoff without generating `openspec/changes/dependency-graph.md` first
+- Producing a `quality-gates/bdd-scenarios.md` that contains scenario titles or a coverage summary without the corresponding `Given/When/Then` Gherkin blocks — a list of scenario names is not a BDD artifact
+- Submitting a BDD artifact where the number of rows in the coverage summary does not equal the number of `#### SCN-NNN` Gherkin blocks in the document
+- Appending a second generation to an existing `quality-gates/bdd-scenarios.md` — if the file exists, overwrite it completely with one clean document; never append
+- Using the same AC-NNN for every scenario in a story — each scenario must reference the specific AC it validates, derived from `input/brs.md`
+- Using story IDs in BDD scenarios that differ from the exact IDs in `planning/delivery-structure.md`
+- Omitting the `## Acceptance checklist` section from the BDD artifact
+- Producing a BDD artifact with no NFR scenarios when `input/brs.md` contains measurable, observable NFRs (performance thresholds, security boundaries, availability SLOs, compliance audit requirements) — NFRs that specify numeric targets or verifiable constraints must produce Gherkin scenarios in the `## NFR scenarios` section
+- Writing an NFR scenario's `Then` clause as a vague statement ("the system performs well", "the portal is secure") instead of the exact measurable threshold from the BRS (e.g. "within 2 seconds for 2,000 items")
+- Treating NFRs as architecture notes and not generating any Gherkin for them
 - Presenting sub-tasks within a quality gate as a menu of options ("which of these should I do next?")
 - Stopping after completing a quality gate to ask about implementation details instead of moving to the next gate
 - Marking a quality gate as complete in `planning/workflow-state.json` unless `Status: Accepted` appears in the gate artifact Metadata

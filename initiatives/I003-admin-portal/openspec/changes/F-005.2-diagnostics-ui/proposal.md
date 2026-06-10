@@ -15,4 +15,10 @@ Dependencies:
 Acceptance Criteria:
 - AC-003
 
-BDD scenarios: not triggered
+BDD scenarios (from `quality-gates/bdd-scenarios.md`):
+| SCN | Type | One-line summary |
+|---:|---|---|
+| SCN-037 | Happy path | recent errors list shows last 50 events |
+| SCN-038 | Backend unavailable | UI handles backend failures |
+| SCN-039 | Limit/pagination | recent error paging works |
+| SCN-040 | Authorization | 403 when unauthorized |

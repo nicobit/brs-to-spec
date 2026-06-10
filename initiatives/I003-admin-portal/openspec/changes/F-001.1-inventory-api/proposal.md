@@ -21,7 +21,13 @@ Acceptance Criteria (verbatim from BRS):
 
 - AC-004: APIs return inventory and action status with proper auth and role checks.
 
-BDD scenarios: not triggered
+BDD scenarios (from `quality-gates/bdd-scenarios.md`):
+| SCN | Type | One-line summary |
+|---:|---|---|
+| SCN-001 | Happy path | GET /inventory returns paginated results |
+| SCN-002 | Validation failure | invalid page param returns 400 |
+| SCN-003 | Boundary | large pageSize returns correct count |
+| SCN-004 | Authorization | 403 when unauthorized |
 
 Out of scope:
 - UI rendering and pagination controls (covered by F-001.2)
