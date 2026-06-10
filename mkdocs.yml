@@ -21,9 +21,7 @@ theme:
     - scheme: default
       primary: blue grey
       accent: cyan
-  font:
-    text: false
-    code: false
+  font: false
 
 nav:
   - Home: index.md
@@ -57,6 +55,7 @@ nav:
       - Wiring Quality Gates to CI: 22-wiring-quality-gates-to-ci.md
       - Artifact Durability: 23-artifact-durability.md
       - Model Upgrade Guide: 24-model-upgrade-guide.md
+      - Agent Integration: 25-agent-integration.md
       - Version History: 09-branch-analysis.md
       - Migration from 0.x: 08-migration-from-0.x.md
 
