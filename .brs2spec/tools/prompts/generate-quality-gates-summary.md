@@ -146,3 +146,4 @@ Tell the user:
 2. Re-run after each gate is accepted to keep the status current
 3. This file is useful as an audit attachment — it shows which gates were run and accepted
 4. This file is documentation only — gate status is authoritative in each `quality-gates/` artifact
+5. If this is a new initiative, add its nav block to `mkdocs.yml` under `Initiative Samples:` — see `generate-initiative-summary.md` for the exact block to add.

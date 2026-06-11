@@ -108,3 +108,4 @@ Tell the user:
 1. The file has been saved to `docs/initiatives/<slug>/decision-log.md`
 2. Re-run this prompt at any time to refresh — decisions change as the initiative progresses
 3. This file is documentation only — editing it does not affect `planning/open-decisions.md`
+4. If this is a new initiative, add its nav block to `mkdocs.yml` under `Initiative Samples:` — see `generate-initiative-summary.md` for the exact block to add.

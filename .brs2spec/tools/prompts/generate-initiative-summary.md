@@ -104,3 +104,13 @@ Tell the user:
 1. The file has been saved to `docs/initiatives/<slug>/initiative-summary.md`
 2. Re-run this prompt at any time to refresh the snapshot
 3. This file is documentation only — editing it does not affect the initiative workspace
+4. If this is a new initiative, add the following block to `mkdocs.yml` under `Initiative Samples:`:
+
+```yaml
+      - <Initiative ID> — <Initiative Name>:
+          - Initiative Summary: initiatives/<slug>/initiative-summary.md
+          - Decision Log: initiatives/<slug>/decision-log.md
+          - Delivery Overview: initiatives/<slug>/delivery-overview.md
+          - Architecture Summary: initiatives/<slug>/architecture-summary.md
+          - Quality Gates Summary: initiatives/<slug>/quality-gates-summary.md
+```

@@ -116,3 +116,4 @@ Tell the user:
 1. The file has been saved to `docs/initiatives/<slug>/delivery-overview.md`
 2. Re-run after each major stage (delivery structure confirmed, handoff generated) to keep it current
 3. This file is documentation only — editing it does not affect `planning/delivery-structure.md`
+4. If this is a new initiative, add its nav block to `mkdocs.yml` under `Initiative Samples:` — see `generate-initiative-summary.md` for the exact block to add.

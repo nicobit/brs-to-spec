@@ -54,7 +54,13 @@ nav:
       - Create the Decision Capture Agent: 04-business-copilot/how-to-create-decision-capture-agent.md
       - Create the Status Query Agent: 04-business-copilot/how-to-create-status-query-agent.md
       - Create the Gate Notification Agent: 04-business-copilot/how-to-create-gate-notification-agent.md
-  - Initiative Samples: initiatives/
+  - Initiative Samples:
+      - I004 — IT Portal:
+          - Initiative Summary: initiatives/I004-it-portal/initiative-summary.md
+          - Decision Log: initiatives/I004-it-portal/decision-log.md
+          - Delivery Overview: initiatives/I004-it-portal/delivery-overview.md
+          - Architecture Summary: initiatives/I004-it-portal/architecture-summary.md
+          - Quality Gates Summary: initiatives/I004-it-portal/quality-gates-summary.md
   - Comparison:
       - vs BMAD-style Methods: comparison-bmad.md
   - Reference:
@@ -69,11 +75,10 @@ nav:
       - Version History: 09-branch-analysis.md
       - Migration from 0.x: 08-migration-from-0.x.md
       - Maturity Report: persona-skill-registry-maturity-report.md
-      - Comparison: BMAD vs brs-to-spec: comparison-bmad.md
+      - "Comparison: BMAD vs brs-to-spec": comparison-bmad.md
 
 plugins:
   - search
-  - awesome-pages
 
 extra_css:
   - assets/stylesheets/extra.css

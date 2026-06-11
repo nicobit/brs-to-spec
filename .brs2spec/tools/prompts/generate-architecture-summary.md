@@ -112,3 +112,4 @@ Tell the user:
 2. Re-run after the architecture rules are updated or new decisions are resolved
 3. This file is documentation only — the governed rules live in `architecture/architecture-rules.md`
 4. Share this file with developers at the start of implementation — it is their constraint reference
+5. If this is a new initiative, add its nav block to `mkdocs.yml` under `Initiative Samples:` — see `generate-initiative-summary.md` for the exact block to add.
