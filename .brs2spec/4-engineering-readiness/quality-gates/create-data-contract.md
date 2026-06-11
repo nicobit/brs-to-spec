@@ -1,4 +1,4 @@
-﻿# Prompt â€” Create Data Contract
+﻿# Prompt — Create Data Contract
 
 ## Role
 

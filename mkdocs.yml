@@ -26,6 +26,8 @@ theme:
 nav:
   - Home: index.md
   - Getting Started:
+      - 5-Minute Quickstart: 00-5-minute-quickstart.md
+      - What Do I Run?: 01-what-do-i-run.md
       - Overview: 01-overview.md
       - Decision Tree: 03-decision-tree.md
       - Entry Modes: 18-entry-modes.md
@@ -47,7 +49,14 @@ nav:
   - Business Copilot:
       - Overview: 04-business-copilot/README.md
       - Run Business Intake in M365: 04-business-copilot/how-to-run-business-intake-in-m365-copilot.md
-      - Create the M365 Copilot Agent: 04-business-copilot/how-to-create-m365-copilot-agent.md
+      - Create the BRS Intake Agent: 04-business-copilot/how-to-create-m365-copilot-agent.md
+      - Extended Integration Architecture: 04-business-copilot/copilot-studio-extended-integration.md
+      - Create the Decision Capture Agent: 04-business-copilot/how-to-create-decision-capture-agent.md
+      - Create the Status Query Agent: 04-business-copilot/how-to-create-status-query-agent.md
+      - Create the Gate Notification Agent: 04-business-copilot/how-to-create-gate-notification-agent.md
+  - Initiative Samples: initiatives/
+  - Comparison:
+      - vs BMAD-style Methods: comparison-bmad.md
   - Reference:
       - Template Quality Guidelines: 11-template-quality-guidelines.md
       - Prompt Quality Guidelines: 12-prompt-quality-guidelines.md
@@ -59,9 +68,12 @@ nav:
       - Prompt Index: 26-prompt-index.md
       - Version History: 09-branch-analysis.md
       - Migration from 0.x: 08-migration-from-0.x.md
+      - Maturity Report: persona-skill-registry-maturity-report.md
+      - Comparison: BMAD vs brs-to-spec: comparison-bmad.md
 
 plugins:
   - search
+  - awesome-pages
 
 extra_css:
   - assets/stylesheets/extra.css

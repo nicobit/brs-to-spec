@@ -1,0 +1,22 @@
+%% Deployment topology (Mermaid)
+graph LR
+  subgraph Azure
+    SWA[Static Web App / CDN]
+    AGW[Application Gateway / WAF]
+    APIM[API Gateway/App Service]
+    AKS[AKS / App Service Instances]
+    SQL[Azure SQL / PostgreSQL]
+    KV[Key Vault]
+    SB[Service Bus / Event Grid]
+    Blob[Blob Storage]
+    AI[Application Insights / Log Analytics]
+  end
+
+  SWA --> AGW --> APIM --> AKS
+  AKS --> SQL
+  AKS --> KV
+  AKS --> SB
+  AKS --> Blob
+  AKS --> AI
+  SB --> AKS
+  Blob --> AKS

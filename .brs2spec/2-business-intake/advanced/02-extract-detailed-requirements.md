@@ -1,4 +1,4 @@
-﻿# Prompt â€” Extract Detailed Requirements
+﻿# Prompt — Extract Detailed Requirements
 
 ## Purpose
 

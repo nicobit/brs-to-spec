@@ -1,4 +1,4 @@
-﻿# Prompt â€” Create Release Readiness Review
+﻿# Prompt — Create Release Readiness Review
 
 ## Role
 

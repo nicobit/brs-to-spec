@@ -78,8 +78,8 @@ Typical prerequisites:
 ```text
 engineering-readiness/readiness-check.md exists
 required quality gates are complete or explicitly accepted as risk
-openspec/changes/D1-.../tasks.md exists
-or standalone-delivery/D1-.../tasks.md exists
+openspec/changes/F-XXX.X-<story-slug>/tasks.md exists
+or standalone-delivery/<deliverable-name>/tasks.md exists
 ```
 
 If the repository uses the optional ready-for-Copilot gate, complete:

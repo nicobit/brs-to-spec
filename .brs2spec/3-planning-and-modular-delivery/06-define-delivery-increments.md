@@ -1,4 +1,4 @@
-﻿# Prompt â€” Define Delivery Increments
+﻿# Prompt — Define Delivery Increments
 
 ## Role
 

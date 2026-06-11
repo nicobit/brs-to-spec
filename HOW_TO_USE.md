@@ -705,7 +705,7 @@ Copilot Chat slash commands (under `.github/prompts/brs2spec/`):
 /describe-repository          ← run inside a target repo to generate input/repositories/ descriptor
 ```
 
-All actual prompt content lives in `.brs2spec/`. See `.brs2spec/module.md` for the full index of available prompts with descriptions and token sizes.
+All actual prompt content lives in `.brs2spec/`. See `.brs2spec/module-index.md` for the skill index and routing tables. See `.brs2spec/module-full.md` for full per-skill detail including required inputs and done criteria.
 
 Recommended first Copilot request:
 
@@ -714,3 +714,123 @@ Run .brs2spec/brs-to-spec-run-workflow.md for the active initiative workspace.
 ```
 
 Do not ask Copilot to implement directly from raw BRS sources.
+
+---
+
+## Delivery modes
+
+| Delivery mode | Use when | Typical output |
+|---|---|---|
+| Fast Path | The change is already clear and engineering-ready | OpenSpec directly or small standalone package |
+| Standard Path | Some clarification is needed | Business intake + readiness + handoff |
+| Enterprise Path | Formal BRS, architecture impact, compliance, multiple stakeholders | Intake + architecture + traceability + gates |
+| Enterprise + Modular Delivery | Large, multi-team, multi-quarter work or AI context saturation risk | Modules + increments + active-deliverable handoff |
+
+## Execution modes
+
+| Execution mode | Use when | Output |
+|---|---|---|
+| OpenSpec | OpenSpec is available and should be the engineering source of truth | `openspec/changes/dependency-graph.md` + one `F-XXX.X-<slug>/` folder per user story inside the initiative workspace |
+| Standalone | OpenSpec is not used | `standalone-delivery/<deliverable-name>/` inside the initiative workspace |
+| Business Copilot | Business users work in Microsoft 365 / SharePoint / Word / Teams | SharePoint/Word review outputs plus initiative-scoped framework artifacts |
+
+## Artifact use model
+
+Each important artifact should have an obvious consumer and an obvious downstream use.
+
+| Artifact | Primary consumer | Purpose / decision supported | Downstream use | Do not duplicate |
+|---|---|---|---|---|
+| `business-intake/business-intake-summary.md` | Product Owner, business analyst, delivery lead | Confirm business scope, goals, gaps, and boundaries | Feeds architecture review, delivery planning, and readiness | Low-level engineering design or implementation tasks |
+| `architecture/architecture-review.md` | Architect, tech lead, delivery lead | Confirm constraints, conflicts, and architecture-impact decisions | Feeds architecture rules, delivery structure, readiness, and contracts | Rewritten business scope or copied task breakdown |
+| `planning/delivery-structure.md` | Delivery lead, PO, architect, engineering lead | Define planning structure, story shape, slices, governed boundaries, and traceability expectations | Feeds traceability, readiness, handoff, and planning projection | Full acceptance text, repeated architecture rationale, or detailed implementation steps |
+| `engineering-readiness/readiness-check.md` | Delivery lead, architect, QA, governance reviewers | Decide whether work is ready and which gates are mandatory | Triggers conditional quality gates and constrains handoff | Detailed handoff content or code-review findings |
+| `quality-gates/*.md` | QA, security, architect, SRE, engineering reviewers | Record gate-specific decisions and evidence | Feeds handoff approval, implementation constraints, merge, or release | Full restatement of business intake or planning artifacts |
+| `standalone-delivery/delivery-spec.md` or `openspec/changes/.../design.md` | Engineers, tech lead, reviewers | Define the active deliverable and its implementation boundaries | Feeds implementation tasks and validation | Duplicated acceptance sources or backlog projection |
+| `openspec/changes/.../tasks.md` or `standalone-delivery/.../tasks.md` | Engineers, coding agents, reviewers | Provide the approved engineering implementation contract | Feeds one-task-at-a-time implementation and implementation review | Broad business restatements or a second planning hierarchy |
+| `perspectives/agile-planning/gitlab-planning-view.md` | Delivery team, PO, scrum master / PM | Project approved planning artifacts into Agile-tool language | Feeds GitLab / Jira / Azure DevOps planning and coordination | Source-of-truth requirements, architecture constraints, or implementation task truth |
+
+## Brownfield / existing-system mode
+
+When the initiative changes an existing solution, use the framework's brownfield handling to make these visible early:
+
+This is the recommended pattern for an `existing-system enhancement`.
+
+```text
+affected components or modules
+compatibility and regression risk
+API or contract impact
+data migration or schema sensitivity
+existing behavior that must remain stable
+deployment or rollback sensitivity
+operational dependencies
+```
+
+When the impact is material, create:
+
+```text
+architecture/existing-system-impact.md
+```
+
+using:
+
+```text
+.brs2spec/templates/planning-and-modular-delivery/existing-system-impact.md
+```
+
+## Architecture handling rule
+
+Treat the initial architecture input as:
+
+```text
+high-level solution architecture context early
+initiative-specific delivery constraint later
+```
+
+That means:
+
+- use the initial architecture input early to understand systems, containers, integrations, and major boundaries
+- use delivery shaping to make the initiative concrete
+- then refine architecture implications against that initiative shape in `architecture/architecture-review.md` and `architecture/architecture-rules.md`
+
+The later architecture stage should explicitly refine initiative-specific decisions such as:
+
+- impacted components
+- interface and contract impact
+- governed boundaries
+- rollout / rollback constraints
+- validation implications
+- delivery-shaping rules
+
+Do not imply that architecture is optional when it exists.
+
+Do not over-claim that the initial architecture input already resolves all initiative-specific delivery questions.
+
+## Entry modes
+
+Use an entry mode to choose the right starting pattern before routing the initiative.
+
+| Entry mode | Use when | Minimum starting artifacts |
+|---|---|---|
+| BRS-first | A new or formal initiative starts from one or more BRS documents | `input/brs.md`, optional `input/architecture.md` |
+| existing-system enhancement | The initiative changes an existing solution, integration, contract, or operational flow | normalized inputs plus existing architecture context |
+| small change / bug fix | Scope is narrow, the affected area is known, and the change may qualify for Fast Path | concise BRS or problem statement |
+| large modular initiative | The initiative spans multiple capabilities, teams, or increments | normalized inputs, architecture context, delivery-shaping context |
+
+See [`docs/18-entry-modes.md`](docs/18-entry-modes.md) for full entry mode guidance.
+
+## Small-change paths
+
+Small changes should use the lightest safe path. Use Fast Path when the affected area is known and the scope is narrow.
+
+See [`docs/20-small-change-paths.md`](docs/20-small-change-paths.md) for decision criteria and the compact handoff pattern.
+
+## Planning artifact density rule
+
+```text
+delivery-structure.md = planning structure and traceability logic
+gitlab-planning-view.md = team-facing projection for coordination
+```
+
+The framework generates an Agile / GitLab planning view as the single team-facing Delivery Planning View — a read-only projection, not a second source of truth. Epic / Feature / User Story structure should be defined during delivery planning, not invented only in the planning projection. OpenSpec or standalone tasks remain the engineering implementation contract.
+
+Quality gate artifacts and reviewer prompts are intentionally separate: quality gates are governance artifacts created before implementation, merge, or release when triggered; reviewer prompts are downstream helpers used after implementation to review code and tests against approved source artifacts.

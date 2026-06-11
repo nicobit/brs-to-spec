@@ -1,4 +1,4 @@
-﻿# Prompt â€” Map Capabilities to Modules
+﻿# Prompt — Map Capabilities to Modules
 
 ## Role
 

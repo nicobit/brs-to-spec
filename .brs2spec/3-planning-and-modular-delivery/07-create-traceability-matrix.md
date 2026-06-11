@@ -1,4 +1,4 @@
-﻿# Prompt â€” Create Traceability Matrix
+﻿# Prompt — Create Traceability Matrix
 
 ## Role
 

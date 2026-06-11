@@ -1,4 +1,4 @@
-﻿# Prompt â€” Create QA Review
+﻿# Prompt — Create QA Review
 
 ## Role
 

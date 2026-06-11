@@ -1,4 +1,4 @@
-﻿# Prompt â€” Create Test Strategy
+﻿# Prompt — Create Test Strategy
 
 ## Role
 

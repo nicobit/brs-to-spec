@@ -1,4 +1,4 @@
-﻿# Prompt â€” Create API Contract
+﻿# Prompt — Create API Contract
 
 ## Role
 

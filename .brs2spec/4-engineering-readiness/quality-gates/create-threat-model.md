@@ -1,4 +1,4 @@
-﻿# Prompt â€” Create Threat Model
+﻿# Prompt — Create Threat Model
 
 ## Role
 

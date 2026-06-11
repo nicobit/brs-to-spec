@@ -33,7 +33,11 @@ Business Copilot (intake and review)
 | I want to… | Go to |
 |---|---|
 | Run an intake session using M365 Copilot | [Run Business Intake in M365](how-to-run-business-intake-in-m365-copilot.md) |
-| Build a guided agent in Copilot Studio | [Create the M365 Copilot Agent](how-to-create-m365-copilot-agent.md) |
+| Build the BRS Intake Agent in Copilot Studio | [Create the BRS Intake Agent](how-to-create-m365-copilot-agent.md) |
+| Understand how Copilot Studio fits the full framework | [Extended Integration Architecture](copilot-studio-extended-integration.md) |
+| Let stakeholders answer open decisions via Teams | [Create the Decision Capture Agent](how-to-create-decision-capture-agent.md) |
+| Give PMs delivery status in Teams without VS Code | [Create the Status Query Agent](how-to-create-status-query-agent.md) |
+| Alert reviewers when quality gates are ready | [Create the Gate Notification Agent](how-to-create-gate-notification-agent.md) |
 
 ## Prompts
 

@@ -1,4 +1,4 @@
-﻿# Prompt â€” Create Module Technical Spec
+﻿# Prompt — Create Module Technical Spec
 
 ## Purpose
 

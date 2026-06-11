@@ -1,4 +1,4 @@
-﻿# Prompt â€” Create Global Architecture Rules
+﻿# Prompt — Create Global Architecture Rules
 
 ## Role
 

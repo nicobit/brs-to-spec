@@ -1,4 +1,4 @@
-﻿# Prompt â€” Find Gaps and Questions
+﻿# Prompt — Find Gaps and Questions
 
 ## Purpose
 

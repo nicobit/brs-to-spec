@@ -5,6 +5,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 
 REQUIRED = [
+    # Persona skill registry
+    ".brs2spec/module.md",
     "README.md",
     "HOW_TO_USE.md",
     "CHANGELOG.md",
@@ -56,6 +58,48 @@ REQUIRED = [
     ".brs2spec/tools/scripts/add_architecture.py",
     "examples/initiative-workspace-end-to-end/README.md",
 ]
+
+PERSONA_SKILL_CHECKS = {
+    # module.md must contain persona and skill sections
+    ".brs2spec/module.md": [
+        "persona",
+        "skill",
+        "orchestrator",
+        "architect",
+        "delivery-lead",
+        "qa-analyst",
+        "security-reviewer",
+        "engineering-lead",
+        "reviewer",
+    ],
+    # orchestrator prompt must reference module.md as the skill registry source
+    ".brs2spec/brs-to-spec-run-workflow.md": [
+        ".brs2spec/module.md",
+        "Skill selection model",
+        "skill_id",
+    ],
+}
+
+
+def check_yaml(path: str) -> list[str]:
+    """Return list of error strings if YAML file exists but is invalid."""
+    import importlib.util
+
+    full_path = ROOT / path
+    if not full_path.exists():
+        return []
+    spec = importlib.util.find_spec("yaml")
+    if spec is None:
+        return []
+    import yaml  # type: ignore
+
+    try:
+        with open(full_path, encoding="utf-8") as f:
+            yaml.safe_load(f)
+        return []
+    except yaml.YAMLError as e:
+        return [f"YAML validation failed: {path} — {e}"]
+
 
 CONTENT_CHECKS = {
     # README: product positioning, example output pointer, key structural terms
@@ -251,6 +295,22 @@ def main() -> None:
         raise SystemExit(1)
 
     failures = []
+
+    # Persona skill registry checks
+    for path, terms in PERSONA_SKILL_CHECKS.items():
+        full_path = ROOT / path
+        if not full_path.exists():
+            failures.append(f"Persona skill registry check skipped — file not found: {path}")
+            continue
+        text = full_path.read_text(encoding="utf-8", errors="ignore")
+        for term in terms:
+            if term not in text:
+                failures.append(f"Persona skill registry check failed: {path} missing {term!r}")
+
+    # YAML validation for module-registry.yaml if present
+    for err in check_yaml(".brs2spec/module-registry.yaml"):
+        failures.append(err)
+
     for path, terms in CONTENT_CHECKS.items():
         full_path = ROOT / path
         if not full_path.exists():

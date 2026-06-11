@@ -49,5 +49,13 @@
     "stage": "",
     "prompt": "",
     "reason": ""
+  },
+
+  "next_skill": {
+    "persona": "",
+    "skill": "",
+    "prompt": "",
+    "reason": "",
+    "expected_output": ""
   }
 }

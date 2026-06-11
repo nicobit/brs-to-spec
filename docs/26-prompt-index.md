@@ -2,7 +2,7 @@
 
 All framework prompts live inside `.brs2spec/`. This page lists every prompt with its purpose and approximate token cost when loaded into context.
 
-> The machine-readable version of this index is `.brs2spec/module.md` — agents read that file to discover available prompts without loading them.
+> Agents use `.brs2spec/module-index.md` (Skill Index + routing tables, ~3,500 tokens) to discover which prompt to load. `.brs2spec/module-full.md` provides per-skill detail when needed. `.brs2spec/module-registry.yaml` is the machine-readable companion used only by the validator scripts.
 
 ---
 
@@ -136,9 +136,16 @@ All framework prompts live inside `.brs2spec/`. This page lists every prompt wit
 
 ## Tools
 
+All tool prompts are ad-hoc utilities — not part of the delivery workflow. Run manually when needed.
+
 | Prompt | ~Tokens | What it does |
 |---|---|---|
 | `tools/prompts/describe-repository.md` | ~1,130 | Analyse a repository and generate an `input/repositories/` descriptor |
+| `tools/prompts/generate-initiative-summary.md` | ~800 | Generate `docs/initiatives/<slug>/initiative-summary.md` — one-page readable brief |
+| `tools/prompts/generate-decision-log.md` | ~750 | Generate `docs/initiatives/<slug>/decision-log.md` — full decision audit trail |
+| `tools/prompts/generate-delivery-overview.md` | ~850 | Generate `docs/initiatives/<slug>/delivery-overview.md` — epics, features, stories with status |
+| `tools/prompts/generate-architecture-summary.md` | ~800 | Generate `docs/initiatives/<slug>/architecture-summary.md` — constraints and rules for developers |
+| `tools/prompts/generate-quality-gates-summary.md` | ~900 | Generate `docs/initiatives/<slug>/quality-gates-summary.md` — gate status and audit trail |
 
 ---
 

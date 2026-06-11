@@ -1,4 +1,4 @@
-﻿# Prompt â€” Create Architecture Review
+﻿# Prompt — Create Architecture Review
 
 ## Role
 

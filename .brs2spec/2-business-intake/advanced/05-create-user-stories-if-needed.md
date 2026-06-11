@@ -1,4 +1,4 @@
-﻿# Prompt â€” Create User Stories If Needed
+﻿# Prompt — Create User Stories If Needed
 
 ## Purpose
 

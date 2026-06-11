@@ -1,4 +1,4 @@
-﻿# Prompt â€” Identify Software Modules
+﻿# Prompt — Identify Software Modules
 
 ## Role
 

@@ -59,5 +59,13 @@
     "stage": "complete",
     "prompt": "Framework workflow complete. No further brs-to-spec steps remain. Handoff is at openspec/changes/ — one folder per user story (F-XXX.X-<slug>/). Copy the relevant story folder into the code repository and run /opsx:apply. Resolve open questions in each story's design.md before coding starts.",
     "reason": "Handoff generated with proposal, design, tasks, and specs/. No evidence-attaching or planning-import steps exist in this framework."
+  },
+
+  "next_skill": {
+    "persona": "engineering-lead",
+    "skill": "implement_one_task",
+    "prompt": "8-copilot-implementation/01-implement-one-task.md",
+    "reason": "Handoff is complete. All triggered quality gates are Accepted. Next action is to implement one approved task from openspec/changes/.",
+    "expected_output": "code changes + implementation summary for the selected task"
   }
 }

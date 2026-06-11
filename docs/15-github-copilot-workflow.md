@@ -285,10 +285,10 @@ Mix artifacts from different initiative workspaces.
 Ask instead:
 
 ```text
-Create the readiness check for active deliverable D1 in initiatives/I001-onboarding-request using the framework instructions.
+Create the readiness check for initiatives/I001-onboarding-request using the framework instructions.
 Create the security review because it is triggered by readiness-check.md.
-Create the standalone delivery package for D1 using the completed quality gates.
-Implement Task 001 from the active deliverable using .brs2spec/8-copilot-implementation/01-implement-one-task.md.
+Create the OpenSpec handoff using the completed quality gates.
+Implement Task 001 from openspec/changes/F-XXX.X-<story-slug>/tasks.md using .brs2spec/8-copilot-implementation/01-implement-one-task.md.
 Review the implementation using .brs2spec/9-reviewers/01-senior-code-review.md.
 Create the GitLab Planning View as a projection from the source artifacts.
 ```

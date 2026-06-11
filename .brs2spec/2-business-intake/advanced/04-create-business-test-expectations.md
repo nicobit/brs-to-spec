@@ -1,4 +1,4 @@
-﻿# Prompt â€” Create Business Test Expectations
+﻿# Prompt — Create Business Test Expectations
 
 ## Purpose
 

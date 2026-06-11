@@ -1,4 +1,4 @@
-﻿# Prompt â€” Create Observability Plan
+﻿# Prompt — Create Observability Plan
 
 ## Role
 

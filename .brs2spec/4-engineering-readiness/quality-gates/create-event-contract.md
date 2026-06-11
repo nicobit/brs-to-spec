@@ -1,4 +1,4 @@
-﻿# Prompt â€” Create Event Contract
+﻿# Prompt — Create Event Contract
 
 ## Role
 

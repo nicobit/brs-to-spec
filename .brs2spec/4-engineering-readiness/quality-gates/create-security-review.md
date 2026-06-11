@@ -1,4 +1,4 @@
-﻿# Prompt â€” Create Security Review
+﻿# Prompt — Create Security Review
 
 ## Role
 

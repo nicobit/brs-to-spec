@@ -58,7 +58,7 @@ Create engineering-readiness/readiness-check.md for the active initiative worksp
 ### Task implementation
 
 ```text
-Implement Task 001 from openspec/changes/D1-<deliverable-name>/tasks.md for the active initiative workspace.
+Implement Task 001 from openspec/changes/F-XXX.X-<story-slug>/tasks.md for the active initiative workspace.
 
 Before coding:
 1. Read the feature inputs and planning artifacts.
