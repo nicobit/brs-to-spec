@@ -73,9 +73,9 @@ nav:
       - Agent Integration: 25-agent-integration.md
       - Prompt Index: 26-prompt-index.md
       - Version History: 09-branch-analysis.md
-      - Migration from 0.x: 08-migration-from-0.x.md
-      - Maturity Report: persona-skill-registry-maturity-report.md
-      - "Comparison: BMAD vs brs-to-spec": comparison-bmad.md
+      #- Migration from 0.x: 08-migration-from-0.x.md
+      # - Maturity Report: persona-skill-registry-maturity-report.md
+      #- "Comparison: BMAD vs brs-to-spec": comparison-bmad.md
 
 plugins:
   - search
