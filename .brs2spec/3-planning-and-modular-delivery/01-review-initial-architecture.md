@@ -56,6 +56,13 @@ Do not add a visual that merely restates simple tables or already-clear text.
 - **Test every node label before writing it.** If the label contains any of `(`, `)`, `,`, `/`, `<`, `>`, or `&` — wrap the whole label in double quotes. A bare `/` inside `[]` without quotes is a parse error.
 - **Never use `&` to connect multiple nodes in one edge statement.** `A & B --> C` is invalid in Mermaid 11. Write one edge per line: `A --> C` then `B --> C`.
 
+**For `architecture-beta` diagrams (deployment topology):**
+- Only use built-in icons: `cloud`, `database`, `disk`, `internet`, `server`
+- Use `group` not `subgraph` — `subgraph` is invalid in `architecture-beta`
+- Edge syntax: `id:R --> L:id2` — not `id --> id2`
+- No labelled edges (`-->|label|`) — not supported in `architecture-beta`
+- Place services into groups using `in {groupId}` at the end of the service line
+
 ### Canonical correct pattern — use this as your template
 
 ```mermaid
@@ -151,7 +158,17 @@ A deployment topology view showing:
 - How services map to infrastructure
 - Environment-level groupings if relevant
 
-Use `graph LR` layout. Follow the Mermaid syntax rules above.
+**Preferred: use `architecture-beta`** when the initiative deploys to a cloud platform (Azure, AWS, GCP). It renders infrastructure icons natively and is purpose-built for deployment topology.
+
+Use `graph LR` as fallback only when the deployment is simple (≤5 nodes) or non-cloud.
+
+`architecture-beta` key rules:
+- Declare with `architecture-beta` (not `graph`)
+- Services: `service {id}({icon})[{label}]` — place in group with `in {groupId}`
+- Groups: `group {id}({icon})[{label}]`
+- Edges: `{id}:{side} --> {side}:{id}` where side = `T` `B` `L` `R`
+- **Only built-in icons:** `cloud`, `database`, `disk`, `internet`, `server` — no others render in mkdocs
+- No `subgraph`, no `-->|label|` edge labels, no `&` connectors
 
 ### Rules for diagram generation
 
@@ -172,9 +189,10 @@ Before finalizing, verify:
 - [ ] Brownfield impact is summarized when relevant.
 - [ ] Open decisions include owners.
 - [ ] Risks and gaps are visible.
-- [ ] Every diagram node label containing `(`, `)`, `/`, `,`, or `&` is wrapped in double quotes
+- [ ] Every `graph` node label containing `(`, `)`, `/`, `,`, or `&` is wrapped in double quotes
 - [ ] No HTML tags in any node label — no `<br/>`, `<b>`, `<i>`
 - [ ] No `&` connector in any edge statement — every edge is one line
+- [ ] If `architecture-beta` used: only built-in icons (`cloud`, `database`, `disk`, `internet`, `server`), `group` not `subgraph`, directional edge syntax `id:R --> L:id2`
 - [ ] The output supports architecture rule creation and delivery planning.
 - [ ] If the initiative spans multiple repositories, the multi-repo signal notice was included in the output.
 - [ ] `architecture/diagrams/component.mmd` and `architecture/diagrams/deployment.mmd` have been generated or skipped with a stated reason.

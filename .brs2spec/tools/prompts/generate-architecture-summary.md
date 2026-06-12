@@ -23,7 +23,7 @@ Read the following from the active initiative workspace. Skip gracefully if a fi
 - `input/architecture.md` — source architecture document (for context)
 - `engineering-readiness/initiative-context.md` — technology constraints, governed boundaries
 - `planning/open-decisions.md` — architecture-related open decisions
-- `architecture/diagrams/` — read any `.mmd` (Mermaid) files present; embed them inline in the output
+- `architecture/diagrams/` — read any `.mmd` (Mermaid) files present; embed them inline in the output verbatim — do not alter the diagram type keyword (`graph TD`, `graph LR`, `architecture-beta`) or any syntax
 
 ## Output
 
@@ -56,13 +56,13 @@ Tell the user the exact path before writing.
 ### Component diagram
 
 ```mermaid
-[paste content of component.mmd here]
+[paste content of component.mmd verbatim — preserve the diagram type keyword as-is]
 ```
 
 ### Deployment topology
 
 ```mermaid
-[paste content of deployment.mmd here]
+[paste content of deployment.mmd verbatim — preserve the diagram type keyword as-is (may be `graph LR` or `architecture-beta`)]
 ```
 
 ## Technology context

@@ -67,28 +67,64 @@ graph TD
 
 ### deployment.mmd — Deployment topology
 
-Use `graph LR` layout.
+**Preferred: use `architecture-beta`** when the initiative deploys to a cloud platform (Azure, AWS, GCP). It renders infrastructure icons natively and is purpose-built for this type of diagram.
 
-Show:
-- Hosting platform and infrastructure components (group in a named subgraph e.g. `Azure`, `AWS`, `GCP`)
-- Entry points: CDN, static web app, application gateway / WAF
-- Compute: API gateway, app service, container platform
-- Data: primary database, key vault, service bus, blob storage
-- Observability: application insights, log analytics
-- Key connections between infrastructure components
+Use `graph LR` as fallback only when the deployment is simple (≤5 nodes) or non-cloud.
 
-Example structure:
+#### architecture-beta syntax rules
+
+- Declare with `architecture-beta` (not `graph`)
+- **Services:** `service {id}({icon})[{label}]`
+- **Groups:** `group {id}({icon})[{label}]` — nest a service into a group with `in {groupId}` at the end of its line
+- **Edges:** `{id}:{side} {arrow} {side}:{id}` where side = `T` `B` `L` `R`
+- **Safe built-in icons** (use only these — custom icons require an iconify pack and won't render in mkdocs):
+  `cloud`, `database`, `disk`, `internet`, `server`
+- **No subgraph keyword** — use `group` instead
+- **No `-->` arrows** — use `{id}:R --> L:{id}` directional edge syntax
+
+#### Canonical architecture-beta pattern
+
+```
+architecture-beta
+  group azure(cloud)[Azure]
+
+    service swa(internet)[Static Web App]  in azure
+    service agw(server)[App Gateway / WAF]  in azure
+    service apim(server)[API Gateway]  in azure
+    service aks(server)[AKS]  in azure
+    service sql(database)[Azure SQL]  in azure
+    service kv(disk)[Key Vault]  in azure
+    service sb(server)[Service Bus]  in azure
+    service ai(disk)[App Insights]  in azure
+
+  swa:R --> L:agw
+  agw:R --> L:apim
+  apim:R --> L:aks
+  aks:B --> T:sql
+  aks:B --> T:kv
+  aks:B --> T:sb
+  aks:B --> T:ai
+  sb:R --> L:aks
+```
+
+#### Fallback graph LR pattern (simple / non-cloud deployments)
+
 ```
 graph LR
-  subgraph Azure
-    SWA[Static Web App / CDN]
-    AGW[Application Gateway / WAF]
-    ...
+  subgraph Platform
+    SWA["Static Web App / CDN"]
+    AGW["Application Gateway / WAF"]
+    AKS["AKS / App Service"]
+    SQL[(Primary DB)]
   end
-  SWA --> AGW --> ...
+  SWA --> AGW
+  AGW --> AKS
+  AKS --> SQL
 ```
 
 ## Mermaid syntax rules — mandatory
+
+### graph TD / graph LR rules
 
 - **Never use HTML tags in node labels.** `<br/>`, `<b>`, `<i>` are invalid. Use ` / ` or ` — ` as separators.
   - Wrong: `UI["Portal UI<br/>(React)"]`
@@ -100,6 +136,15 @@ graph LR
 - **Use parentheses `()` for cylindrical (database) nodes**, square brackets `[]` for rectangles.
 - **Test every node label** — if it contains `(`, `)`, `,`, `/`, `<`, `>`, or `&` — wrap in double quotes.
 - **Never use `&` to connect multiple nodes in one edge statement.** `A & B --> C` is invalid in Mermaid 11. Write one edge per line: `A --> C` then `B --> C`.
+
+### architecture-beta rules
+
+- **Only use built-in icons:** `cloud`, `database`, `disk`, `internet`, `server`. Any other icon name will fail to render in mkdocs.
+- **Use `group` not `subgraph`** — `subgraph` is a `graph` keyword and is invalid in `architecture-beta`.
+- **Use directional edge syntax:** `id:R --> L:id2` — not `id --> id2`.
+- **Place services into groups using `in {groupId}`** at the end of the service line.
+- **No edge labels** (`-->|label|` syntax) — `architecture-beta` does not support labelled edges. Use node labels to convey the relationship if needed.
+- **Node IDs** must use only letters, digits, underscores — no hyphens or dots.
 
 ### Canonical correct pattern — use this as your template
 
@@ -130,11 +175,20 @@ Every edge is one line. No HTML tags. Cylindrical nodes use `()`, rectangles use
 
 Before saving any diagram file, verify:
 
+**graph TD / graph LR:**
 - [ ] Every node label containing `(`, `)`, `/`, `,`, or `&` is wrapped in double quotes inside `[]`
 - [ ] No HTML tags (`<br/>`, `<b>`, `<i>`) appear anywhere in node labels
 - [ ] No `&` connector used in edge statements — every edge is one line
 - [ ] Node IDs contain only letters, digits, and underscores — no hyphens or dots
 - [ ] Cylindrical nodes (databases, queues) use `()` shape, not `[]`
+
+**architecture-beta:**
+- [ ] Declared with `architecture-beta` keyword (not `graph`)
+- [ ] Only built-in icons used: `cloud`, `database`, `disk`, `internet`, `server`
+- [ ] No `subgraph` keyword — uses `group` instead
+- [ ] All edges use directional syntax `id:R --> L:id2` — not `id --> id2`
+- [ ] No labelled edges (`-->|label|`) — not supported
+- [ ] Every service placed in a group uses `in {groupId}` on its line
 
 ## Quality bar
 
