@@ -67,29 +67,29 @@ graph TD
 ### Deployment topology
 
 ```mermaid
-architecture-beta
-  group azure(cloud)[Azure]
+graph LR
+  subgraph Azure
+    SWA["Static Web App / CDN"]
+    AGW["App Gateway / WAF"]
+    APIM["API Gateway"]
+    AKS[AKS]
+    SQL[(Azure SQL)]
+    KV[Key Vault]
+    SB[Service Bus]
+    Blob[Blob Storage]
+    AI[App Insights]
+  end
 
-  service swa(internet)[Static Web App] in azure
-  service agw(server)[App Gateway WAF] in azure
-  service apim(server)[API Gateway] in azure
-  service aks(server)[AKS] in azure
-  service sql(database)[Azure SQL] in azure
-  service kv(disk)[Key Vault] in azure
-  service sb(server)[Service Bus] in azure
-  service blob(disk)[Blob Storage] in azure
-  service ai(disk)[App Insights] in azure
-
-  swa:R --> L:agw
-  agw:R --> L:apim
-  apim:R --> L:aks
-  aks:B --> T:sql
-  aks:B --> T:kv
-  aks:B --> T:sb
-  aks:B --> T:blob
-  aks:B --> T:ai
-  sb:R --> L:aks
-  blob:R --> L:aks
+  SWA --> AGW
+  AGW --> APIM
+  APIM --> AKS
+  AKS --> SQL
+  AKS --> KV
+  AKS --> SB
+  AKS --> Blob
+  AKS --> AI
+  SB --> AKS
+  Blob --> AKS
 ```
 
 ## Review outcome
