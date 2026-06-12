@@ -66,6 +66,7 @@
 > - Always quote node labels: `F001_1["F-001.1 — Story name"]` — never `F001_1[F-001.1 — Story name]`.
 > - Labels containing `()`, `,`, `/`, or spaces must be in double quotes inside `[]`.
 > - Never use HTML tags (`<br/>`, `<b>`, etc.) in node labels — they cause parse errors. Use ` / ` or ` — ` as separators.
+> - Never use `&` to connect multiple nodes in one edge statement — `A & B --> C` is invalid in Mermaid 11. Write one edge per line.
 >
 > **Without repo descriptors (Case A — flat):** one node per story, one arrow per story-to-story dependency.
 > Node format: `F001_1["F-001.1 — Story name"]`

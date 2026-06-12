@@ -40,7 +40,7 @@ This folder is optional. If it is absent or empty, the handoff uses a flat struc
 To generate a descriptor file automatically from inside a target repository, use:
 
 ```text
-.github/prompts/describe-repository.prompt.md
+.brs2spec/tools/prompts/describe-repository.md
 ```
 
 See [Handoff](05-handoff.md) for how repo descriptors affect handoff output structure.

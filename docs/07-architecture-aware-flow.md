@@ -58,7 +58,7 @@ Descriptor setup:
 input/repositories/<alias>.md
 ```
 
-Use `.github/prompts/describe-repository.prompt.md` to generate a descriptor from a target repository automatically.
+Use `.brs2spec/tools/prompts/describe-repository.md` to generate a descriptor from a target repository automatically.
 
 ## Important rules
 

@@ -41,6 +41,7 @@ Only when `execution_mode` is `OpenSpec` and all of the following are true:
 - **`graph LR` node IDs must use only letters, digits, and underscores** — replace hyphens and dots with underscores: `F-001.1` → `F001_1`.
 - **`sequenceDiagram` participant names with spaces must be quoted:** `participant "API Gateway"` not `participant API Gateway`.
 - **Never put raw parentheses inside `[]` without wrapping the whole label in double quotes.**
+- **Never use `&` to connect multiple nodes in one edge statement.** `A & B --> C` is invalid in Mermaid 11. Write one edge per line: `A --> C` then `B --> C`.
 
 ## Step 1 — generate the dependency graph first
 

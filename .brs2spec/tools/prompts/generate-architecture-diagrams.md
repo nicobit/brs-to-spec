@@ -99,6 +99,7 @@ graph LR
 - **Keep node labels short** — 3–5 words maximum. Use subgraph titles for grouping context.
 - **Use parentheses `()` for cylindrical (database) nodes**, square brackets `[]` for rectangles.
 - **Test every node label** — if it contains `(`, `)`, `,`, `/`, `<`, `>`, or `&` — wrap in double quotes.
+- **Never use `&` to connect multiple nodes in one edge statement.** `A & B --> C` is invalid in Mermaid 11. Write one edge per line: `A --> C` then `B --> C`.
 
 ## Quality bar
 

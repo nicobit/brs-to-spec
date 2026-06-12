@@ -36,8 +36,11 @@ architecture/architecture-rules.md
 architecture/architecture-review.md
 routing/routing-decision.md
 input/architecture.md or input/architecture/*.md
+input/repositories/*.md                           (repository descriptors — use for Technology Constraints if present)
 business-intake/business-intake-summary.md
 ```
+
+When `input/repositories/*.md` files exist, use them as the authoritative source for the Technology Constraints table — they contain structured language, framework, runtime, database, and infrastructure fields per repository. If no descriptor exists, derive technology constraints from `input/architecture.md` prose and note "repository descriptor not yet created" in the Source column.
 
 ## Output path
 

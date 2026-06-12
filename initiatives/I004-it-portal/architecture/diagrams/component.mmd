@@ -33,7 +33,10 @@ graph TD
   end
 
   WebClient -->|API calls| APIGW
-  APIGW --> ReqSvc & IncSvc & ChangeSvc & RunbookSvc
+  APIGW --> ReqSvc
+  APIGW --> IncSvc
+  APIGW --> ChangeSvc
+  APIGW --> RunbookSvc
   ReqSvc --> DB
   IncSvc --> DB
   ChangeSvc --> DB
@@ -41,8 +44,11 @@ graph TD
   AssetAdapter --> SN
   ChangeSvc -->|link| GH
   NotifSvc -->|send| Mon
-  ReqSvc & IncSvc & ChangeSvc --> Bus
-  Bus --> AssetAdapter & NotifSvc
+  ReqSvc --> Bus
+  IncSvc --> Bus
+  ChangeSvc --> Bus
+  Bus --> AssetAdapter
+  Bus --> NotifSvc
   DB --> Search
   DB --> Audit
   Blob --> DB

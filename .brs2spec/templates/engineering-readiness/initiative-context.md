@@ -30,6 +30,9 @@ These are the facts any coding agent must know before writing a line of code.
 | Framework |  |  |
 | Database / storage |  |  |
 | Deployment target |  |  |
+| Test framework |  |  |
+| Test runner |  |  |
+| Coverage tool |  |  |
 | Other constraints |  |  |
 
 ## Affected Components

@@ -81,7 +81,7 @@ openspec/changes/
 To generate a repository descriptor automatically, run:
 
 ```text
-.github/prompts/describe-repository.prompt.md
+.brs2spec/tools/prompts/describe-repository.md
 ```
 
 inside the target repository, then save the output as `input/repositories/<alias>.md`.

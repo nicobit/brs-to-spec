@@ -53,6 +53,9 @@ Tell the user: "Save this file as `input/repositories/{{alias}}.md` in your brs-
 | Runtime | {{e.g. Node 20, .NET 8, Python 3.12}} |
 | Database | {{e.g. PostgreSQL 15, Azure Cosmos DB, none}} |
 | Infrastructure | {{e.g. Azure App Service, AKS, Azure Functions}} |
+| Test framework | {{e.g. Jest, xUnit, pytest-bdd, SpecFlow, Cucumber}} |
+| Test runner | {{e.g. Jest CLI, dotnet test, pytest, Maven Surefire}} |
+| Coverage tool | {{e.g. Istanbul/nyc, Coverlet, coverage.py, JaCoCo}} |
 
 ## Functional areas
 

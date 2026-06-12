@@ -10,6 +10,19 @@
 
 ## Scope
 
+## Technology Stack
+
+> Source: `engineering-readiness/initiative-context.md` Technology Constraints + `input/repositories/*.md` if present.
+> This section is consumed by the test-stub generator — fill it accurately.
+
+| Layer | Technology | Test framework | Test runner | Coverage tool |
+|---|---|---|---|---|
+| Backend | | | | |
+| Frontend | | | | |
+| API / integration | | | | |
+| Infrastructure | | | | |
+| CI environment | | | | |
+
 ## Test Objectives
 
 | Objective ID | Objective | Related requirement | Success criteria |

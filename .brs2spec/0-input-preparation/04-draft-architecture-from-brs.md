@@ -71,6 +71,7 @@ These rules apply to every diagram in this output. A diagram that violates them 
 - **`graph` / `flowchart` node labels must be quoted if they contain `()`, `/`, `-` followed by text, or `,`.**
 - **Never put raw parentheses inside `[]` without wrapping the whole label in double quotes.**
 - **Test every single node label before writing it.** If the label contains any of `(`, `)`, `,`, `/`, `<`, `>`, `&`, or an HTML tag — it must be wrapped in double quotes and stripped of HTML. A bare `/` inside `[]` without quotes is a parse error.
+- **Never use `&` to connect multiple nodes in one edge statement.** `A & B --> C` is invalid in Mermaid 11. Write one edge per line: `A --> C` then `B --> C`.
 
 ## Draft status marker
 

@@ -49,7 +49,7 @@ All scripts now live under `.brs2spec/tools/scripts/` (not under `tools/`):
 - `planning/workflow-state.json` — fast-path hint for workflow runner; auto-initialised if missing
 - Multi-repository handoff — `input/repositories/<alias>.md` descriptors; folder-per-story with optional subfolder-per-repo
 - NFR BDD scenarios — non-functional requirements that are measurable produce Gherkin scenarios in `quality-gates/bdd-scenarios.md`
-- `describe-repository.prompt.md` — standalone utility to generate a repo descriptor from inside a target repository
+- `tools/prompts/describe-repository.md` — standalone utility to generate a repo descriptor from inside a target repository
 - Architecture review multi-repo signal — stage 5 surfaces a notice when architecture spans multiple repos
 
 ## Migration steps

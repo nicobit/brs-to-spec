@@ -17,6 +17,8 @@ Define test levels, validation evidence, automation targets, data needs, environ
 Use these inputs when available:
 
 - `engineering-readiness/readiness-check.md`
+- `engineering-readiness/initiative-context.md` — use the Technology Constraints table as the primary source for the Technology Stack section
+- `input/repositories/*.md` — repository descriptors; use for test framework, runner, and CI environment if present
 - `input/brs.md or input/brs/*.md`
 - `input/architecture.md or input/architecture/*.md`
 - `architecture/architecture-rules.md`

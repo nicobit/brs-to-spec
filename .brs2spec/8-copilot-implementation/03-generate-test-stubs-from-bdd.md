@@ -23,22 +23,29 @@ Load first:
 
 ```text
 engineering-readiness/initiative-context.md
+quality-gates/test-strategy.md              (read Technology Stack section for framework and runner)
 quality-gates/bdd-scenarios.md
+input/repositories/*.md                     (read for test folder conventions if present)
 ```
 
-Then confirm with the user:
+**Framework and runner selection — in priority order:**
 
-1. **Target language and test framework** — choose one:
+1. Read `quality-gates/test-strategy.md` → Technology Stack table → Backend or Frontend row → Test framework + Test runner columns. Use this if populated.
+2. Read `input/repositories/*.md` → infer from language/framework fields (e.g. TypeScript + NestJS → Jest; C# + .NET → xUnit or SpecFlow; Python → pytest-bdd).
+3. If neither source has the answer, ask the user to confirm:
    - Python → pytest-bdd
    - Java → Cucumber (JUnit 5)
    - JavaScript / TypeScript → Cucumber-js or Vitest/Jest with describe/it
    - C# / .NET → SpecFlow
    - Other → ask the user to specify
 
-2. **Target test folder** — where test files should be placed in the repository
-   (e.g. `tests/acceptance/`, `src/__tests__/`, `features/`)
+**Target test folder — in priority order:**
 
-3. **Scope** — all scenarios in the file, or a specific subset by SCN-NNN range or story group
+1. Read `input/repositories/*.md` for folder conventions if documented.
+2. Infer from framework standard (e.g. `tests/`, `src/__tests__/`, `features/`, `Specs/`).
+3. If unclear, ask the user.
+
+**Scope** — all scenarios in the file, or a specific subset by SCN-NNN range or story group. Ask if not specified.
 
 ## Output path
 

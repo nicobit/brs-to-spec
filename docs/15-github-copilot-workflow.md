@@ -41,29 +41,17 @@ Copilot should avoid duplicating source-of-truth content into projection or hand
 
 ## Prompt files
 
-Prompt wrappers for Copilot are provided under:
+All prompts live directly under `.brs2spec/`. See [Prompt Index](26-prompt-index.md) for the full list.
+
+Key entry points:
 
 ```text
-.github/prompts/
+.brs2spec/brs-to-spec-run-workflow.md       — workflow orchestrator (start here)
+.brs2spec/0-intake/00-create-brs.md         — create or convert a BRS
+.brs2spec/8-copilot-implementation/         — implementation prompts
+.brs2spec/9-reviewers/                      — review prompts
+.brs2spec/tools/prompts/describe-repository.md  — repo descriptor utility (run inside a target repo)
 ```
-
-Available prompts:
-
-```text
-brs-to-spec-run-workflow.prompt.md
-create-brs.prompt.md
-draft-architecture-from-brs.prompt.md
-create-engineering-readiness.prompt.md
-generate-initiative-context.prompt.md
-create-openspec-handoff.prompt.md
-create-standalone-handoff.prompt.md
-create-gitlab-planning-view.prompt.md
-implement-one-task.prompt.md
-spec-correction.prompt.md
-describe-repository.prompt.md
-```
-
-These files are thin wrappers only. All logic lives in `.brs2spec/`. Do not edit the wrapper files; edit the corresponding `.brs2spec/` prompt instead.
 
 The repository also includes implementation and review prompt groups:
 
@@ -113,7 +101,7 @@ At the start of an initiative, architecture input is often high-level solution a
 Use:
 
 ```text
-.github/prompts/brs-to-spec-run-workflow.prompt.md
+.brs2spec/brs-to-spec-run-workflow.md
 ```
 
 or ask:

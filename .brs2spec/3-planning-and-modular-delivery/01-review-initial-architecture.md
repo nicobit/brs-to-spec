@@ -54,6 +54,7 @@ Do not add a visual that merely restates simple tables or already-clear text.
 - **C4 diagrams use function-call syntax** — `System(id, "Label", "Description")` — labels are already string arguments, no extra quoting needed.
 - **`graph` / `flowchart` node labels must be quoted if they contain `()`, `/`, or `,`.**
 - **Test every node label before writing it.** If the label contains any of `(`, `)`, `,`, `/`, `<`, `>`, or `&` — wrap the whole label in double quotes. A bare `/` inside `[]` without quotes is a parse error.
+- **Never use `&` to connect multiple nodes in one edge statement.** `A & B --> C` is invalid in Mermaid 11. Write one edge per line: `A --> C` then `B --> C`.
 
 ## Quality bar
 
