@@ -141,6 +141,7 @@ All tool prompts are ad-hoc utilities — not part of the delivery workflow. Run
 | Prompt | ~Tokens | What it does |
 |---|---|---|
 | `tools/prompts/describe-repository.md` | ~1,130 | Analyse a repository and generate an `input/repositories/` descriptor |
+| `tools/prompts/generate-architecture-diagrams.md` | ~800 | Regenerate `architecture/diagrams/component.mmd` and `deployment.mmd` independently of the review |
 | `tools/prompts/generate-initiative-summary.md` | ~800 | Generate `docs/initiatives/<slug>/initiative-summary.md` — one-page readable brief |
 | `tools/prompts/generate-decision-log.md` | ~750 | Generate `docs/initiatives/<slug>/decision-log.md` — full decision audit trail |
 | `tools/prompts/generate-delivery-overview.md` | ~850 | Generate `docs/initiatives/<slug>/delivery-overview.md` — epics, features, stories with status |

@@ -102,6 +102,38 @@ If yes, surface this to the user at the end of the review output:
 
 If the initiative is single-repo or the architecture does not distinguish repo boundaries, omit this notice entirely.
 
+## Diagram output (mandatory when architecture has components or integrations)
+
+After producing `architecture/architecture-review.md`, generate Mermaid diagram files into `architecture/diagrams/`.
+
+Always generate both files. Skip a diagram only if the initiative is so narrow that the diagram would be a single node with no connections — note the skip reason.
+
+### File 1 — `architecture/diagrams/component.mmd`
+
+A component-level view showing:
+- Major services / applications / adapters
+- Data stores (databases, queues, blob, audit store)
+- External integrations (third-party systems)
+- Key data flows between them
+
+Use `graph TD` layout. Follow the Mermaid syntax rules above — quote any label with `()`, `/`, or `,`.
+
+### File 2 — `architecture/diagrams/deployment.mmd`
+
+A deployment topology view showing:
+- Infrastructure components (hosting platform, gateway, CDN, key vault, monitoring)
+- How services map to infrastructure
+- Environment-level groupings if relevant
+
+Use `graph LR` layout. Follow the Mermaid syntax rules above.
+
+### Rules for diagram generation
+
+- Derive content strictly from `input/architecture.md` and the review findings — do not invent components.
+- Keep node labels short (3–5 words max). Use subgraphs to group related components.
+- Do not duplicate the full review text in diagrams — diagrams show structure, text shows decisions.
+- After writing both files, tell the user: "Diagrams saved to `architecture/diagrams/component.mmd` and `architecture/diagrams/deployment.mmd`. Re-run `.brs2spec/tools/prompts/generate-architecture-diagrams.md` at any time to refresh them independently."
+
 ## Self-review checklist
 
 Before finalizing, verify:
@@ -116,3 +148,4 @@ Before finalizing, verify:
 - [ ] Risks and gaps are visible.
 - [ ] The output supports architecture rule creation and delivery planning.
 - [ ] If the initiative spans multiple repositories, the multi-repo signal notice was included in the output.
+- [ ] `architecture/diagrams/component.mmd` and `architecture/diagrams/deployment.mmd` have been generated or skipped with a stated reason.

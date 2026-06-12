@@ -4,6 +4,86 @@
 > Authoritative sources are `architecture/architecture-review.md` and `architecture/architecture-rules.md`.
 > This document is a readable summary — not a replacement for the governed architecture artifacts.
 
+## Diagrams
+
+### Component diagram
+
+```mermaid
+graph TD
+  subgraph Client
+    WebClient[Web Client (SPA)]
+  end
+
+  subgraph Edge
+    APIGW[API Gateway / BFF]
+  end
+
+  subgraph Services
+    ReqSvc[Request Service]
+    IncSvc[Incident Service]
+    ChangeSvc[Change Service]
+    AssetAdapter[Asset Sync Adapter]
+    RunbookSvc[Runbook Service]
+    NotifSvc[Notifications Service]
+  end
+
+  subgraph Integrations
+    SN[ServiceNow]
+    GH[GitHub]
+    CI[CI/CD]
+    Mon[Monitoring]
+  end
+
+  subgraph Data
+    DB[(Primary DB)]
+    Audit[(Audit Store)]
+    Blob[(Blob Storage)]
+    Search[(Search/Vector Index)]
+    Bus[(Event Bus)]
+  end
+
+  WebClient -->|API calls| APIGW
+  APIGW --> ReqSvc & IncSvc & ChangeSvc & RunbookSvc
+  ReqSvc --> DB
+  IncSvc --> DB
+  ChangeSvc --> DB
+  AssetAdapter -->|reconcile| DB
+  AssetAdapter --> SN
+  ChangeSvc -->|link| GH
+  NotifSvc -->|send| Mon
+  ReqSvc & IncSvc & ChangeSvc --> Bus
+  Bus --> AssetAdapter & NotifSvc
+  DB --> Search
+  DB --> Audit
+  Blob --> DB
+```
+
+### Deployment topology
+
+```mermaid
+graph LR
+  subgraph Azure
+    SWA[Static Web App / CDN]
+    AGW[Application Gateway / WAF]
+    APIM[API Gateway/App Service]
+    AKS[AKS / App Service Instances]
+    SQL[Azure SQL / PostgreSQL]
+    KV[Key Vault]
+    SB[Service Bus / Event Grid]
+    Blob[Blob Storage]
+    AI[Application Insights / Log Analytics]
+  end
+
+  SWA --> AGW --> APIM --> AKS
+  AKS --> SQL
+  AKS --> KV
+  AKS --> SB
+  AKS --> Blob
+  AKS --> AI
+  SB --> AKS
+  Blob --> AKS
+```
+
 ## Review outcome
 
 | Field | Value |

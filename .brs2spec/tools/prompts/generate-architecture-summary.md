@@ -23,6 +23,7 @@ Read the following from the active initiative workspace. Skip gracefully if a fi
 - `input/architecture.md` — source architecture document (for context)
 - `engineering-readiness/initiative-context.md` — technology constraints, governed boundaries
 - `planning/open-decisions.md` — architecture-related open decisions
+- `architecture/diagrams/` — read any `.mmd` (Mermaid) files present; embed them inline in the output
 
 ## Output
 
@@ -47,6 +48,22 @@ Tell the user the exact path before writing.
 | Reviewed by | |
 | Date | |
 | Key finding | [One sentence] |
+
+## Diagrams
+
+> Include one subsection per diagram file found in `architecture/diagrams/`. Skip if no diagrams exist.
+
+### Component diagram
+
+```mermaid
+[paste content of component.mmd here]
+```
+
+### Deployment topology
+
+```mermaid
+[paste content of deployment.mmd here]
+```
 
 ## Technology context
 
