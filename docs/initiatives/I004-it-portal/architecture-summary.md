@@ -71,7 +71,7 @@ architecture-beta
   group azure(cloud)[Azure]
 
     service swa(internet)[Static Web App]  in azure
-    service agw(server)[App Gateway / WAF]  in azure
+    service agw(server)[App Gateway - WAF]  in azure
     service apim(server)[API Gateway]  in azure
     service aks(server)[AKS]  in azure
     service sql(database)[Azure SQL]  in azure

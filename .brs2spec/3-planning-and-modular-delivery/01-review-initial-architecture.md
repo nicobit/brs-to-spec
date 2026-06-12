@@ -169,6 +169,7 @@ Use `graph LR` as fallback only when the deployment is simple (≤5 nodes) or no
 - Edges: `{id}:{side} --> {side}:{id}` where side = `T` `B` `L` `R`
 - **Only built-in icons:** `cloud`, `database`, `disk`, `internet`, `server` — no others render in mkdocs
 - No `subgraph`, no `-->|label|` edge labels, no `&` connectors
+- **No `/` in labels** — causes a lexer error. Use ` - ` as separator instead: `[App Gateway - WAF]` not `[App Gateway / WAF]`
 
 ### Rules for diagram generation
 

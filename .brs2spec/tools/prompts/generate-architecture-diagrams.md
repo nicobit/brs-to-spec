@@ -145,6 +145,9 @@ graph LR
 - **Place services into groups using `in {groupId}`** at the end of the service line.
 - **No edge labels** (`-->|label|` syntax) — `architecture-beta` does not support labelled edges. Use node labels to convey the relationship if needed.
 - **Node IDs** must use only letters, digits, underscores — no hyphens or dots.
+- **No `/` in labels** — the `/` character causes a lexer error inside `[]` labels. Use ` - ` as separator instead.
+  - Wrong: `service agw(server)[App Gateway / WAF]`
+  - Correct: `service agw(server)[App Gateway - WAF]`
 
 ### Canonical correct pattern — use this as your template
 
@@ -189,6 +192,7 @@ Before saving any diagram file, verify:
 - [ ] All edges use directional syntax `id:R --> L:id2` — not `id --> id2`
 - [ ] No labelled edges (`-->|label|`) — not supported
 - [ ] Every service placed in a group uses `in {groupId}` on its line
+- [ ] No `/` in any label — replaced with ` - ` (e.g. `[App Gateway - WAF]` not `[App Gateway / WAF]`)
 
 ## Quality bar
 
