@@ -11,11 +11,11 @@
 ```mermaid
 graph TD
   subgraph Client
-    WebClient[Web Client (SPA)]
+    WebClient["Web Client (SPA)"]
   end
 
   subgraph Edge
-    APIGW[API Gateway / BFF]
+    APIGW["API Gateway / BFF"]
   end
 
   subgraph Services
@@ -38,12 +38,15 @@ graph TD
     DB[(Primary DB)]
     Audit[(Audit Store)]
     Blob[(Blob Storage)]
-    Search[(Search/Vector Index)]
+    Search["Search / Vector Index"]
     Bus[(Event Bus)]
   end
 
   WebClient -->|API calls| APIGW
-  APIGW --> ReqSvc & IncSvc & ChangeSvc & RunbookSvc
+  APIGW --> ReqSvc
+  APIGW --> IncSvc
+  APIGW --> ChangeSvc
+  APIGW --> RunbookSvc
   ReqSvc --> DB
   IncSvc --> DB
   ChangeSvc --> DB
@@ -51,8 +54,11 @@ graph TD
   AssetAdapter --> SN
   ChangeSvc -->|link| GH
   NotifSvc -->|send| Mon
-  ReqSvc & IncSvc & ChangeSvc --> Bus
-  Bus --> AssetAdapter & NotifSvc
+  ReqSvc --> Bus
+  IncSvc --> Bus
+  ChangeSvc --> Bus
+  Bus --> AssetAdapter
+  Bus --> NotifSvc
   DB --> Search
   DB --> Audit
   Blob --> DB
@@ -63,18 +69,20 @@ graph TD
 ```mermaid
 graph LR
   subgraph Azure
-    SWA[Static Web App / CDN]
-    AGW[Application Gateway / WAF]
-    APIM[API Gateway/App Service]
-    AKS[AKS / App Service Instances]
-    SQL[Azure SQL / PostgreSQL]
+    SWA["Static Web App / CDN"]
+    AGW["Application Gateway / WAF"]
+    APIM["API Gateway / App Service"]
+    AKS["AKS / App Service Instances"]
+    SQL["Azure SQL / PostgreSQL"]
     KV[Key Vault]
-    SB[Service Bus / Event Grid]
+    SB["Service Bus / Event Grid"]
     Blob[Blob Storage]
-    AI[Application Insights / Log Analytics]
+    AI["Application Insights / Log Analytics"]
   end
 
-  SWA --> AGW --> APIM --> AKS
+  SWA --> AGW
+  AGW --> APIM
+  APIM --> AKS
   AKS --> SQL
   AKS --> KV
   AKS --> SB

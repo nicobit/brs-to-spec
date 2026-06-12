@@ -287,3 +287,21 @@ All stages required. Also run:
 ## Response format after each stage
 
 After completing a stage: one-line summary of what was created, quality check result (passed / issues found), and next stage with its prompt path. If proceeding automatically, state that and go. If stopped: list exactly what was scaffolded, what the human must provide, and what the next stage will be once blockers are resolved. No menus, no choices — one specific action.
+
+### Documentation refresh hint (append when stopped or at end of session)
+
+When the workflow stops for human input or completes a natural pause point, append a one-line hint for any generator that is now worth running. Do not run the generators — they are user-triggered. Only suggest them.
+
+| Stage just completed | Suggest running |
+|---|---|
+| Business intake | `tools/prompts/generate-initiative-summary.md` |
+| Architecture review | `tools/prompts/generate-architecture-summary.md` + `tools/prompts/generate-architecture-diagrams.md` |
+| Delivery structure (draft or confirmed) | `tools/prompts/generate-delivery-overview.md` + `tools/prompts/generate-initiative-summary.md` |
+| Open decisions updated | `tools/prompts/generate-decision-log.md` |
+| Engineering readiness | `tools/prompts/generate-initiative-summary.md` + `tools/prompts/generate-quality-gates-summary.md` |
+| Any quality gate accepted | `tools/prompts/generate-quality-gates-summary.md` |
+| Handoff complete | All five `generate-*` docs for a full documentation snapshot |
+
+Format: `> Optional: run .brs2spec/<prompt-path> to update the documentation site.`
+
+Omit the hint if the workflow is continuing automatically to the next stage — only show it at a stop or pause.

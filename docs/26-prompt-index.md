@@ -138,6 +138,27 @@ All framework prompts live inside `.brs2spec/`. This page lists every prompt wit
 
 All tool prompts are ad-hoc utilities — not part of the delivery workflow. Run manually when needed.
 
+### When to run the documentation generators
+
+The `generate-*` prompts write readable snapshot pages to `docs/initiatives/<slug>/`. They are never triggered automatically — run them whenever you want the documentation site updated.
+
+| Good moment to run | Which prompts |
+|---|---|
+| After business intake is complete | `generate-initiative-summary` |
+| After architecture review and rules are finalised | `generate-architecture-summary`, `generate-architecture-diagrams` |
+| After delivery structure and increments are defined | `generate-delivery-overview` |
+| After any open decision is resolved or added | `generate-decision-log` |
+| After a quality gate is accepted or updated | `generate-quality-gates-summary` |
+| Before a sprint review or stakeholder demo | All five `generate-*` docs to get a fresh snapshot |
+| Before a stage gate or handoff | All five `generate-*` docs — gives reviewers a readable package |
+| Any time architecture diagrams look stale | `generate-architecture-diagrams` (standalone, no need to re-run the full review) |
+
+Each prompt reads the current workspace artifacts and overwrites the matching doc file. Running them multiple times is safe — the output is always a fresh snapshot of the current state.
+
+To add a new initiative to the documentation nav, follow the instructions at the bottom of `generate-initiative-summary.md`.
+
+### Tool prompt reference
+
 | Prompt | ~Tokens | What it does |
 |---|---|---|
 | `tools/prompts/describe-repository.md` | ~1,130 | Analyse a repository and generate an `input/repositories/` descriptor |
