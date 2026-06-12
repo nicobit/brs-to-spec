@@ -744,8 +744,8 @@ All prompt paths are relative to `.brs2spec/`.
 | persona | qa-analyst |
 | phase | 4 — quality gates |
 | description | Create `quality-gates/test-strategy.md` — test approach, coverage, and risk |
-| when_to_use | Test strategy gate triggered by readiness check |
-| trigger_conditions | Test strategy gate triggered; `quality-gates/test-strategy.md` missing |
+| when_to_use | Always — every initiative requires a test strategy before handoff |
+| trigger_conditions | `quality-gates/test-strategy.md` missing or not Accepted — always required, not conditional on readiness check |
 | required_inputs | `planning/delivery-structure.md`, `engineering-readiness/readiness-check.md` |
 | optional_inputs | `quality-gates/bdd-scenarios.md`, `architecture/architecture-rules.md` |
 | prompt | `4-engineering-readiness/quality-gates/create-test-strategy.md` |
@@ -1129,7 +1129,7 @@ Use this table to map natural-language triggers, artifact states, and risk signa
 | Engineering readiness missing | `engineering_lead.check_engineering_readiness` | After architecture review and rules complete |
 | Initiative context missing or has empty rows | `engineering_lead.generate_initiative_context` | After readiness = Ready |
 | BDD gate triggered by readiness check | `qa.create_bdd_scenarios` | Mandatory gate |
-| Test strategy gate triggered | `qa.create_test_strategy` | Mandatory gate |
+| `quality-gates/test-strategy.md` missing or not Accepted | `qa.create_test_strategy` | Always required — not conditional |
 | PII / auth / authorization / secrets / exposure risk | `security.create_security_review` | Mandatory gate when triggered |
 | High-risk security boundary identified | `security.create_threat_model` | In addition to security review |
 | Data ownership / schema / retention / PII / residency change | `security.create_data_contract` | Mandatory gate when triggered |

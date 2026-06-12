@@ -7,6 +7,14 @@
 | Active deliverable |  |
 | Author |  |
 | Date |  |
+| Status |  |
+
+## Scope note
+
+> State the initiative size and scale the strategy depth accordingly:
+> - **Fast Path** — minimal: fill Technology Stack, key test levels, and exit criteria only. Other sections may be brief.
+> - **Standard** — fill all sections with evidence from the initiative artifacts.
+> - **Enterprise** — full strategy required; all sections filled; owners assigned.
 
 ## Scope
 

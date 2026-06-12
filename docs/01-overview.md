@@ -59,7 +59,7 @@ Governed boundaries must be made explicit:
 Run:
 
 ```text
-.github/prompts/brs-to-spec-run-workflow.prompt.md
+.brs2spec/brs-to-spec-run-workflow.md
 ```
 
 to identify the active initiative workspace, the current stage, and the next required action.

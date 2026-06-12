@@ -41,7 +41,7 @@ and tighten any narrative sections.
 
 ### 2. Workflow prompt smoke test
 
-Run `.github/prompts/brs-to-spec-run-workflow.prompt.md` against the same simple fixture.
+Run `.brs2spec/brs-to-spec-run-workflow.md` against the same simple fixture.
 
 **Verify:**
 - The prompt detects the correct current stage (routing, if nothing else exists)

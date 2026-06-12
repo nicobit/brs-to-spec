@@ -12,7 +12,7 @@ The framework uses a different file for each integration layer:
 |---|---|---|
 | `.brs2spec/agent-instructions.md` | Canonical source | All framework rules live here |
 | `.github/instructions/brs-to-spec.instructions.md` | GitHub Copilot | Scoped to `initiatives/**` — does not touch your `copilot-instructions.md` |
-| `.github/prompts/brs2spec/*.prompt.md` | GitHub Copilot Chat | Slash command stubs (`/start`, `/create-brs`, etc.) |
+| `.brs2spec/` prompts | GitHub Copilot Chat | All prompt logic lives here — reference directly |
 | `.brs2spec/brs-to-spec-run-workflow.md` | All agents | Full workflow prompt content |
 
 Your existing `copilot-instructions.md`, `CLAUDE.md`, and `.cursorrules` are **untouched**.
@@ -24,7 +24,7 @@ Your existing `copilot-instructions.md`, `CLAUDE.md`, and `.cursorrules` are **u
 ```
 .brs2spec/                                        ← all framework content
 .github/instructions/brs-to-spec.instructions.md  ← Copilot scoped rules
-.github/prompts/brs2spec/                         ← Copilot slash command stubs
+.brs2spec/                                        ← all prompt logic (use directly)
 ```
 
 That is the complete adoption. Nothing else needs to change in your repo.

@@ -6,7 +6,9 @@ You are a senior QA lead performing a Conditional Quality Gate review.
 
 ## Context
 
-This gate is only run when `engineering-readiness/readiness-check.md` marks it as Triggered = Yes and Required = Yes.
+This gate is **always required** — it is not conditional on the readiness check. Every initiative must have a test strategy before handoff.
+
+Scale the depth to the initiative size: a Fast Path change needs a minimal strategy (scope note + technology stack + key test levels); an Enterprise initiative needs the full strategy. The scope note at the top of the output must state which applies.
 
 ## Purpose
 
@@ -63,7 +65,6 @@ Do not produce outputs that:
 
 ## Stop conditions
 
-- If this gate was not triggered in the readiness check, stop and state that it should not be run.
 - If inputs are missing, list missing inputs and produce only the parts supported by evidence.
 - Do not invent evidence.
 
@@ -71,7 +72,7 @@ Do not produce outputs that:
 
 Before finalizing, verify:
 
-- [ ] The gate was triggered in the readiness check.
+- [ ] Scope note is present — states Fast Path / Standard / Enterprise and scales the depth accordingly.
 - [ ] Every finding has evidence.
 - [ ] Every required action has owner and required-before stage.
 - [ ] Residual risks are explicit.

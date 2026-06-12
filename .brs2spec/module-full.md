@@ -677,8 +677,8 @@ All prompt paths are relative to `.brs2spec/`.
 | persona | qa-analyst |
 | phase | 4 — quality gates |
 | description | Create `quality-gates/test-strategy.md` — test approach, coverage, and risk |
-| when_to_use | Test strategy gate triggered by readiness check |
-| trigger_conditions | Test strategy gate triggered; `quality-gates/test-strategy.md` missing |
+| when_to_use | Always — every initiative requires a test strategy before handoff |
+| trigger_conditions | `quality-gates/test-strategy.md` missing or not Accepted — always required, not conditional on readiness check |
 | required_inputs | `planning/delivery-structure.md`, `engineering-readiness/readiness-check.md` |
 | optional_inputs | `quality-gates/bdd-scenarios.md`, `architecture/architecture-rules.md` |
 | prompt | `4-engineering-readiness/quality-gates/create-test-strategy.md` |

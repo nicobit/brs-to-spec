@@ -23,7 +23,7 @@ openspec/changes/D1-<deliverable-name>/
 Prompt:
 
 ```text
-.github/prompts/create-openspec-handoff.prompt.md
+.brs2spec/5-handoff/01-create-openspec-change-for-active-deliverable.md
 ```
 
 ### Standalone handoff
@@ -41,7 +41,7 @@ standalone-delivery/D1-<deliverable-name>/
 Prompt:
 
 ```text
-.github/prompts/create-standalone-handoff.prompt.md
+.brs2spec/5-handoff/02-create-standalone-delivery-package.md
 ```
 
 ## Multi-repository handoff (optional)
