@@ -2,15 +2,15 @@
 architecture-beta
   group azure(cloud)[Azure]
 
-    service swa(internet)[Static Web App]  in azure
-    service agw(server)[App Gateway - WAF]  in azure
-    service apim(server)[API Gateway]  in azure
-    service aks(server)[AKS]  in azure
-    service sql(database)[Azure SQL]  in azure
-    service kv(disk)[Key Vault]  in azure
-    service sb(server)[Service Bus]  in azure
-    service blob(disk)[Blob Storage]  in azure
-    service ai(disk)[App Insights]  in azure
+  service swa(internet)[Static Web App] in azure
+  service agw(server)[App Gateway WAF] in azure
+  service apim(server)[API Gateway] in azure
+  service aks(server)[AKS] in azure
+  service sql(database)[Azure SQL] in azure
+  service kv(disk)[Key Vault] in azure
+  service sb(server)[Service Bus] in azure
+  service blob(disk)[Blob Storage] in azure
+  service ai(disk)[App Insights] in azure
 
   swa:R --> L:agw
   agw:R --> L:apim

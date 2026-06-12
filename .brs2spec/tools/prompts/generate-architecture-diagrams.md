@@ -88,14 +88,14 @@ Use `graph LR` as fallback only when the deployment is simple (≤5 nodes) or no
 architecture-beta
   group azure(cloud)[Azure]
 
-    service swa(internet)[Static Web App]  in azure
-    service agw(server)[App Gateway / WAF]  in azure
-    service apim(server)[API Gateway]  in azure
-    service aks(server)[AKS]  in azure
-    service sql(database)[Azure SQL]  in azure
-    service kv(disk)[Key Vault]  in azure
-    service sb(server)[Service Bus]  in azure
-    service ai(disk)[App Insights]  in azure
+  service swa(internet)[Static Web App] in azure
+  service agw(server)[App Gateway WAF] in azure
+  service apim(server)[API Gateway] in azure
+  service aks(server)[AKS] in azure
+  service sql(database)[Azure SQL] in azure
+  service kv(disk)[Key Vault] in azure
+  service sb(server)[Service Bus] in azure
+  service ai(disk)[App Insights] in azure
 
   swa:R --> L:agw
   agw:R --> L:apim
@@ -106,6 +106,8 @@ architecture-beta
   aks:B --> T:ai
   sb:R --> L:aks
 ```
+
+Note: declare all groups first, then all services at the top level with `in {groupId}` — never indent services inside the group block.
 
 #### Fallback graph LR pattern (simple / non-cloud deployments)
 
@@ -142,12 +144,14 @@ graph LR
 - **Only use built-in icons:** `cloud`, `database`, `disk`, `internet`, `server`. Any other icon name will fail to render in mkdocs.
 - **Use `group` not `subgraph`** — `subgraph` is a `graph` keyword and is invalid in `architecture-beta`.
 - **Use directional edge syntax:** `id:R --> L:id2` — not `id --> id2`.
-- **Place services into groups using `in {groupId}`** at the end of the service line.
+- **Services are declared at the top level — not nested inside group blocks.** Declare all groups first, then declare all services with `in {groupId}` at the end of the line.
+  - Wrong: indent services inside `group { ... }`
+  - Correct: `service agw(server)[App Gateway WAF] in azure`
 - **No edge labels** (`-->|label|` syntax) — `architecture-beta` does not support labelled edges. Use node labels to convey the relationship if needed.
 - **Node IDs** must use only letters, digits, underscores — no hyphens or dots.
-- **No `/` in labels** — the `/` character causes a lexer error inside `[]` labels. Use ` - ` as separator instead.
-  - Wrong: `service agw(server)[App Gateway / WAF]`
-  - Correct: `service agw(server)[App Gateway - WAF]`
+- **No `/` or `-` separators in labels** — use a space only. The lexer is strict about label content.
+  - Wrong: `service agw(server)[App Gateway / WAF]` or `service agw(server)[App Gateway - WAF]`
+  - Correct: `service agw(server)[App Gateway WAF]`
 
 ### Canonical correct pattern — use this as your template
 
@@ -191,8 +195,8 @@ Before saving any diagram file, verify:
 - [ ] No `subgraph` keyword — uses `group` instead
 - [ ] All edges use directional syntax `id:R --> L:id2` — not `id --> id2`
 - [ ] No labelled edges (`-->|label|`) — not supported
-- [ ] Every service placed in a group uses `in {groupId}` on its line
-- [ ] No `/` in any label — replaced with ` - ` (e.g. `[App Gateway - WAF]` not `[App Gateway / WAF]`)
+- [ ] Services are declared at top level with `in {groupId}` — not nested/indented inside group blocks
+- [ ] No `/`, `-`, or special characters in labels — spaces only between words
 
 ## Quality bar
 

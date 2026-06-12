@@ -164,12 +164,12 @@ Use `graph LR` as fallback only when the deployment is simple (≤5 nodes) or no
 
 `architecture-beta` key rules:
 - Declare with `architecture-beta` (not `graph`)
-- Services: `service {id}({icon})[{label}]` — place in group with `in {groupId}`
-- Groups: `group {id}({icon})[{label}]`
+- Groups: `group {id}({icon})[{label}]` — declare all groups first
+- Services: `service {id}({icon})[{label}] in {groupId}` — declare at top level, never nested inside a group block
 - Edges: `{id}:{side} --> {side}:{id}` where side = `T` `B` `L` `R`
 - **Only built-in icons:** `cloud`, `database`, `disk`, `internet`, `server` — no others render in mkdocs
 - No `subgraph`, no `-->|label|` edge labels, no `&` connectors
-- **No `/` in labels** — causes a lexer error. Use ` - ` as separator instead: `[App Gateway - WAF]` not `[App Gateway / WAF]`
+- **No `/`, `-`, or special characters in labels** — spaces only. Wrong: `[App Gateway / WAF]`. Correct: `[App Gateway WAF]`
 
 ### Rules for diagram generation
 
