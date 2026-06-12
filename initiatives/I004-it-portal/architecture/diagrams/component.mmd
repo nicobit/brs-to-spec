@@ -1,11 +1,11 @@
 %% Component diagram (Mermaid)
 graph TD
   subgraph Client
-    WebClient[Web Client (SPA)]
+    WebClient["Web Client (SPA)"]
   end
 
   subgraph Edge
-    APIGW[API Gateway / BFF]
+    APIGW["API Gateway / BFF"]
   end
 
   subgraph Services
@@ -28,7 +28,7 @@ graph TD
     DB[(Primary DB)]
     Audit[(Audit Store)]
     Blob[(Blob Storage)]
-    Search[(Search/Vector Index)]
+    Search["(Search/Vector Index)"]
     Bus[(Event Bus)]
   end
 

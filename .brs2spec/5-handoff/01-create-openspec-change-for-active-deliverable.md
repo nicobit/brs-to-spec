@@ -43,6 +43,27 @@ Only when `execution_mode` is `OpenSpec` and all of the following are true:
 - **Never put raw parentheses inside `[]` without wrapping the whole label in double quotes.**
 - **Never use `&` to connect multiple nodes in one edge statement.** `A & B --> C` is invalid in Mermaid 11. Write one edge per line: `A --> C` then `B --> C`.
 
+### Canonical correct pattern — use this as your template
+
+```mermaid
+graph LR
+  subgraph Wave1["Wave 1"]
+    F001_1["F-001.1 — Setup DB schema"]
+    F001_2["F-001.2 — Auth service"]
+  end
+
+  subgraph Wave2["Wave 2"]
+    F002_1["F-002.1 — API endpoints"]
+    F002_2["F-002.2 — UI (React)"]
+  end
+
+  F001_1 --> F002_1
+  F001_2 --> F002_1
+  F002_1 --> F002_2
+```
+
+Node IDs use only letters, digits, underscores. Labels are quoted. Every edge is one line. No `&` connectors.
+
 ## Step 1 — generate the dependency graph first
 
 Before creating any story folder, generate:
@@ -258,3 +279,6 @@ Before finalising, verify:
 - [ ] `specs/` files deleted when not applicable to the story
 - [ ] No tasks for out-of-scope features
 - [ ] No generated code
+- [ ] Every dependency graph node label containing `(`, `)`, `/`, `,`, or `&` is wrapped in double quotes
+- [ ] No `&` connector in any edge statement — every edge is one line
+- [ ] All node IDs use only letters, digits, underscores — no hyphens or dots

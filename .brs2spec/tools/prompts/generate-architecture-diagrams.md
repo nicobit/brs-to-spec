@@ -101,6 +101,41 @@ graph LR
 - **Test every node label** — if it contains `(`, `)`, `,`, `/`, `<`, `>`, or `&` — wrap in double quotes.
 - **Never use `&` to connect multiple nodes in one edge statement.** `A & B --> C` is invalid in Mermaid 11. Write one edge per line: `A --> C` then `B --> C`.
 
+### Canonical correct pattern — use this as your template
+
+```mermaid
+graph TD
+  subgraph Client
+    WebClient["Web Client (SPA)"]
+  end
+
+  subgraph Services
+    API["API Gateway / BFF"]
+    AuthSvc["Auth Service (Azure AD)"]
+    DB[(Primary DB)]
+    Bus[(Event Bus)]
+  end
+
+  WebClient -->|API calls| API
+  API --> AuthSvc
+  API --> DB
+  AuthSvc --> DB
+  DB --> Bus
+```
+
+Every node label that contains `(`, `)`, `/`, `,`, or `&` is wrapped in double quotes.
+Every edge is one line. No HTML tags. Cylindrical nodes use `()`, rectangles use `[]`.
+
+## Self-review checklist — Mermaid syntax
+
+Before saving any diagram file, verify:
+
+- [ ] Every node label containing `(`, `)`, `/`, `,`, or `&` is wrapped in double quotes inside `[]`
+- [ ] No HTML tags (`<br/>`, `<b>`, `<i>`) appear anywhere in node labels
+- [ ] No `&` connector used in edge statements — every edge is one line
+- [ ] Node IDs contain only letters, digits, and underscores — no hyphens or dots
+- [ ] Cylindrical nodes (databases, queues) use `()` shape, not `[]`
+
 ## Quality bar
 
 Good diagrams:

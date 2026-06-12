@@ -73,6 +73,31 @@ These rules apply to every diagram in this output. A diagram that violates them 
 - **Test every single node label before writing it.** If the label contains any of `(`, `)`, `,`, `/`, `<`, `>`, `&`, or an HTML tag — it must be wrapped in double quotes and stripped of HTML. A bare `/` inside `[]` without quotes is a parse error.
 - **Never use `&` to connect multiple nodes in one edge statement.** `A & B --> C` is invalid in Mermaid 11. Write one edge per line: `A --> C` then `B --> C`.
 
+### Canonical correct pattern — use this as your template
+
+```mermaid
+graph TD
+  subgraph Client
+    WebClient["Web Client (SPA)"]
+  end
+
+  subgraph Services
+    API["API Gateway / BFF"]
+    AuthSvc["Auth Service (Azure AD)"]
+    DB[(Primary DB)]
+    Bus[(Event Bus)]
+  end
+
+  WebClient -->|API calls| API
+  API --> AuthSvc
+  API --> DB
+  AuthSvc --> DB
+  DB --> Bus
+```
+
+Every node label that contains `(`, `)`, `/`, `,`, or `&` is wrapped in double quotes.
+Every edge is one line. No HTML tags. Cylindrical nodes use `()`, rectangles use `[]`.
+
 ## Draft status marker
 
 The output must begin with a clearly visible draft notice:
@@ -290,6 +315,9 @@ Before finalizing, verify:
 - [ ] Integration flow diagram is present if the BRS implies async or multi-step flows — skipped with a note if not needed.
 - [ ] Every diagram element that is an assumption or open decision is labeled or noted.
 - [ ] Every system and integration in the tables is also reflected in the diagrams.
+- [ ] Every diagram node label containing `(`, `)`, `/`, `,`, or `&` is wrapped in double quotes
+- [ ] No HTML tags in any node label — no `<br/>`, `<b>`, `<i>`
+- [ ] No `&` connector in any edge statement — every edge is one line
 - [ ] Every assumption is listed explicitly.
 - [ ] Every open decision has an owner placeholder.
 - [ ] Implied governed boundaries are identified and cross-referenced to the diagrams.

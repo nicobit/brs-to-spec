@@ -56,6 +56,31 @@ Do not add a visual that merely restates simple tables or already-clear text.
 - **Test every node label before writing it.** If the label contains any of `(`, `)`, `,`, `/`, `<`, `>`, or `&` — wrap the whole label in double quotes. A bare `/` inside `[]` without quotes is a parse error.
 - **Never use `&` to connect multiple nodes in one edge statement.** `A & B --> C` is invalid in Mermaid 11. Write one edge per line: `A --> C` then `B --> C`.
 
+### Canonical correct pattern — use this as your template
+
+```mermaid
+graph TD
+  subgraph Client
+    WebClient["Web Client (SPA)"]
+  end
+
+  subgraph Services
+    API["API Gateway / BFF"]
+    AuthSvc["Auth Service (Azure AD)"]
+    DB[(Primary DB)]
+    Bus[(Event Bus)]
+  end
+
+  WebClient -->|API calls| API
+  API --> AuthSvc
+  API --> DB
+  AuthSvc --> DB
+  DB --> Bus
+```
+
+Every node label that contains `(`, `)`, `/`, `,`, or `&` is wrapped in double quotes.
+Every edge is one line. No HTML tags. Cylindrical nodes use `()`, rectangles use `[]`.
+
 ## Quality bar
 
 A good output must:
@@ -147,6 +172,9 @@ Before finalizing, verify:
 - [ ] Brownfield impact is summarized when relevant.
 - [ ] Open decisions include owners.
 - [ ] Risks and gaps are visible.
+- [ ] Every diagram node label containing `(`, `)`, `/`, `,`, or `&` is wrapped in double quotes
+- [ ] No HTML tags in any node label — no `<br/>`, `<b>`, `<i>`
+- [ ] No `&` connector in any edge statement — every edge is one line
 - [ ] The output supports architecture rule creation and delivery planning.
 - [ ] If the initiative spans multiple repositories, the multi-repo signal notice was included in the output.
 - [ ] `architecture/diagrams/component.mmd` and `architecture/diagrams/deployment.mmd` have been generated or skipped with a stated reason.
