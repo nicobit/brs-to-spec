@@ -543,8 +543,8 @@ def _validate_business_intake_summary(path: Path, workspace_root: Path) -> list[
             "objectives are present when the BRS contains objectives or goals",
         )
     )
-    source_has_unresolved = _contains_any(source, [r"\bTBD\b", r"open question", r"\?"])
-    summary_gap_count = _table_row_count(text, r"GAP-\d{3}")
+    source_has_unresolved = _contains_any(source, [r"\bTBD\b", r"open question", r"^##\s+Open Questions?", r"^\|\s*OQ-\d{3}\s*\|"])
+    summary_gap_count = _table_row_count(text, r"GAP-\d{3}") + _table_row_count(text, r"OQ-\d{3}")
     checks.append(
         _result(
             "gaps_present_when_source_has_questions",
