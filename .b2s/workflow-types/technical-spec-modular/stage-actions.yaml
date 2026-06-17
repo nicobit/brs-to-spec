@@ -994,6 +994,10 @@ actions:
         - "architecture/architecture-review.md"
       optional:
         - "planning/delivery-structure.md"
+        - "technical-specifications/api/exposed/"
+        - "technical-specifications/api/consumed/"
+        - "technical-specifications/data/"
+        - "technical-specifications/integrations/"
     outputs:
       primary: "engineering-readiness/initiative-context.md"
       secondary: []
@@ -1649,8 +1653,7 @@ actions:
         - "architecture/architecture-review.md"
         - "planning/traceability-matrix.md"
         - "quality-gates/bdd-scenarios.md"
-        - "quality-gates/api-contract.md"
-        - "quality-gates/data-contract.md"
+        - "quality-gates/bdd/"
         - "quality-gates/test-strategy.md"
         - "planning/epics/"
         - "planning/features/"
@@ -1698,6 +1701,10 @@ actions:
       optional:
         - "quality-gates/test-strategy.md"
         - "quality-gates/bdd/"
+        - "technical-specifications/api/exposed/"
+        - "technical-specifications/api/consumed/"
+        - "technical-specifications/data/"
+        - "technical-specifications/integrations/"
     outputs:
       primary: "standalone-delivery/"
       secondary: []
@@ -1850,6 +1857,10 @@ actions:
         - "specs/"
         - "standalone-delivery/"
         - "business-analysis/"
+        - "technical-specifications/api/exposed/"
+        - "technical-specifications/api/consumed/"
+        - "technical-specifications/data/"
+        - "technical-specifications/integrations/"
     outputs:
       primary: "review-package/"
       secondary: []
