@@ -32,6 +32,10 @@ DEFAULT_OUTPUTS = {
 }
 
 
+def technical_specs_root(workspace_root: Path) -> Path:
+    return workspace_root / "technical-specifications"
+
+
 def resolve_workspace_root(path: Path | None) -> Path:
     """Return a concrete initiative workspace root."""
     if path is None:
