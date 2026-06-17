@@ -1,0 +1,177 @@
+version: 1
+framework: b2s
+description: >
+  Staged workflow definition for the technical-spec-modular workflow type.
+  Extends the standard enterprise-modular lifecycle with a dedicated
+  technical-specifications stage that produces per-surface API specs,
+  data schema specs, and integration specs before story handoff.
+  Technical specifications are design-detail artifacts consumed by
+  downstream delivery steps, not quality gates.
+
+constraints:
+  single_active_action: true
+  max_active_actions: 1
+  state_files_orchestrator_only: true
+
+stages:
+  - id: "0-routing"
+    name: "Initiative routing"
+    description: "Determine delivery mode and execution mode before downstream work begins."
+    execution_mode: serial
+    actions:
+      - route-initiative
+    next_stages:
+      - id: "2-business-intake"
+        condition: always
+
+  - id: "2-business-intake"
+    name: "Business intake"
+    description: "Create the primary business intake artifact and present it for review."
+    execution_mode: serial
+    actions:
+      - create-business-intake-summary
+      - gate-business-intake-review
+    next_stages:
+      - id: "2b-business-analysis"
+        condition: gate-business-intake-review accepted
+
+  - id: "2b-business-analysis"
+    name: "Business analysis"
+    description: "Create requirements and core business-analysis artifacts."
+    execution_mode: serial
+    actions:
+      - create-requirements
+      - create-use-case-diagram
+      - create-entity-model
+      - create-business-rules
+      - find-gaps-and-questions
+      - create-actors-and-personas
+      - create-use-case-specs
+      - create-process-flows
+    next_stages:
+      - id: "2c-optional-business-analysis"
+        condition: optional_artifacts_requested not empty
+      - id: "3-planning"
+        condition: always
+
+  - id: "2c-optional-business-analysis"
+    name: "Optional business analysis"
+    description: "Run optional business-analysis actions requested by readiness or a human."
+    execution_mode: serial
+    actions:
+      - create-business-test-expectations
+    next_stages:
+      - id: "3-planning"
+        condition: always
+
+  - id: "3-planning"
+    name: "Architecture and planning"
+    description: "Shape architecture and planning artifacts from the business-analysis baseline."
+    execution_mode: serial
+    actions:
+      - draft-architecture-from-brs
+      - review-initial-architecture
+      - create-architecture-rules
+      - review-existing-system-impact
+      - create-delivery-structure
+      - create-traceability-matrix
+      - identify-software-modules
+      - map-capabilities-to-modules
+      - define-delivery-increments
+      - gate-architecture-review
+    next_stages:
+      - id: "4-engineering-readiness"
+        condition: gate-architecture-review accepted or gate not required
+
+  - id: "4-engineering-readiness"
+    name: "Engineering readiness"
+    description: "Assess readiness and generate initiative context. Determines api_contract_mode and which technical specs are required."
+    execution_mode: serial
+    actions:
+      - check-engineering-readiness
+      - generate-initiative-context
+      - gate-engineering-readiness-review
+    next_stages:
+      - id: "4c-technical-specifications"
+        condition: readiness_score >= 70 and gate-engineering-readiness-review accepted
+
+  - id: "4c-technical-specifications"
+    name: "Technical specifications"
+    description: "Generate per-surface API specifications, data schema specs, and integration specs. These are design-detail artifacts that downstream story packages and the handoff consume directly."
+    execution_mode: serial
+    actions:
+      - create-exposed-api-specs
+      - create-consumed-api-specs
+      - create-data-schema-specs
+      - create-integration-specs
+    next_stages:
+      - id: "4d-quality-gates"
+        condition: always
+
+  - id: "4d-quality-gates"
+    name: "Quality gates"
+    description: "Generate only the quality gates triggered by the readiness review. Technical specs produced in stage 4c are available as optional inputs."
+    execution_mode: serial
+    actions:
+      - create-bdd-scenarios
+      - create-test-strategy
+      - create-security-review
+      - create-threat-model
+      - create-api-contract
+      - create-data-contract
+      - create-event-contract
+      - create-observability-plan
+      - create-test-plan-per-story
+    next_stages:
+      - id: "5-handoff"
+        condition: delivery_mode in [OpenSpec, Standalone]
+      - id: "5-fastpath-handoff"
+        condition: delivery_mode == FastPath
+
+  - id: "5-handoff"
+    name: "Handoff"
+    description: "Generate full handoff artifacts for OpenSpec or Standalone delivery. Story packages are enriched with concrete specs from technical-specifications/."
+    execution_mode: serial
+    actions:
+      - create-openspec-handoff
+      - create-standalone-handoff
+    next_stages:
+      - id: "5b-post-handoff"
+        condition: optional_artifacts_requested not empty
+      - id: "6-review-package"
+        condition: always
+
+  - id: "5-fastpath-handoff"
+    name: "FastPath handoff"
+    description: "Generate compact handoff artifacts for FastPath delivery."
+    execution_mode: serial
+    actions:
+      - create-compact-handoff
+    next_stages:
+      - id: "6-review-package"
+        condition: always
+
+  - id: "5b-post-handoff"
+    name: "Post-handoff optional artifacts"
+    description: "Run optional post-handoff actions such as test stubs and planning views."
+    execution_mode: serial
+    actions:
+      - generate-test-stubs
+      - create-agile-planning-view
+    next_stages:
+      - id: "6-review-package"
+        condition: always
+
+  - id: "6-review-package"
+    name: "Review package"
+    description: "Assemble a stakeholder-facing package from completed artifacts."
+    execution_mode: serial
+    actions:
+      - create-review-package
+    next_stages: []
+
+human_triggered_actions:
+  - create-brs
+  - senior-code-review
+  - architecture-review-implementation
+  - spec-correction
