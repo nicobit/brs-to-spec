@@ -1073,12 +1073,13 @@ actions:
     inputs:
       required:
         - "engineering-readiness/readiness-check.md"
-        - "planning/delivery-structure.md"
+        - "business-analysis/requirements.md"
         - "business-analysis/business-rules.md"
         - "business-analysis/actors-and-personas.md"
         - "input/brs.md"
       optional:
         - "input/brs/*.md"
+        - "planning/delivery-structure.md"
     outputs:
       primary: "quality-gates/bdd/"
       secondary: []

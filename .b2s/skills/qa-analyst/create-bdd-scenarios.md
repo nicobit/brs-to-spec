@@ -39,7 +39,7 @@ No standalone `quality-gates/bdd/` files are created. This is not a gap — it i
 
 Before starting, verify:
 - `engineering-readiness/readiness-check.md` marks `BDD` as triggered (Mode A gate condition)
-- `planning/delivery-structure.md` exists with story IDs
+- `business-analysis/requirements.md` exists with FR-NNN rows
 - BRS source files are readable
 - `business-analysis/business-rules.md` exists
 - `business-analysis/actors-and-personas.md` exists
@@ -52,7 +52,7 @@ If the BDD gate was not triggered, stop and report:
 ### Step 1 - Read all inputs
 
 Read these files in full before writing anything:
-- `{workspace_root}/planning/delivery-structure.md`
+- `{workspace_root}/business-analysis/requirements.md`
 - `{workspace_root}/business-analysis/business-rules.md`
 - `{workspace_root}/business-analysis/actors-and-personas.md`
 - `{workspace_root}/engineering-readiness/readiness-check.md`
@@ -60,13 +60,28 @@ Read these files in full before writing anything:
 
 Do not start writing until all available inputs are read completely.
 
-### Step 2 - Write scenarios
+### Step 2 - Define feature clusters
 
-Assign globally sequential `SCN-NNN` IDs and create one file per feature under `{workspace_root}/quality-gates/bdd/`.
+Group the FR-NNN requirements from `requirements.md` into logical feature clusters.
+A feature cluster is a coherent business capability (e.g. "Application Intake", "AI Scoring", "AML/KYC Compliance").
 
-For each story, apply the Required Scenario Coverage rules below.
+Rules:
+- Assign sequential `F-NNN` IDs starting from `F-001`
+- Each cluster should contain 3–8 related FRs
+- Every FR-NNN must belong to exactly one cluster
+- Name each cluster after its business capability, not a technical component
+- Document the FR-to-feature mapping at the top of each file
 
-Every scenario must include full Gherkin and reference the specific `AC-NNN` it validates and the story ID (`F-XXX.X`) it belongs to.
+### Step 3 - Write scenarios
+
+Assign globally sequential `SCN-NNN` IDs and create one file per feature cluster under `{workspace_root}/quality-gates/bdd/F-NNN.md`.
+
+For each FR in the cluster, apply the Required Scenario Coverage rules below.
+
+Every scenario must include full Gherkin and reference:
+- the `FR-NNN` it validates
+- the `BR-NNN` business rule it enforces (if applicable)
+- the actor from `actors-and-personas.md` who performs the action
 
 ## Scenario Quality Rules
 
@@ -74,13 +89,14 @@ Each scenario MUST:
 - be written in valid Given/When/Then Gherkin
 - describe observable business behaviour, not implementation steps
 - have a meaningful name that identifies the business situation
-- link to the AC-NNN it validates
-- link to the story ID (F-XXX.X) it belongs to
+- link to the FR-NNN it validates
+- link to the BR-NNN business rule it enforces (if applicable)
+- name the actor performing the action (from actors-and-personas.md)
 
 Each scenario MUST NOT:
 - describe developer activity (e.g. "Given the developer writes code")
 - have a vague Then clause (e.g. "Then the feature works", "Then it succeeds")
-- duplicate the user story sentence verbatim as the scenario name
+- duplicate the FR title verbatim as the scenario name
 
 Required scenario coverage per story (include all that apply):
 - happy path (always required)
@@ -100,11 +116,13 @@ Use `.b2s/artifact-templates/bdd-scenarios.md` as the shape contract for each fe
 
 ## Done criteria
 
-- [ ] Every feature has a BDD file
+- [ ] Every FR-NNN is covered by at least one scenario
+- [ ] FR-NNN rows are grouped into F-NNN feature cluster files
+- [ ] One `F-NNN.md` file exists per feature cluster under `quality-gates/bdd/`
 - [ ] Every story has minimum scenario coverage (happy path + negative)
-- [ ] `SCN-NNN` IDs are globally sequential
-- [ ] Every scenario has full Gherkin
-- [ ] Every scenario links to AC-NNN and story ID
+- [ ] `SCN-NNN` IDs are globally sequential across all files
+- [ ] Every scenario has full Gherkin with a concrete Then clause
+- [ ] Every scenario links to FR-NNN (and BR-NNN where applicable)
 - [ ] Omitted scenario types are documented with reason
 - [ ] Status is `In progress`
 
