@@ -12,6 +12,7 @@
   "action_status": {},
   "artifact_status": {},
   "readiness_score": null,
+  "api_contract_mode": null,
   "quality_gates_triggered": [],
   "optional_artifacts_requested": [],
   "open_decisions": 0,

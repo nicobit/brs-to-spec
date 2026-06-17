@@ -45,6 +45,13 @@ def _parse_readiness_fields(workspace_root, state: dict) -> None:
         if match:
             state["readiness_score"] = int(match.group(1))
 
+    api_contract_mode = _markdown_row_value(text, "API contract mode")
+    valid_modes = {"product", "internal", "coordinated"}
+    if api_contract_mode and api_contract_mode.lower() in valid_modes:
+        state["api_contract_mode"] = api_contract_mode.lower()
+    elif "api_contract_mode" not in state or state["api_contract_mode"] is None:
+        state["api_contract_mode"] = "internal"
+
     gate_map = {
         "BDD Scenarios": "BDD",
         "Test Strategy": "TEST_STRATEGY",

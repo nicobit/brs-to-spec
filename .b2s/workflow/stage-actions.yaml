@@ -1291,6 +1291,158 @@ actions:
     on_pass:
       update_state: {}
 
+  - action_id: create-exposed-api-specs
+    stage_id: "4b-quality-gates"
+    title: "Create exposed API specifications"
+    persona: engineering-lead
+    skill_ref: ".b2s/skills/engineering-lead/create-exposed-api-specs.md"
+    artifact_template_ref: ".b2s/artifact-templates/exposed-api-spec.md"
+    inputs:
+      required:
+        - "architecture/architecture-review.md"
+        - "architecture/architecture-rules.md"
+        - "engineering-readiness/readiness-check.md"
+        - "input/brs.md"
+      optional:
+        - "planning/delivery-structure.md"
+        - "input/brs/*.md"
+    outputs:
+      primary: "technical-specifications/api/exposed/"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: artifact-package
+    artifact_criticality: high
+    blocked_by_stage:
+      - "4-engineering-readiness"
+    blocked_by_action:
+      - "create-api-contract"
+    conditions:
+      - "API_CONTRACT in quality_gates_triggered"
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
+  - action_id: create-consumed-api-specs
+    stage_id: "4b-quality-gates"
+    title: "Create consumed API specifications"
+    persona: engineering-lead
+    skill_ref: ".b2s/skills/engineering-lead/create-consumed-api-specs.md"
+    artifact_template_ref: ".b2s/artifact-templates/consumed-api-spec.md"
+    inputs:
+      required:
+        - "architecture/architecture-review.md"
+        - "architecture/architecture-rules.md"
+        - "input/brs.md"
+      optional:
+        - "planning/delivery-structure.md"
+        - "input/brs/*.md"
+    outputs:
+      primary: "technical-specifications/api/consumed/"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: artifact-package
+    artifact_criticality: high
+    blocked_by_stage:
+      - "4-engineering-readiness"
+    blocked_by_action:
+      - "create-exposed-api-specs"
+    conditions:
+      - "API_CONTRACT in quality_gates_triggered"
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
+  - action_id: create-data-schema-specs
+    stage_id: "4b-quality-gates"
+    title: "Create data schema specifications"
+    persona: engineering-lead
+    skill_ref: ".b2s/skills/engineering-lead/create-data-schema-specs.md"
+    artifact_template_ref: ".b2s/artifact-templates/data-schema-spec.md"
+    inputs:
+      required:
+        - "architecture/architecture-review.md"
+        - "architecture/architecture-rules.md"
+        - "planning/delivery-structure.md"
+      optional:
+        - "business-analysis/requirements.md"
+        - "business-analysis/business-rules.md"
+        - "input/brs.md"
+        - "input/brs/*.md"
+    outputs:
+      primary: "technical-specifications/data/"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: artifact-package
+    artifact_criticality: high
+    blocked_by_stage:
+      - "4-engineering-readiness"
+    blocked_by_action:
+      - "create-data-contract"
+    conditions:
+      - "DATA_CONTRACT in quality_gates_triggered"
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
+  - action_id: create-integration-specs
+    stage_id: "4b-quality-gates"
+    title: "Create integration specifications"
+    persona: engineering-lead
+    skill_ref: ".b2s/skills/engineering-lead/create-integration-specs.md"
+    artifact_template_ref: ".b2s/artifact-templates/integration-spec.md"
+    inputs:
+      required:
+        - "architecture/architecture-review.md"
+        - "architecture/architecture-rules.md"
+      optional:
+        - "planning/delivery-structure.md"
+        - "input/brs.md"
+        - "input/brs/*.md"
+        - "technical-specifications/api/consumed/"
+    outputs:
+      primary: "technical-specifications/integrations/"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: artifact-package
+    artifact_criticality: high
+    blocked_by_stage:
+      - "4-engineering-readiness"
+    blocked_by_action:
+      - "create-consumed-api-specs"
+    conditions:
+      - "API_CONTRACT in quality_gates_triggered or DATA_CONTRACT in quality_gates_triggered"
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
   - action_id: create-data-contract
     stage_id: "4b-quality-gates"
     title: "Create data contract"
@@ -1506,6 +1658,10 @@ actions:
         - "quality-gates/test-strategy.md"
         - "planning/epics/"
         - "planning/features/"
+        - "technical-specifications/api/exposed/"
+        - "technical-specifications/api/consumed/"
+        - "technical-specifications/data/"
+        - "technical-specifications/integrations/"
     outputs:
       primary: "specs/"
       secondary: []
