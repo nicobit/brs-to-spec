@@ -778,25 +778,50 @@ def _validate_readiness_check(path: Path, workspace_root: Path) -> list[dict[str
 def _validate_bdd_directory(path: Path, workspace_root: Path) -> list[dict[str, str]]:
     checks = []
     checks.extend(_non_empty_directory(path))
-    files = sorted(path.glob("*.md"))
+    all_files = sorted(path.glob("*.md"))
+    feature_files = [f for f in all_files if re.match(r"^F-\d+", f.name)]
+    wrong_files = [f for f in all_files if not re.match(r"^F-\d+", f.name)]
     checks.append(
         _result(
             "has_feature_files",
             path.name,
-            bool(files),
-            "directory contains feature-level markdown files" if files else "no feature markdown files found",
+            bool(feature_files),
+            "directory contains F-NNN.md feature files" if feature_files
+            else f"no F-NNN.md files found — got {[f.name for f in all_files]} instead; each feature must be a separate F-NNN.md file",
         )
     )
-    if files:
-        sample = _read_text(files[0])
+    if wrong_files:
         checks.append(
             _result(
-                "has_gherkin",
-                files[0].name,
-                "```gherkin" in sample and "Scenario:" in sample,
-                "sample feature file contains full Gherkin scenarios",
+                "no_wrongly_named_files",
+                path.name,
+                False,
+                f"unexpected file(s) {[f.name for f in wrong_files]} — BDD output must be F-NNN.md files, not a single scenarios.md or similar",
             )
         )
+    if feature_files:
+        for feature_file in feature_files:
+            sample = _read_text(feature_file)
+            has_gherkin = "```gherkin" in sample and "Scenario:" in sample
+            checks.append(
+                _result(
+                    "has_gherkin",
+                    feature_file.name,
+                    has_gherkin,
+                    "feature file contains full Gherkin scenarios" if has_gherkin
+                    else f"{feature_file.name}: no ```gherkin block with Scenario: found",
+                )
+            )
+            has_then = bool(re.search(r"^\s+Then\s", sample, re.MULTILINE))
+            checks.append(
+                _result(
+                    "gherkin_has_then",
+                    feature_file.name,
+                    has_then,
+                    "Gherkin scenarios have Then clauses" if has_then
+                    else f"{feature_file.name}: no Then clause found — scenarios must have observable outcomes",
+                )
+            )
     return checks
 
 
