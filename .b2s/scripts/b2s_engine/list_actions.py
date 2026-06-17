@@ -17,10 +17,11 @@ _STATUS_LABEL = {
 }
 
 _STATUS_SYMBOL = {
-    "accepted": "[+]",
-    "ai_validated": "[>]",
-    "failed": "[x]",
-    "not_run": "[ ]",
+    "accepted": "ok  ",
+    "ai_validated": "ai  ",
+    "failed": "FAIL",
+    "not_run": "    ",
+    "skipped": "skip",
 }
 
 
@@ -105,14 +106,13 @@ def run(args: Any) -> None:
         if entry["stage_id"] != last_stage:
             print(f"\n## {entry['stage_id']}")
             last_stage = entry["stage_id"]
-        symbol = _STATUS_SYMBOL.get(entry["status"], "[ ]")
+        symbol = _STATUS_SYMBOL.get(entry["status"], "    ")
         marker = " <-- next" if entry["is_next"] else ""
         gate = " [gate]" if entry["human_gate"] else ""
-        print(f"  {symbol} {entry['action_id']}{gate}{marker}")
-        if entry["status"] == "skipped":
-            print(f"       (skipped - conditions not met for this initiative)")
+        skip_note = "  (conditions not met)" if entry["status"] == "skipped" else ""
+        print(f"  {symbol}  {entry['action_id']}{gate}{marker}{skip_note}")
 
     print(f"\nCurrent stage : {current_stage or '—'}")
     print(f"Next action   : {next_action or '—'}")
     print()
-    print("Legend: [+] accepted  [>] ai_validated  [x] failed  [ ] not_run")
+    print("Legend: ok=accepted  ai=ai_validated  FAIL=failed  (blank)=not_run  skip=skipped")
