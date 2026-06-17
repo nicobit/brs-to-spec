@@ -24,6 +24,7 @@ DEFAULT_OUTPUTS = {
     "update-state": ".b2s/tmp/current-state-update.json",
     "repair-state": ".b2s/tmp/current-state-update.json",
     "reset-to-phase": ".b2s/tmp/current-state-update.json",
+    "run-action": ".b2s/tmp/run-action.json",
     "retry-action": ".b2s/tmp/current-state-update.json",
     "rerun-last-action": ".b2s/tmp/rerun-last-action.json",
     "approve-current-gate": ".b2s/tmp/current-gate.json",

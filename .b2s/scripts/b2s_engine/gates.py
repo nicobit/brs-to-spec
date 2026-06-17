@@ -227,6 +227,85 @@ def rerun_last_action(args: object) -> None:
     )
 
 
+def run_action(args: object) -> None:
+    """Clear a named action and set it as next_action so the skill re-executes it."""
+    workspace_root = workspace.resolve_workspace_root(args.workspace_root)
+    state = workspace.load_state(workspace_root)
+    _, actions_by_id = workspace.load_stage_actions(workspace_root)
+
+    action_id = getattr(args, "action_id", None)
+    if not action_id:
+        raise ValueError("--action-id is required for run-action.")
+    if action_id not in actions_by_id:
+        raise ValueError(f"Unknown action ID: {action_id}")
+
+    current_status = state.get("action_status", {}).get(action_id, "not_run")
+    if current_status == "accepted":
+        raise ValueError(
+            f"run-action cannot rerun '{action_id}' because it is 'accepted' (human-approved). "
+            f"Use reject-current-gate first, then run-action."
+        )
+
+    action = actions_by_id[action_id]
+    gate_action_id = None
+    human_gate = action.get("human_gate") or {}
+    if human_gate.get("required"):
+        candidate = f"gate-{human_gate.get('gate_id', '')}"
+        if candidate in actions_by_id:
+            gate_action_id = candidate
+
+    previous_state = {
+        "current_stage": state.get("current_stage"),
+        "next_action": state.get("next_action"),
+        "action_status": current_status,
+    }
+
+    state["action_status"].pop(action_id, None)
+    if gate_action_id:
+        state["action_status"].pop(gate_action_id, None)
+
+    for artifact_path in workspace.action_output_paths(action):
+        state["artifact_status"].pop(artifact_path, None)
+
+    state["awaiting_human"] = False
+    state["current_gate"] = None
+    state["blocked_reason"] = None
+    state["active_action"] = action_id
+    state["next_action"] = action_id
+    state["last_updated"] = _timestamp()
+    state["state_validated"] = True
+
+    workspace.save_state(workspace_root, state)
+    workspace.save_json_file(
+        workspace.resolve_output_path("run-action", workspace_root, args.output),
+        {
+            "overall": "pass",
+            "action_id": action_id,
+            "previous_state_summary": previous_state,
+            "applied_changes": {
+                "action_reopened": action_id,
+                "gate_cleared": gate_action_id,
+                "artifacts_cleared": workspace.action_output_paths(action),
+                "next_action": action_id,
+            },
+            "next_action": action_id,
+            "gate_state": None,
+        },
+    )
+    workspace.append_execution_log(
+        workspace_root,
+        command="run-action",
+        overall="pass",
+        action_id=action_id,
+        details={
+            "previous_status": current_status,
+            "gate_cleared": gate_action_id,
+            "artifacts_cleared": workspace.action_output_paths(action),
+            "next_action": action_id,
+        },
+    )
+
+
 def reject_current_gate(args: object) -> None:
     workspace_root = workspace.resolve_workspace_root(args.workspace_root)
     state = workspace.load_state(workspace_root)

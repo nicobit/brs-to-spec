@@ -31,6 +31,7 @@ def build_parser() -> argparse.ArgumentParser:
         "update-state": state.run,
         "repair-state": state.repair_state,
         "reset-to-phase": reset.run,
+        "run-action": gates.run_action,
         "retry-action": gates.retry_action,
         "rerun-last-action": gates.rerun_last_action,
         "approve-current-gate": gates.approve_current_gate,
@@ -76,12 +77,12 @@ def build_parser() -> argparse.ArgumentParser:
                     "Defaults to 'enterprise-modular'."
                 ),
             )
-        if name == "retry-action":
+        if name in {"run-action", "retry-action"}:
             subparser.add_argument(
                 "--action-id",
                 type=str,
                 required=True,
-                help="The action ID to reopen for retry after a gate rejection.",
+                help="The action ID to reopen and re-execute.",
             )
         if name in {"approve-current-gate", "reject-current-gate"}:
             subparser.add_argument(
