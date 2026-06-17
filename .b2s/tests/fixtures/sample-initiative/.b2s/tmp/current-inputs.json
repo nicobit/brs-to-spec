@@ -1,0 +1,27 @@
+{
+  "overall": "pass",
+  "action_id": "route-initiative",
+  "required_inputs": [
+    {
+      "path": "input/brs.md",
+      "exists": true,
+      "matches": [
+        "input/brs.md"
+      ]
+    }
+  ],
+  "optional_inputs": [
+    {
+      "path": "input/architecture.md",
+      "exists": false,
+      "matches": []
+    },
+    {
+      "path": "input/input-package.md",
+      "exists": false,
+      "matches": []
+    }
+  ],
+  "missing_required_inputs": [],
+  "read_evidence": []
+}

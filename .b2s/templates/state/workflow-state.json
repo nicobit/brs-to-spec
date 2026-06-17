@@ -1,0 +1,22 @@
+{
+  "initiative_id": null,
+  "current_stage": "0-routing",
+  "delivery_mode": null,
+  "execution_mode": null,
+  "project_type": null,
+  "last_completed_action": null,
+  "next_action": "route-initiative",
+  "active_action": null,
+  "action_status": {},
+  "artifact_status": {},
+  "readiness_score": null,
+  "quality_gates_triggered": [],
+  "optional_artifacts_requested": [],
+  "open_decisions": 0,
+  "blocking_decisions": 0,
+  "awaiting_human": false,
+  "current_gate": null,
+  "blocked_reason": null,
+  "state_validated": false,
+  "last_updated": null
+}

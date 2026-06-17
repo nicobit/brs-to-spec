@@ -2,7 +2,7 @@
 
 ## Context
 
-`.brs2spec/8-copilot-implementation/01-implement-one-task.md` is currently a long narrative
+`.brs2spec/skills/8-copilot-implementation/01-implement-one-task.md` is currently a long narrative
 prompt (~250 lines) that describes in prose how a coding agent should think about and approach
 implementation. This is exactly the artifact type most vulnerable to model drift — a long
 prose instruction fed to an LLM produces increasingly variable output as models change.
@@ -21,7 +21,7 @@ Current structure problems:
 
 ## What needs to change
 
-### 1. Restructure `.brs2spec/8-copilot-implementation/01-implement-one-task.md`
+### 1. Restructure `.brs2spec/skills/8-copilot-implementation/01-implement-one-task.md`
 
 Reorder sections so constraints come first:
 
@@ -54,12 +54,12 @@ Add:
 
 Target length: under 120 lines. Current: ~250 lines.
 
-### 2. Apply the same restructuring to `.brs2spec/8-copilot-implementation/02-fix-review-comments.md`
+### 2. Apply the same restructuring to `.brs2spec/skills/8-copilot-implementation/02-fix-review-comments.md`
 
 Same principle — move constraints to the top, condense narrative, remove repetition.
 Target length: under 80 lines. Current: ~120 lines.
 
-### 3. Update `.brs2spec/9-reviewers/01-senior-code-review.md`
+### 3. Update `.brs2spec/skills/9-reviewers/01-senior-code-review.md`
 
 Add a check to the review: "Does the implementation reference at least one SCN-NNN as
 its done criterion?" If not, flag it as a gap.
@@ -75,11 +75,11 @@ shapes everything after."
 
 ## Implementation steps
 
-1. Read `.brs2spec/8-copilot-implementation/01-implement-one-task.md` in full
+1. Read `.brs2spec/skills/8-copilot-implementation/01-implement-one-task.md` in full
 2. Rewrite it using the new structure — constraints first, condensed narrative, SCN anchoring
-3. Read `.brs2spec/8-copilot-implementation/02-fix-review-comments.md` in full
+3. Read `.brs2spec/skills/8-copilot-implementation/02-fix-review-comments.md` in full
 4. Rewrite it using the same principle
-5. Read `.brs2spec/9-reviewers/01-senior-code-review.md` — add SCN reference check
+5. Read `.brs2spec/skills/9-reviewers/01-senior-code-review.md` — add SCN reference check
 6. Read `docs/12-prompt-quality-guidelines.md` — add constraints-first rule with example
 
 ## Quality bar for this enhancement

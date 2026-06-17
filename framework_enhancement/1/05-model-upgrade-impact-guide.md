@@ -38,8 +38,8 @@ This is not a bug. It is the mechanism.
 | Business summary, gap analysis | Low — human-reviewed before use | None unless re-running |
 | Architecture review, delivery spec | Low — human-reviewed before use | None unless re-running |
 | `.github/prompts/*.prompt.md` | Medium — execution artifacts | Run smoke test |
-| `.brs2spec/8-copilot-implementation/*.md` | Medium-High — long narrative | Run smoke test |
-| `.brs2spec/1-routing/*.md` | Medium — routing decisions affect everything downstream | Run smoke test |
+| `.brs2spec/skills/8-copilot-implementation/*.md` | Medium-High — long narrative | Run smoke test |
+| `.brs2spec/skills/1-routing/*.md` | Medium — routing decisions affect everything downstream | Run smoke test |
 | Free-form prose prompts | High — most sensitive to model variance | Review and tighten |
 
 #### Smoke test procedure

@@ -16,7 +16,7 @@ in how they were generated does not invalidate them — a human validates them b
 
 **Execution artifacts** — fed into LLMs or CI to drive automated action:
 - `.github/prompts/*.prompt.md` — instructions to GitHub Copilot
-- `.brs2spec/8-copilot-implementation/*.md` — code generation prompts
+- `.brs2spec/skills/8-copilot-implementation/*.md` — code generation prompts
 - BDD scenarios when wired to a test runner (transition from human to execution artifact)
 - CI gate configs
 

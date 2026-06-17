@@ -43,7 +43,7 @@ target test framework. The user specifies the language and test framework. The s
 Supported frameworks to cover: pytest-bdd (Python), Cucumber (Java / JS), SpecFlow (.NET),
 Vitest / Jest with describe/it blocks (TypeScript).
 
-### 3. Update `.brs2spec/8-copilot-implementation/01-implement-one-task.md`
+### 3. Update `.brs2spec/skills/8-copilot-implementation/01-implement-one-task.md`
 
 Add a rule that every task must reference at least one SCN-NNN from the BDD scenarios file
 as its done criterion. The implementation is not complete until the referenced scenario passes.
@@ -62,7 +62,7 @@ because it is machine-verifiable. Write it before implementation, not after."
 
 1. Read `docs/06-conditional-quality-gates.md` — add artifact durability hierarchy section
 2. Read `.brs2spec/templates/templates/quality-gates/bdd-scenarios.md` — add header note
-3. Read `.brs2spec/8-copilot-implementation/01-implement-one-task.md` — add SCN reference rule
+3. Read `.brs2spec/skills/8-copilot-implementation/01-implement-one-task.md` — add SCN reference rule
 4. Create `.brs2spec/quality-gates/generate-test-stubs-from-bdd.md` as a new prompt
 5. Verify that all cross-references between files are consistent
 
