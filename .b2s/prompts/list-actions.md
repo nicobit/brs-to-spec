@@ -28,6 +28,12 @@ Recognised stage IDs:
 - `5-handoff`
 - `6-review-package`
 
+## Diagram mode
+
+If the user asks for a diagram or visual view, add `--diagram` to the command.
+The output will be a Mermaid `flowchart TD` block that VS Code Copilot chat
+renders inline. Pass `--stage-id` alongside `--diagram` to show only one phase.
+
 ## Stop condition
 
 Stop immediately after printing the output. Do not run any other command.

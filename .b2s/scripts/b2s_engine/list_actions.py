@@ -3,18 +3,12 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
 from b2s_engine import workspace
 
-
-_STATUS_LABEL = {
-    "accepted": "accepted",
-    "ai_validated": "ai_validated",
-    "failed": "failed",
-    "not_run": "not_run",
-}
 
 _STATUS_SYMBOL = {
     "accepted": "[+]",
@@ -22,6 +16,15 @@ _STATUS_SYMBOL = {
     "failed": "[!]",
     "not_run": "[-]",
     "skipped": "[/]",
+}
+
+# Mermaid node style per status
+_MERMAID_STYLE = {
+    "accepted": "fill:#4caf50,color:#fff,stroke:#388e3c",
+    "ai_validated": "fill:#2196f3,color:#fff,stroke:#1565c0",
+    "failed": "fill:#f44336,color:#fff,stroke:#b71c1c",
+    "not_run": "fill:#eeeeee,color:#333,stroke:#9e9e9e",
+    "skipped": "fill:#ffffff,color:#aaa,stroke:#ccc,stroke-dasharray:4",
 }
 
 
@@ -46,6 +49,51 @@ def _conditions_pass(action: dict[str, Any], state: dict[str, Any]) -> bool:
             if execution_mode != val:
                 return False
     return True
+
+
+def _safe_id(action_id: str) -> str:
+    """Convert action_id to a valid Mermaid node ID."""
+    return re.sub(r"[^a-zA-Z0-9_]", "_", action_id)
+
+
+def _build_diagram(result: list[dict[str, Any]], current_stage: str | None, next_action: str | None) -> str:
+    lines = ["```mermaid", "flowchart TD"]
+
+    # Group by stage
+    stages: dict[str, list[dict[str, Any]]] = {}
+    for entry in result:
+        stages.setdefault(entry["stage_id"], []).append(entry)
+
+    style_lines: list[str] = []
+
+    for stage_id, entries in stages.items():
+        is_current = stage_id == current_stage
+        stage_label = f">> {stage_id}" if is_current else stage_id
+        lines.append(f'  subgraph {_safe_id(stage_id)}["{stage_label}"]')
+        for entry in entries:
+            nid = _safe_id(entry["action_id"])
+            label_parts = [entry["action_id"]]
+            if entry["is_next"]:
+                label_parts.append("NEXT")
+            if entry["human_gate"]:
+                label_parts.append("gate")
+            if entry["status"] == "skipped":
+                label_parts.append("skipped")
+            label = " | ".join(label_parts)
+            shape_open, shape_close = ("([", "])") if entry["human_gate"] else ("[", "]")
+            lines.append(f'    {nid}{shape_open}"{label}"{shape_close}')
+            style = _MERMAID_STYLE.get(entry["status"], _MERMAID_STYLE["not_run"])
+            style_lines.append(f"  style {nid} {style}")
+        lines.append("  end")
+
+    # Stage-to-stage arrows (in order of first appearance)
+    stage_ids = list(stages.keys())
+    for i in range(len(stage_ids) - 1):
+        lines.append(f"  {_safe_id(stage_ids[i])} --> {_safe_id(stage_ids[i+1])}")
+
+    lines.extend(style_lines)
+    lines.append("```")
+    return "\n".join(lines)
 
 
 def run(args: Any) -> None:
@@ -100,7 +148,16 @@ def run(args: Any) -> None:
             encoding="utf-8",
         )
 
-    # Human-readable output
+    diagram_mode = getattr(args, "diagram", False)
+
+    if diagram_mode:
+        print(_build_diagram(result, current_stage, next_action))
+        print(f"\nCurrent stage : {current_stage or '—'}")
+        print(f"Next action   : {next_action or '—'}")
+        print("Colors: green=accepted  blue=ai_validated  red=failed  grey=not_run  dashed=skipped")
+        return
+
+    # Text list output
     last_stage = None
     for entry in result:
         if entry["stage_id"] != last_stage:

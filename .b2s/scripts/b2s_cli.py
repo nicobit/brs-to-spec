@@ -98,6 +98,13 @@ def build_parser() -> argparse.ArgumentParser:
                 required=False,
                 help="Stage ID to filter (list-actions) or reset back to (reset-to-phase).",
             )
+        if name == "list-actions":
+            subparser.add_argument(
+                "--diagram",
+                action="store_true",
+                default=False,
+                help="Output a Mermaid flowchart diagram instead of the text list.",
+            )
         subparser.set_defaults(handler=handler)
 
     return parser
