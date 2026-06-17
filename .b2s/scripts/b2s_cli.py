@@ -11,7 +11,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from b2s_engine import dispatch, gates, init_workspace, inputs, next_step, reset, state, validation  # noqa: E402
+from b2s_engine import dispatch, gates, init_workspace, inputs, list_actions, next_step, reset, state, validation  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -23,6 +23,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     commands = {
         "init-workspace": init_workspace.run,
+        "list-actions": list_actions.run,
         "dispatch-next": dispatch.run,
         "next-step": next_step.run,
         "collect-inputs": inputs.run,
@@ -89,12 +90,12 @@ def build_parser() -> argparse.ArgumentParser:
                 required=False,
                 help="Optional decision note to persist in the gate output.",
             )
-        if name == "reset-to-phase":
+        if name in {"reset-to-phase", "list-actions"}:
             subparser.add_argument(
                 "--stage-id",
                 type=str,
                 required=False,
-                help="Stage ID to reset the workflow back to.",
+                help="Stage ID to filter (list-actions) or reset back to (reset-to-phase).",
             )
         subparser.set_defaults(handler=handler)
 
