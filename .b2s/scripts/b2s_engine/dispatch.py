@@ -105,7 +105,7 @@ STATUS_COMPLETE = "complete"     # workflow is fully complete
 def build_plan(workspace_root: Path) -> dict[str, Any]:
     """Build and return an execution plan dict for the current workflow state."""
     current_state = workspace.load_state(workspace_root)
-    _, actions_by_id = workspace.load_stage_actions()
+    _, actions_by_id = workspace.load_stage_actions(workspace_root)
 
     # --- gate check ---
     if current_state.get("awaiting_human"):
@@ -195,6 +195,7 @@ def build_plan(workspace_root: Path) -> dict[str, Any]:
         "status": STATUS_READY,
         "initiative_id": current_state.get("initiative_id"),
         "current_stage": selection["selected_stage"],
+        "workflow_source": workspace.active_workflow_source(workspace_root),
         "message": (
             f"Ready to execute `{action_id}` - {summary['title']}. "
             f"Load skill prompt at `{summary['skill_ref']}` and execute it, "

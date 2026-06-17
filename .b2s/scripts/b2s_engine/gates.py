@@ -77,7 +77,7 @@ def approve_current_gate(args: object) -> None:
 def retry_action(args: object) -> None:
     workspace_root = workspace.resolve_workspace_root(args.workspace_root)
     state = workspace.load_state(workspace_root)
-    _, actions_by_id = workspace.load_stage_actions()
+    _, actions_by_id = workspace.load_stage_actions(workspace_root)
 
     action_id = getattr(args, "action_id", None)
     if not action_id:
@@ -152,7 +152,7 @@ def retry_action(args: object) -> None:
 def rerun_last_action(args: object) -> None:
     workspace_root = workspace.resolve_workspace_root(args.workspace_root)
     state = workspace.load_state(workspace_root)
-    _, actions_by_id = workspace.load_stage_actions()
+    _, actions_by_id = workspace.load_stage_actions(workspace_root)
 
     action_id = state.get("last_completed_action")
     if not action_id:

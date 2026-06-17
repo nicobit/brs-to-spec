@@ -1,0 +1,8 @@
+{
+  "initiative_id": "I999-LOCAL-WF",
+  "workflow_type": "fast-path",
+  "active_action": "route-initiative",
+  "next_action": "route-initiative",
+  "action_status": {},
+  "artifact_status": {}
+}

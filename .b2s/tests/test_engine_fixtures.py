@@ -16,6 +16,12 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 CLI_PATH = REPO_ROOT / ".b2s" / "scripts" / "b2s_cli.py"
 FIXTURES_ROOT = REPO_ROOT / ".b2s" / "tests" / "fixtures"
 RUNTIME_ROOT = REPO_ROOT / ".b2s" / "tests" / "runtime"
+SCRIPT_ROOT = REPO_ROOT / ".b2s" / "scripts"
+
+if str(SCRIPT_ROOT) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_ROOT))
+
+from b2s_engine import next_step, workspace  # noqa: E402
 
 
 def run_cli(*args: str) -> subprocess.CompletedProcess[str]:
@@ -416,6 +422,42 @@ class StoryPackageValidatorTests(unittest.TestCase):
         )
         validation = self.read_yaml(".b2s/tmp/current-validation.yaml")
         self.assertEqual(validation["overall"], "pass")
+
+
+class WorkflowLoadingTests(unittest.TestCase):
+
+    def test_local_workflow_is_used_when_present(self):
+        """When initiative has .b2s/workflow/stage-actions.yaml, it is used instead of central."""
+        ws = FIXTURES_ROOT / "local-workflow-override"
+        actions, by_id = workspace.load_stage_actions(workspace_root=ws)
+        action_ids = [a["action_id"] for a in actions]
+        self.assertNotIn("create-requirements", action_ids)
+        self.assertIn("route-initiative", action_ids)
+
+    def test_central_workflow_used_when_no_local(self):
+        """When initiative has no .b2s/workflow/, central stage-actions.yaml is used."""
+        ws = FIXTURES_ROOT / "no-local-workflow"
+        actions, by_id = workspace.load_stage_actions(workspace_root=ws)
+        action_ids = [a["action_id"] for a in actions]
+        self.assertIn("create-requirements", action_ids)
+
+    def test_workflow_source_local(self):
+        """active_workflow_source returns 'local' when initiative has local workflow."""
+        ws = FIXTURES_ROOT / "local-workflow-override"
+        self.assertEqual(workspace.active_workflow_source(ws), "local")
+
+    def test_workflow_source_central(self):
+        """active_workflow_source returns 'central' when initiative has no local workflow."""
+        ws = FIXTURES_ROOT / "no-local-workflow"
+        self.assertEqual(workspace.active_workflow_source(ws), "central")
+
+    def test_next_step_uses_local_workflow(self):
+        """next_step.select_next_action uses initiative-local workflow when present."""
+        ws = FIXTURES_ROOT / "local-workflow-override"
+        state = workspace.load_state(ws)
+        result = next_step.select_next_action(ws, state)
+        self.assertEqual(result["selected_action"], "route-initiative")
+        self.assertEqual(result["selected_stage"], "0-routing")
 
 
 if __name__ == "__main__":

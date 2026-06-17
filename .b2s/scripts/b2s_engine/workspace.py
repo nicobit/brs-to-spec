@@ -175,15 +175,34 @@ def resolve_output_path(command: str, workspace_root: Path, output: Path | None)
     return (workspace_root / relative).resolve()
 
 
-def load_stage_actions() -> tuple[list[dict[str, Any]], dict[str, dict[str, Any]]]:
-    payload = load_yaml_file(FRAMEWORK_ROOT / "workflow" / "stage-actions.yaml")
+def active_workflow_source(workspace_root: Path) -> str:
+    """Return 'local' if initiative has its own workflow files, 'central' otherwise."""
+    local = workspace_root / ".b2s" / "workflow" / "stage-actions.yaml"
+    return "local" if local.exists() else "central"
+
+
+def _resolve_workflow_path(filename: str, workspace_root: Path | None) -> Path:
+    """Return initiative-local workflow file if present, otherwise central framework file."""
+    if workspace_root is not None:
+        local = workspace_root / ".b2s" / "workflow" / filename
+        if local.exists():
+            return local
+    return FRAMEWORK_ROOT / "workflow" / filename
+
+
+def load_stage_actions(
+    workspace_root: Path | None = None,
+) -> tuple[list[dict[str, Any]], dict[str, dict[str, Any]]]:
+    payload = load_yaml_file(_resolve_workflow_path("stage-actions.yaml", workspace_root))
     actions = payload["actions"]
     by_id = {action["action_id"]: action for action in actions}
     return actions, by_id
 
 
-def load_workflow_definition() -> dict[str, Any]:
-    return load_yaml_file(FRAMEWORK_ROOT / "workflow" / "workflow-definition.yaml")
+def load_workflow_definition(
+    workspace_root: Path | None = None,
+) -> dict[str, Any]:
+    return load_yaml_file(_resolve_workflow_path("workflow-definition.yaml", workspace_root))
 
 
 def action_output_paths(action: dict[str, Any]) -> list[str]:

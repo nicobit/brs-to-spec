@@ -1341,7 +1341,7 @@ def run(args: object) -> None:
     workspace_root = workspace.resolve_workspace_root(args.workspace_root)
     state = workspace.load_state(workspace_root)
     action_id = workspace.read_action_id_from_state_or_args(state, getattr(args, "action_id", None))
-    _, actions_by_id = workspace.load_stage_actions()
+    _, actions_by_id = workspace.load_stage_actions(workspace_root)
     action = actions_by_id[action_id]
 
     checks = []

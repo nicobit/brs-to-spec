@@ -163,7 +163,7 @@ def run(args: object) -> None:
         "next_action": state.get("next_action"),
     }
     action_id = workspace.read_action_id_from_state_or_args(state, getattr(args, "action_id", None))
-    _, actions_by_id = workspace.load_stage_actions()
+    _, actions_by_id = workspace.load_stage_actions(workspace_root)
     action = actions_by_id[action_id]
     validation_result = workspace.load_yaml_file(
         workspace.resolve_output_path("validate-artifact", workspace_root, None)
@@ -262,7 +262,7 @@ def repair_state(args: object) -> None:
         "action_status": dict(state.get("action_status", {})),
         "artifact_status": dict(state.get("artifact_status", {})),
     }
-    actions, actions_by_id = workspace.load_stage_actions()
+    actions, actions_by_id = workspace.load_stage_actions(workspace_root)
 
     _parse_routing_fields(workspace_root, state)
     _parse_readiness_fields(workspace_root, state)
@@ -351,7 +351,7 @@ def repair_state(args: object) -> None:
         state["next_action"] = None
         state["blocked_reason"] = f"waiting for {current_gate['owner']} review"
     else:
-        workflow = workspace.load_workflow_definition()
+        workflow = workspace.load_workflow_definition(workspace_root)
         state["current_stage"] = workflow["stages"][0]["id"]
         state["awaiting_human"] = False
         state["current_gate"] = None
