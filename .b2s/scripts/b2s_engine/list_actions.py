@@ -57,14 +57,25 @@ def _safe_id(action_id: str) -> str:
 
 
 def _build_diagram(result: list[dict[str, Any]], current_stage: str | None, next_action: str | None) -> str:
-    lines = ["```mermaid", "flowchart TD"]
+    lines = [
+        "```mermaid",
+        "%%{init: {'theme': 'base'}}%%",
+        "flowchart TD",
+        "  %% Colors: green=accepted  blue=ai_validated  red=failed  grey=not_run  dashed=skipped",
+        "  classDef accepted fill:#4caf50,color:#fff,stroke:#388e3c",
+        "  classDef ai_validated fill:#2196f3,color:#fff,stroke:#1565c0",
+        "  classDef failed fill:#f44336,color:#fff,stroke:#b71c1c",
+        "  classDef not_run fill:#eeeeee,color:#333,stroke:#9e9e9e",
+        "  classDef skipped fill:#fff,color:#bbb,stroke:#ccc,stroke-dasharray:4",
+        "  classDef next_action fill:#ff9800,color:#fff,stroke:#e65100",
+    ]
 
     # Group by stage
     stages: dict[str, list[dict[str, Any]]] = {}
     for entry in result:
         stages.setdefault(entry["stage_id"], []).append(entry)
 
-    style_lines: list[str] = []
+    class_lines: list[str] = []
 
     for stage_id, entries in stages.items():
         is_current = stage_id == current_stage
@@ -77,13 +88,11 @@ def _build_diagram(result: list[dict[str, Any]], current_stage: str | None, next
                 label_parts.append("NEXT")
             if entry["human_gate"]:
                 label_parts.append("gate")
-            if entry["status"] == "skipped":
-                label_parts.append("skipped")
             label = " | ".join(label_parts)
             shape_open, shape_close = ("([", "])") if entry["human_gate"] else ("[", "]")
             lines.append(f'    {nid}{shape_open}"{label}"{shape_close}')
-            style = _MERMAID_STYLE.get(entry["status"], _MERMAID_STYLE["not_run"])
-            style_lines.append(f"  style {nid} {style}")
+            css_class = "next_action" if entry["is_next"] else entry["status"]
+            class_lines.append(f"  class {nid} {css_class}")
         lines.append("  end")
 
     # Stage-to-stage arrows (in order of first appearance)
@@ -91,7 +100,7 @@ def _build_diagram(result: list[dict[str, Any]], current_stage: str | None, next
     for i in range(len(stage_ids) - 1):
         lines.append(f"  {_safe_id(stage_ids[i])} --> {_safe_id(stage_ids[i+1])}")
 
-    lines.extend(style_lines)
+    lines.extend(class_lines)
     lines.append("```")
     return "\n".join(lines)
 
@@ -153,8 +162,8 @@ def run(args: Any) -> None:
     if diagram_mode:
         print(_build_diagram(result, current_stage, next_action))
         print(f"\nCurrent stage : {current_stage or '—'}")
-        print(f"Next action   : {next_action or '—'}")
-        print("Colors: green=accepted  blue=ai_validated  red=failed  grey=not_run  dashed=skipped")
+        print(f"Next action   : {next_action or '—'} (orange)")
+        print("green=accepted  blue=ai_validated  orange=next  grey=not_run  dashed=skipped  red=failed")
         return
 
     # Text list output
