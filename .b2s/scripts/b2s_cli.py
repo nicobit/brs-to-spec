@@ -64,6 +64,17 @@ def build_parser() -> argparse.ArgumentParser:
                 required=False,
                 help="Initiative ID (e.g. I012-MY-APP). Used to derive workspace path when --workspace-root is omitted.",
             )
+            subparser.add_argument(
+                "--workflow-type",
+                type=str,
+                required=False,
+                default="enterprise-modular",
+                help=(
+                    "Workflow type to initialise this initiative with. "
+                    "Must match an entry in .b2s/workflow-types/index.yaml. "
+                    "Defaults to 'enterprise-modular'."
+                ),
+            )
         if name == "retry-action":
             subparser.add_argument(
                 "--action-id",

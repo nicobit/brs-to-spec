@@ -1,5 +1,7 @@
 {
   "initiative_id": null,
+  "workflow_type": null,
+  "workflow_type_recommended": null,
   "current_stage": "0-routing",
   "delivery_mode": null,
   "execution_mode": null,

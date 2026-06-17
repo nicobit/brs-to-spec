@@ -73,6 +73,29 @@ _Describe what overhead is introduced if more work than needed is selected._
 | Readiness still required? | |
 | Gates that still may trigger | |
 
+## Workflow Type
+
+| Field | Value |
+|---|---|
+| Recommended workflow type | {{enterprise-modular / fast-path}} |
+| Rationale | {{one sentence}} |
+| Current workflow type | {{read from .b2s/workflow/workflow-type.json}} |
+| Match | {{yes / no — yes if recommended == current}} |
+
+### Workflow Type Mismatch Warning
+
+If `Match` is `no`, include this block:
+
+> **Warning:** The initiative was initialised with workflow type `{{current}}` but
+> this BRS analysis recommends `{{recommended}}`. To switch workflow type, delete
+> this initiative workspace and re-run:
+> ```
+> python .b2s/scripts/b2s_cli.py init-workspace \
+>   --initiative-id {{initiative_id}} \
+>   --workflow-type {{recommended}}
+> ```
+> If you want to continue with the current workflow type, ignore this warning.
+
 ## Constraints
 
 _Any routing constraints that apply: team tooling, regulation, timeline, or delivery model limits._

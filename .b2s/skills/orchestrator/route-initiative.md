@@ -68,6 +68,24 @@ Select `BusinessCopilot` only when:
 
 Default for a real multi-feature initiative is `OpenSpec`.
 
+## Step — Recommend workflow type
+
+Read `.b2s/workflow-types/index.yaml` to understand available workflow types.
+Read `.b2s/workflow/workflow-type.json` from the initiative workspace to find the currently active workflow type.
+
+Recommend a workflow type based on these rules:
+
+- Recommend `fast-path` if ALL of the following are true:
+  - The BRS has fewer than 10 functional requirements
+  - No external integrations are mentioned
+  - No regulatory or compliance requirements are present
+  - No mention of multiple teams or parallel streams
+
+- Recommend `enterprise-modular` in all other cases.
+
+Write the recommendation and match status into the `## Workflow Type` section of the routing-decision.md output.
+If the recommended type does not match the current type, include the mismatch warning block from the template.
+
 ## Output requirements
 
 Write `routing/routing-decision.md` using `.b2s/artifact-templates/routing-decision.md`.

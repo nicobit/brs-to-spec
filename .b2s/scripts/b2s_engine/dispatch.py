@@ -107,6 +107,17 @@ def build_plan(workspace_root: Path) -> dict[str, Any]:
     current_state = workspace.load_state(workspace_root)
     _, actions_by_id = workspace.load_stage_actions(workspace_root)
 
+    # --- workflow type mismatch check ---
+    workflow_type_warning = None
+    current_type = current_state.get("workflow_type")
+    recommended_type = current_state.get("workflow_type_recommended")
+    if current_type and recommended_type and current_type != recommended_type:
+        workflow_type_warning = (
+            f"Workflow type mismatch: running '{current_type}' "
+            f"but route-initiative recommends '{recommended_type}'. "
+            f"Re-initialise with --workflow-type {recommended_type} to switch."
+        )
+
     # --- gate check ---
     if current_state.get("awaiting_human"):
         gate = current_state.get("current_gate") or {}
@@ -158,7 +169,7 @@ def build_plan(workspace_root: Path) -> dict[str, Any]:
 
     # --- workflow complete ---
     if selection["overall"] == "pass" and selection["selected_action"] is None:
-        return {
+        plan = {
             "status": STATUS_COMPLETE,
             "initiative_id": current_state.get("initiative_id"),
             "current_stage": selection["selected_stage"],
@@ -166,10 +177,13 @@ def build_plan(workspace_root: Path) -> dict[str, Any]:
             "next_cli_commands": [],
             "action": None,
         }
+        if workflow_type_warning:
+            plan["workflow_type_warning"] = workflow_type_warning
+        return plan
 
     # --- blocked ---
     if selection["overall"] == "fail":
-        return {
+        plan = {
             "status": STATUS_BLOCKED,
             "initiative_id": current_state.get("initiative_id"),
             "current_stage": selection["selected_stage"],
@@ -178,6 +192,9 @@ def build_plan(workspace_root: Path) -> dict[str, Any]:
             "next_cli_commands": [],
             "action": None,
         }
+        if workflow_type_warning:
+            plan["workflow_type_warning"] = workflow_type_warning
+        return plan
 
     # --- ready ---
     action_id = selection["selected_action"]
@@ -191,7 +208,7 @@ def build_plan(workspace_root: Path) -> dict[str, Any]:
         f"python .b2s/scripts/b2s_cli.py dispatch-next --workspace-root \"{workspace_str}\"",
     ]
 
-    return {
+    plan = {
         "status": STATUS_READY,
         "initiative_id": current_state.get("initiative_id"),
         "current_stage": selection["selected_stage"],
@@ -205,6 +222,9 @@ def build_plan(workspace_root: Path) -> dict[str, Any]:
         "after_skill_commands": after_skill_commands,
         "next_cli_commands": after_skill_commands,
     }
+    if workflow_type_warning:
+        plan["workflow_type_warning"] = workflow_type_warning
+    return plan
 
 
 def run(args: object) -> None:
@@ -246,5 +266,8 @@ def run(args: object) -> None:
 
     elif status == STATUS_BLOCKED:
         print(f"\n  Blocking reason: {plan.get('blocking_reason')}")
+
+    if plan.get("workflow_type_warning"):
+        print(f"\n  [WARNING] {plan['workflow_type_warning']}")
 
     print()

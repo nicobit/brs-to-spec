@@ -29,6 +29,9 @@ def _parse_routing_fields(workspace_root, state: dict) -> None:
         state["delivery_mode"] = delivery_mode
     if execution_mode and execution_mode in {"Enterprise", "Enterprise+Modular", "Standard"}:
         state["execution_mode"] = execution_mode
+    workflow_type_recommended = _markdown_row_value(text, "Recommended workflow type")
+    if workflow_type_recommended in {"enterprise-modular", "fast-path"}:
+        state["workflow_type_recommended"] = workflow_type_recommended
 
 
 def _parse_readiness_fields(workspace_root, state: dict) -> None:

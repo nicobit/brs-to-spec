@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import json
+import shutil
 from datetime import datetime, timezone
 from pathlib import Path
+
+import yaml
 
 from b2s_engine import workspace
 
@@ -52,6 +55,47 @@ _BRS_TEMPLATE = """\
 """
 
 
+def _copy_workflow_type(workspace_root: Path, workflow_type: str) -> None:
+    """Copy workflow type files into the initiative workspace."""
+    index_path = workspace.FRAMEWORK_ROOT / "workflow-types" / "index.yaml"
+    if not index_path.exists():
+        raise FileNotFoundError(
+            f"Workflow types index not found: {index_path}\n"
+            "Run the framework setup to create it."
+        )
+
+    index = yaml.safe_load(index_path.read_text(encoding="utf-8"))
+    types_by_id = {wt["id"]: wt for wt in index.get("workflow_types", [])}
+
+    if workflow_type not in types_by_id:
+        available = ", ".join(types_by_id.keys())
+        raise ValueError(
+            f"Unknown workflow type: '{workflow_type}'. "
+            f"Available types: {available}"
+        )
+
+    source_dir = workspace.REPO_ROOT / types_by_id[workflow_type]["path"]
+    dest_dir = workspace_root / ".b2s" / "workflow"
+    dest_dir.mkdir(parents=True, exist_ok=True)
+
+    for filename in ("stage-actions.yaml", "workflow-definition.yaml"):
+        source = source_dir / filename
+        dest = dest_dir / filename
+        if not source.exists():
+            raise FileNotFoundError(
+                f"Workflow type '{workflow_type}' is missing {filename}: {source}"
+            )
+        shutil.copyfile(source, dest)
+
+    record = {
+        "workflow_type": workflow_type,
+        "source_path": str(source_dir),
+        "copied_at": datetime.now(tz=timezone.utc).isoformat(),
+        "files_copied": ["stage-actions.yaml", "workflow-definition.yaml"],
+    }
+    workspace.save_json_file(dest_dir / "workflow-type.json", record)
+
+
 def run(args: object) -> None:
     initiative_id = getattr(args, "initiative_id", None)
     workspace_root_arg = getattr(args, "workspace_root", None)
@@ -91,9 +135,14 @@ def run(args: object) -> None:
     # --- Seed .b2s runtime layout (state + tmp) ---
     workspace.ensure_runtime_layout(workspace_root)
 
-    # --- Write initiative_id into workflow-state.json ---
+    # --- Copy selected workflow type into the initiative ---
+    workflow_type = getattr(args, "workflow_type", None) or "enterprise-modular"
+    _copy_workflow_type(workspace_root, workflow_type)
+
+    # --- Write initiative_id and workflow_type into workflow-state.json ---
     state = workspace.load_state(workspace_root)
     state["initiative_id"] = initiative_id
+    state["workflow_type"] = workflow_type
     state["state_validated"] = True
     state["last_updated"] = datetime.now(tz=timezone.utc).isoformat()
     workspace.save_state(workspace_root, state)
@@ -103,14 +152,23 @@ def run(args: object) -> None:
         "overall": "pass",
         "initiative_id": initiative_id,
         "workspace_root": str(workspace_root),
+        "workflow_type": workflow_type,
+        "workflow_files": [
+            ".b2s/workflow/stage-actions.yaml",
+            ".b2s/workflow/workflow-definition.yaml",
+            ".b2s/workflow/workflow-type.json",
+        ],
         "created": [
             str(brs_path.relative_to(workspace_root)),
             ".b2s/state/workflow-state.json",
             ".b2s/state/open-decisions.md",
+            ".b2s/workflow/stage-actions.yaml",
+            ".b2s/workflow/workflow-definition.yaml",
+            ".b2s/workflow/workflow-type.json",
         ],
         "next_action": "route-initiative",
         "message": (
-            f"Initiative {initiative_id} workspace created. "
+            f"Initiative {initiative_id} workspace created with workflow type '{workflow_type}'. "
             f"Fill in {brs_path.relative_to(workspace_root)} then run the workflow."
         ),
     }
