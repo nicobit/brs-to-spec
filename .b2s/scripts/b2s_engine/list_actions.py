@@ -17,11 +17,11 @@ _STATUS_LABEL = {
 }
 
 _STATUS_SYMBOL = {
-    "accepted": "ok  ",
-    "ai_validated": "ai  ",
-    "failed": "FAIL",
-    "not_run": "    ",
-    "skipped": "skip",
+    "accepted": "[+]",
+    "ai_validated": "[~]",
+    "failed": "[!]",
+    "not_run": "[-]",
+    "skipped": "[/]",
 }
 
 
@@ -115,4 +115,4 @@ def run(args: Any) -> None:
     print(f"\nCurrent stage : {current_stage or '—'}")
     print(f"Next action   : {next_action or '—'}")
     print()
-    print("Legend: ok=accepted  ai=ai_validated  FAIL=failed  (blank)=not_run  skip=skipped")
+    print("Legend: [+] accepted  [~] ai_validated  [!] failed  [-] not_run  [/] skipped")
