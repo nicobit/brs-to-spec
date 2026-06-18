@@ -1,0 +1,49 @@
+event_template_id: EVT-TPL-027
+type: GENERATE_TEST_STUBS
+persona: qa-analyst
+priority: high
+description: "Generate runnable BDD test stubs (SCN-NNN) and unit test stubs (TC-NNN) so CI fails until each scenario is implemented."
+
+skill_ref: ".brs2spec2/skills/qa-analyst/generate-test-stubs-from-bdd.md"
+persona_ref: ".brs2spec2/personas/qa-analyst.md"
+
+inputs:
+  required:
+    - "quality-gates/bdd/"
+    - "quality-gates/test-strategy.md"
+    - "engineering-readiness/initiative-context.md"
+  optional:
+    - "quality-gates/test-plans/"
+    - "input/repositories/*.md"
+  condition: "quality-gates/bdd/ exists AND test framework confirmed"
+
+outputs:
+  primary: "{target-test-folder}/bdd/ and {target-test-folder}/unit/"
+
+must_include:
+  - "One BDD stub per SCN-NNN in scope — placed in bdd/ subfolder"
+  - "Every BDD stub has a failing assertion (not just a comment)"
+  - "Every BDD stub includes verbatim Gherkin from the BDD file"
+  - "Every stub has SCN-NNN, Story ID, FR-NNN, AC-NNN metadata"
+  - "If test-plans/ exists: one unit stub per TC-NNN of type Unit — in unit/ subfolder"
+  - "BDD stubs and unit stubs are in separate subfolders"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) stub count matches SCN-NNN count in quality-gates/bdd/,
+    (2) every stub has a failing assertion (not a comment — CI must fail),
+    (3) Gherkin text is verbatim not paraphrased,
+    (4) BDD stubs and unit stubs are in separate subfolders.
+  machine:
+    condition_required: "test framework confirmed before generating"
+
+on_success:
+  update_state:
+    artifact_status:
+      "test-stubs/": "accepted"
+
+on_failure:
+  raise_decision:
+    question: "Test stub generation failed. Test framework or target test folder path needs confirmation."
+    blocking: false
+    owner: "qa-analyst"

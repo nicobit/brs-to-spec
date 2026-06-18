@@ -1,0 +1,52 @@
+event_template_id: EVT-TPL-038
+type: ARCHITECTURE_REVIEW_IMPLEMENTATION
+persona: reviewer
+priority: high
+description: "Post-implementation architecture review: check that the task respects architecture constraints and boundaries across 7 review areas."
+
+skill_ref: ".brs2spec2/skills/reviewer/architecture-review.md"
+persona_ref: ".brs2spec2/personas/reviewer.md"
+
+inputs:
+  required:
+    - "engineering-readiness/initiative-context.md"
+    - "changed files"
+    - "review target task ID"
+  optional:
+    - "architecture/architecture-review.md"
+    - "architecture/architecture-rules.md"
+    - "quality-gates/api-contract.md"
+    - "quality-gates/data-contract.md"
+    - "quality-gates/event-contract.md"
+    - "quality-gates/observability-plan.md"
+
+outputs:
+  primary: "reviews/implementation/architecture-review-{task-id}.md"
+
+must_include:
+  - "## Review Metadata table with Finding set ID, Task ID, Blocking status"
+  - "## Findings table (may be empty)"
+  - "## Compliance With Design section"
+  - "## Boundary and Integration Notes section"
+  - "## Decision is explicit"
+  - "All 7 review areas assessed"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) findings reference concrete architecture evidence,
+    (2) boundary and contract issues are explicit,
+    (3) blocking status is justified,
+    (4) challenge questions were considered.
+  machine:
+    file_exists: "reviews/implementation/"
+
+on_success:
+  update_state:
+    artifact_status:
+      "reviews/implementation/architecture-review-{task-id}.md": "accepted"
+
+on_failure:
+  raise_decision:
+    question: "Architecture review could not be completed. Target task or changed scope unclear."
+    blocking: false
+    owner: "reviewer"

@@ -1,0 +1,51 @@
+event_template_id: EVT-TPL-009
+type: CREATE_ARCHITECTURE_RULES
+persona: architect
+priority: high
+description: "Formalize architecture constraints from the architecture review into numbered AR-NNN binding rules."
+
+skill_ref: ".brs2spec2/skills/architect/create-architecture-rules.md"
+persona_ref: ".brs2spec2/personas/architect.md"
+artifact_template_ref: ".brs2spec2/artifact-templates/architecture-rules.md"
+
+inputs:
+  required:
+    - "architecture/architecture-review.md"
+    - "input/brs.md"
+    - "input/brs/*.md"
+  optional:
+    - "business-analysis/business-rules.md"
+
+outputs:
+  primary: "architecture/architecture-rules.md"
+
+must_include:
+  - "## Metadata table is present"
+  - "## Rules Catalog table lists at least one AR-NNN entry"
+  - "Every AR-NNN has Category, Rule Statement, Rationale, Source, and Scope"
+  - "## Forbidden Patterns section is present"
+  - "## Coverage table maps feature areas to AR-NNN rules"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) every constraint from the architecture review has an AR-NNN entry,
+    (2) every AR-NNN has rationale and source,
+    (3) rules are implementable without interpretation,
+    (4) no rules invented beyond architecture review and BRS content.
+  machine:
+    file_exists: "architecture/architecture-rules.md"
+
+on_success:
+  create_events:
+    - template: "EVT-TPL-011"
+      reason: "Architecture rules complete — can now create delivery structure"
+  update_state:
+    current_stage: "3-planning"
+    artifact_status:
+      "architecture/architecture-rules.md": "ai_validated"
+
+on_failure:
+  raise_decision:
+    question: "Architecture rules creation failed. Architecture review must be complete first."
+    blocking: true
+    owner: "architect"

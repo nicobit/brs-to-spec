@@ -1,0 +1,37 @@
+overall: pass
+action_id: define-delivery-increments
+artifact_path: planning/delivery-increments.md
+checks:
+- name: file_exists
+  target: planning/delivery-increments.md
+  result: pass
+  detail: artifact exists
+- name: validation_dispatch
+  target: delivery-increments.md
+  result: pass
+  detail: 'profile: planning/delivery-increments.md'
+- name: validation_dispatch
+  target: delivery-increments.md
+  result: pass
+  detail: 'profile: structured-document'
+- name: non_empty_file
+  target: delivery-increments.md
+  result: pass
+  detail: artifact has content
+- name: has_minimum_headings
+  target: delivery-increments.md
+  result: pass
+  detail: document contains multiple section headings
+- name: has_structured_content
+  target: delivery-increments.md
+  result: pass
+  detail: document includes a table or enough content to be structured
+- name: placeholders_absent
+  target: delivery-increments.md
+  result: pass
+  detail: document does not contain known placeholder markers
+- name: validation_audit
+  target: planning/delivery-increments.md
+  result: pass
+  detail: validation coverage is acceptable (dispatch=profile, downstream_consumers=1)
+failures: []

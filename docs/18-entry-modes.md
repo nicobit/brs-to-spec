@@ -15,7 +15,7 @@ Use entry mode first.
 Then use the normal framework routing:
 
 ```text
-.brs2spec/1-routing/01-select-delivery-and-execution-mode.md
+.brs2spec/skills/1-routing/01-select-delivery-and-execution-mode.md
 ```
 
 ## Entry mode summary
@@ -31,8 +31,8 @@ large modular initiative
 
 | Entry mode | Use when | Minimum starting artifacts | Likely next prompt | Risk if the wrong mode is chosen |
 |---|---|---|---|---|
-| BRS-first | The initiative begins from one or more business requirements documents | `input/brs.md`, optional `input/architecture.md`, `input/input-package.md` | `.brs2spec/0-input-preparation/03-normalize-input-package.md` then routing | Business ambiguity, overlap, and assumptions may not be captured early enough |
-| Existing-system enhancement | The initiative changes an existing service, module, integration, contract, or operational flow | normalized inputs plus available existing-system context | `.brs2spec/2-business-intake/01-create-business-intake-summary.md` then architecture review | Regression, compatibility, and governed-boundary impact may be underestimated |
+| BRS-first | The initiative begins from one or more business requirements documents | `input/brs.md`, optional `input/architecture.md`, `input/input-package.md` | `.brs2spec/skills/0-input-preparation/03-normalize-input-package.md` then routing | Business ambiguity, overlap, and assumptions may not be captured early enough |
+| Existing-system enhancement | The initiative changes an existing service, module, integration, contract, or operational flow | normalized inputs plus available existing-system context | `.brs2spec/skills/2-business-intake/01-create-business-intake-summary.md` then architecture review | Regression, compatibility, and governed-boundary impact may be underestimated |
 | Small change / bug fix | Scope is narrow and may qualify for Fast Path | concise business statement, architecture context when relevant, `input/input-package.md` | routing, then the smallest safe flow | Teams may either over-process a simple fix or under-control a risky one |
 | Large modular initiative | Scope spans multiple capabilities, deliverables, teams, or increments | normalized inputs, architecture context, delivery-shaping context | routing, then modular planning prompts | Work may be under-sliced and context may become too large too early |
 

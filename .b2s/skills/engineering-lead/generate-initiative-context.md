@@ -28,8 +28,19 @@ Read these files in full before writing anything:
 - `{workspace_root}/engineering-readiness/readiness-check.md`
 - `{workspace_root}/architecture/architecture-rules.md`
 - `{workspace_root}/architecture/architecture-review.md`
+- `{resolved_optional_inputs}` — technical-specification artifacts when workflow type is `technical-spec-modular`
 
 Do not start writing until all available inputs are read completely.
+
+### Step 1b - Apply integration specs when present
+
+If `{workspace_root}/technical-specifications/integrations/` exists and contains files:
+- Read each integration spec.
+- Use the integration map section of `initiative-context.md` to list each external system with its protocol, timeout, retry policy, and fallback behaviour from the integration spec.
+- Do not summarise from architecture-review alone when integration specs provide a more detailed map.
+
+If `{workspace_root}/technical-specifications/api/exposed/` exists and contains files:
+- Note the contract mode (`product`, `internal`, or `coordinated`) in the initiative context so downstream consumers know how to treat the API surface.
 
 ### Step 2 - Extract context
 

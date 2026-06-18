@@ -1,0 +1,48 @@
+event_template_id: EVT-TPL-034
+type: CREATE_THREAT_MODEL
+persona: security-reviewer
+priority: medium
+description: "STRIDE + DREAD threat model for initiatives with significant attack surface. Typically triggered by security review findings."
+
+skill_ref: ".brs2spec2/skills/security-reviewer/create-threat-model.md"
+persona_ref: ".brs2spec2/personas/security-reviewer.md"
+artifact_template_ref: ".brs2spec2/artifact-templates/threat-model.md"
+
+inputs:
+  required:
+    - "quality-gates/security-review.md"
+    - "architecture/architecture-review.md"
+    - "input/architecture.md or input/architecture/*.md"
+    - "input/brs.md"
+    - "input/brs/*.md"
+
+outputs:
+  primary: "quality-gates/threat-model.md"
+
+must_include:
+  - "## Metadata table with Status: In progress as first table in file"
+  - "Trust boundary diagram (Mermaid or table)"
+  - "## Threat Catalog with THR-NNN entries covering all trust boundaries"
+  - "Every THR-NNN has STRIDE category, DREAD score, Risk level, Required Mitigation"
+  - "## Mitigation Priority table"
+  - "## Accepted Threats section"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) every identified trust boundary has been assessed for all 6 STRIDE categories,
+    (2) every threat has a DREAD score and risk level,
+    (3) required mitigations have owners,
+    (4) accepted threats have explicit justification.
+  machine:
+    file_exists: "quality-gates/threat-model.md"
+
+on_success:
+  update_state:
+    artifact_status:
+      "quality-gates/threat-model.md": "draft"
+
+on_failure:
+  raise_decision:
+    question: "Threat model creation failed. Security review must exist."
+    blocking: false
+    owner: "security-reviewer"

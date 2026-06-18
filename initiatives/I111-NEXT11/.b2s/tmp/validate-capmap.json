@@ -1,0 +1,41 @@
+overall: pass
+action_id: map-capabilities-to-modules
+artifact_path: planning/capability-module-map.md
+checks:
+- name: file_exists
+  target: planning/capability-module-map.md
+  result: pass
+  detail: artifact exists
+- name: validation_dispatch
+  target: capability-module-map.md
+  result: pass
+  detail: 'profile: planning/capability-module-map.md'
+- name: validation_dispatch
+  target: capability-module-map.md
+  result: pass
+  detail: 'profile: structured-document'
+- name: non_empty_file
+  target: capability-module-map.md
+  result: pass
+  detail: artifact has content
+- name: has_minimum_headings
+  target: capability-module-map.md
+  result: pass
+  detail: document contains multiple section headings
+- name: has_structured_content
+  target: capability-module-map.md
+  result: pass
+  detail: document includes a table or enough content to be structured
+- name: placeholders_absent
+  target: capability-module-map.md
+  result: pass
+  detail: document does not contain known placeholder markers
+- name: has_catalog_rows
+  target: capability-module-map.md
+  result: pass
+  detail: catalog contains at least one typed identifier row
+- name: validation_audit
+  target: planning/capability-module-map.md
+  result: pass
+  detail: validation coverage is acceptable (dispatch=profile, downstream_consumers=1)
+failures: []

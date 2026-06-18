@@ -1,0 +1,19 @@
+{
+  "overall": "pass",
+  "action_id": "check-engineering-readiness",
+  "previous_state_summary": {
+    "current_stage": "3-planning",
+    "next_action": "check-engineering-readiness",
+    "action_status": "not_run"
+  },
+  "applied_changes": {
+    "action_reopened": "check-engineering-readiness",
+    "gate_cleared": "gate-engineering-readiness-review",
+    "artifacts_cleared": [
+      "engineering-readiness/readiness-check.md"
+    ],
+    "next_action": "check-engineering-readiness"
+  },
+  "next_action": "check-engineering-readiness",
+  "gate_state": null
+}

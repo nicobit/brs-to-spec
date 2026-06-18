@@ -1,0 +1,276 @@
+# Flow Engine — Event Result Schema
+# Version: 1.0
+#
+# Written by the persona (in persona mode) at dispatch step 15, immediately after
+# executing the task and before validation begins.
+#
+# Location during execution: .flow/events/processing/<event_id>-result.yaml
+# Location after completion: .flow/events/done/<event_id>-result.yaml (pass)
+#                        or: .flow/events/failed/<event_id>-result.yaml (fail)
+#
+# This file is the handoff signal between persona mode and orchestrator mode.
+# The orchestrator reads it to determine whether to execute on_success or on_failure.
+
+# ---------------------------------------------------------------------------
+# IDENTITY
+# ---------------------------------------------------------------------------
+
+event_id: REQUIRED
+# The EVT-NNNNN of the event this result belongs to. Must match the event file.
+# Example: EVT-00023
+
+status: REQUIRED
+# Outcome of execution + validation.
+# Values: pass | fail
+# Set to pass initially after execution; changed to fail if validation fails.
+# Example: pass
+
+completed_at: REQUIRED
+# ISO-8601 datetime when execution finished and result file was written.
+# Example: 2026-06-13T10:22:00Z
+
+# ---------------------------------------------------------------------------
+# ARTIFACTS (required in all cases)
+# ---------------------------------------------------------------------------
+
+artifacts_written: REQUIRED
+# List of file paths actually written during execution.
+# Relative to the initiative workspace root.
+# Must be an empty list [] if no files were written (e.g. on early failure).
+# Must list every file written, even partial writes.
+#
+# Example (pass):
+#   artifacts_written:
+#     - business-analysis/business-rules.md
+#
+# Example (fail — nothing written):
+#   artifacts_written: []
+#
+# Example (fail — partial write):
+#   artifacts_written:
+#     - business-analysis/business-rules.md   # written but failed validation
+
+# ---------------------------------------------------------------------------
+# EXECUTION TRACE (required when event.read_from is non-empty)
+# ---------------------------------------------------------------------------
+
+read_evidence: REQUIRED when event.read_from is non-empty
+# One entry per read_from item. Records observable metadata captured at the moment
+# each file was read during Step 10. Enables post-run verification that inputs were
+# actually read before the artifact was produced or the event was failed.
+#
+# COUNT RULE: the number of read_evidence entries must equal the number of read_from
+# items in the event file. A result file with fewer entries than read_from items is
+# INVALID — treat as status: fail with failure_reason "incomplete read_evidence".
+#
+# Entry for a file that exists:
+#   read_evidence:
+#     - path: "input/brs.md"
+#       required: true
+#       exists: true
+#       lines: 132
+#       bytes: 11014
+#       first_nonempty_line: "# Business Requirements Specification"
+#       read_at: "2026-06-15T11:24:10Z"
+#
+# Entry for a glob pattern:
+#     - path: "input/brs/*.md"
+#       required: false
+#       matched_files:
+#         - "input/brs/appendix.md"
+#       read_at: "2026-06-15T11:24:11Z"
+#
+# Entry for an optional file that does not exist:
+#     - path: "input/architecture.md"
+#       required: false
+#       exists: false
+#       read_at: "2026-06-15T11:24:12Z"
+#
+# HARD RULE: if read_from is non-empty and read_evidence is absent or empty,
+# the result file is invalid. The dispatcher Step 16-G will fail the event with:
+# failure_reason: "read_evidence missing — Step 10 was not executed or was not
+# recorded. Every read_from file must have a corresponding read_evidence entry."
+
+# ---------------------------------------------------------------------------
+# FAILURE FIELDS (required when status is fail)
+# ---------------------------------------------------------------------------
+
+failure_reason: REQUIRED when status is fail
+# Plain-English description of exactly what failed and why.
+# Reference the specific validation rule or must_include item that was not met.
+# Be specific — the orchestrator uses this to populate on_failure.raise_decision.
+#
+# Example:
+#   failure_reason: >
+#     Validation failed on rule "every BR-NNN maps to at least one FR-NNN".
+#     Found 3 BR-NNN entries with no FR-NNN traceability link:
+#     BR-004, BR-007, BR-012.
+
+# ---------------------------------------------------------------------------
+# OPTIONAL FIELDS
+# ---------------------------------------------------------------------------
+
+validation_notes: REQUIRED when event has must_include or validation_rules.natural_language
+# One entry per must_include item (Steps 14) PLUS one entry for the natural_language rule (Step 16).
+# COUNT RULE: if the event has N must_include items and a natural_language rule,
+# this list must have exactly N+1 entries. If natural_language is absent, exactly N entries.
+# A result file with fewer validation_notes entries than must_include items is INVALID —
+# treat as status: fail with failure_reason "incomplete validation".
+#
+# must_include entries (one per item, exact text):
+#   validation_notes:
+#     - rule: "<exact must_include text — no paraphrase>"
+#       result: pass | fail
+#       detail: "<quoted evidence from file, or what was missing>"
+#
+# natural_language entry (exactly one, appended after must_include entries):
+#     - rule: "natural_language: <first ~20 words of rule verbatim>"
+#       result: pass | fail
+#       detail: |
+#         Clause (1): <evidence> — pass/fail
+#         Clause (2): <evidence> — pass/fail
+#         Overall: pass/fail
+#
+# The natural_language entry rule field MUST begin with "natural_language:" — this
+# distinguishes it from must_include entries and makes the count-gate unambiguous.
+#
+# HARD RULE:
+# If the event requires validation_notes and this field is absent, empty, or count-mismatched,
+# the result file itself is invalid and the event MUST be converted to status: fail before it
+# can be moved to done/. A pass result without the required validation evidence is never valid.
+
+open_decisions_raised: OPTIONAL
+# List of decision IDs written to .flow/state/open-decisions.md during execution.
+# Populated by the persona if the skill raised decisions while producing the artifact.
+# The orchestrator uses this to update open_decisions count in workflow-state.json.
+#
+# Example:
+#   open_decisions_raised:
+#     - DEC-001
+#     - DEC-002
+
+events_created: OPTIONAL
+# List of EVT-IDs instantiated in pending/ by on_success chaining.
+# Populated by the orchestrator after executing on_success.create_events.
+# Not present in the file when the persona writes it — added by orchestrator.
+#
+# Example:
+#   events_created:
+#     - EVT-00024
+#     - EVT-00025
+
+notes: OPTIONAL
+# Free-text notes from the persona about execution.
+# Not read by the dispatcher. For human audit only.
+# Use for: unusual inputs encountered, assumptions made, partial content warnings.
+#
+# Example:
+#   notes: >
+#     input/architecture.md was listed as OPTIONAL and was not present.
+#     Proceeded without it. Architecture constraints section left as stub.
+
+# ---------------------------------------------------------------------------
+# COMPLETE EXAMPLES
+# ---------------------------------------------------------------------------
+
+# --- PASS EXAMPLE ---
+# (event had 3 must_include items + 1 natural_language rule → 4 validation_notes entries)
+#
+# event_id: EVT-00023
+# status: pass
+# completed_at: 2026-06-13T10:22:00Z
+#
+# artifacts_written:
+#   - business-analysis/business-rules.md
+#
+# read_evidence:                                        # one entry per read_from item
+#   - path: "business-intake/business-intake-summary.md"
+#     required: true
+#     exists: true
+#     lines: 87
+#     bytes: 4312
+#     first_nonempty_line: "# Business Intake Summary"
+#     read_at: "2026-06-13T10:21:55Z"
+#   - path: "input/brs.md"
+#     required: true
+#     exists: true
+#     lines: 159
+#     bytes: 11014
+#     first_nonempty_line: "# Business Requirements Specification"
+#     read_at: "2026-06-13T10:21:56Z"
+#
+# validation_notes:
+#   - rule: "every rule has a BR-NNN identifier"           # must_include item 1 of 3
+#     result: pass
+#     detail: "All 12 rules begin with BR-NNN"
+#   - rule: "every BR-NNN maps to at least one FR-NNN"    # must_include item 2 of 3
+#     result: pass
+#     detail: "FR links present for all 12 BR rows"
+#   - rule: "no placeholder text (TBD / TODO) in output"  # must_include item 3 of 3
+#     result: pass
+#     detail: "No TBD or TODO strings found in file"
+#   - rule: "natural_language: Verify that every BR-NNN has a unique identifier"  # natural_language entry
+#     result: pass
+#     detail: |
+#       Clause (1): 12 BR-NNN rows, all unique — pass
+#       Clause (2): all map to FR-NNN — pass
+#       Clause (3): no placeholder text — pass
+#       Overall: pass
+#
+# open_decisions_raised:
+#   - DEC-001
+#
+# notes: >
+#   input/architecture.md not present — skipped as OPTIONAL.
+#   Raised DEC-001 for ambiguous rule BR-007 scope.
+
+# FILE NAMING RULE
+#
+# The canonical result filename is:
+#   <event_id>-result.yaml
+#
+# Example:
+#   EVT-00023-result.yaml
+#
+# Do not include the event slug in the result filename. The event file keeps the slug
+# (e.g. EVT-00023-create-business-rules.yaml); the paired result file uses only event_id.
+
+# --- FAIL EXAMPLE ---
+#
+# event_id: EVT-00023
+# status: fail
+# completed_at: 2026-06-13T10:22:00Z
+#
+# artifacts_written: []
+#
+# failure_reason: >
+#   required_input business-intake/business-intake-summary.md does not exist.
+#   Cannot proceed — event remains blocked.
+#
+# validation_notes:
+#   - rule: "required_inputs check"
+#     result: fail
+#     detail: "business-intake/business-intake-summary.md missing"
+
+# --- PARTIAL WRITE FAIL EXAMPLE ---
+#
+# event_id: EVT-00023
+# status: fail
+# completed_at: 2026-06-13T10:25:00Z
+#
+# artifacts_written:
+#   - business-analysis/business-rules.md
+#
+# failure_reason: >
+#   Validation failed: "every BR-NNN maps to at least one FR-NNN".
+#   BR-004, BR-007, BR-012 have no FR-NNN traceability link.
+#   Artifact written but not accepted — status set to failed in workflow-state.json.
+#
+# validation_notes:
+#   - rule: "every rule has a BR-NNN identifier"
+#     result: pass
+#   - rule: "every BR-NNN maps to at least one FR-NNN"
+#     result: fail
+#     detail: "BR-004, BR-007, BR-012 missing FR-NNN link"
+#   - rule: "no placeholder text (TBD / TODO) in output"
+#     result: pass

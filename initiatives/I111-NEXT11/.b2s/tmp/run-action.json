@@ -1,0 +1,19 @@
+{
+  "overall": "pass",
+  "action_id": "create-use-case-specs",
+  "previous_state_summary": {
+    "current_stage": "3-planning",
+    "next_action": "create-use-case-specs",
+    "action_status": "not_run"
+  },
+  "applied_changes": {
+    "action_reopened": "create-use-case-specs",
+    "gate_cleared": null,
+    "artifacts_cleared": [
+      "business-analysis/use-cases/"
+    ],
+    "next_action": "create-use-case-specs"
+  },
+  "next_action": "create-use-case-specs",
+  "gate_state": null
+}

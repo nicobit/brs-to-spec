@@ -1,5 +1,20 @@
 ﻿# How to Use This Framework
 
+## Critical rule — know the boundary
+
+**The `input/` folder is yours.** Write your BRS by hand, paste notes, convert from Word, or ask your AI assistant to help — anything in `initiatives/<id>/input/` is fair game. The framework reads and normalises whatever you put there.
+
+**Everything outside `input/` belongs to the framework.** Do not write or edit artifacts in `business-intake/`, `architecture/`, `planning/`, `engineering-readiness/`, `quality-gates/`, or `openspec/` directly. Those are produced by framework skills — writing them by hand bypasses the quality controls and leaves the workspace in a state later stages cannot trust.
+
+The correct pattern:
+1. Scaffold the workspace: `python .brs2spec/tools/scripts/new_initiative.py <slug> --initiative-id <ID>`
+2. Populate `input/brs.md` (and optionally `input/architecture.md`) — by hand, AI-assisted, or converted from a document.
+3. Run the orchestrator: `.brs2spec/brs-to-spec-run-workflow.md` — it normalises your input and drives everything else.
+
+**The rule in one sentence:** you own `input/`; the framework owns everything else.
+
+---
+
 ## Recommended first prompt
 
 Run:
@@ -179,7 +194,7 @@ This does not replace routing.
 It helps you choose the right entry point before running:
 
 ```text
-.brs2spec/1-routing/01-select-delivery-and-execution-mode.md
+.brs2spec/skills/1-routing/01-select-delivery-and-execution-mode.md
 ```
 
 ## Step 0 - Prepare inputs
@@ -203,9 +218,9 @@ input/input-package.md
 Run:
 
 ```text
-.brs2spec/0-input-preparation/01-convert-brs-word-to-markdown.md
-.brs2spec/0-input-preparation/02-convert-architecture-word-to-markdown.md
-.brs2spec/0-input-preparation/03-normalize-input-package.md
+.brs2spec/skills/0-input-preparation/01-convert-brs-word-to-markdown.md
+.brs2spec/skills/0-input-preparation/02-convert-architecture-word-to-markdown.md
+.brs2spec/skills/0-input-preparation/03-normalize-input-package.md
 ```
 
 Use `input/input-package.md` to record:
@@ -229,7 +244,7 @@ Transition to Step 1 only when:
 Run:
 
 ```text
-.brs2spec/1-routing/01-select-delivery-and-execution-mode.md
+.brs2spec/skills/1-routing/01-select-delivery-and-execution-mode.md
 ```
 
 Output:
@@ -249,7 +264,7 @@ Transition to Step 2 only when:
 Run:
 
 ```text
-.brs2spec/2-business-intake/01-create-business-intake-summary.md
+.brs2spec/skills/2-business-intake/01-create-business-intake-summary.md
 ```
 
 Output:
@@ -285,15 +300,15 @@ Transition to Step 3 only when:
 Run:
 
 ```text
-.brs2spec/3-planning-and-modular-delivery/03-create-delivery-structure.md
+.brs2spec/skills/3-planning-and-modular-delivery/03-create-delivery-structure.md
 ```
 
 For Enterprise + Modular Delivery, you may also continue later with:
 
 ```text
-.brs2spec/3-planning-and-modular-delivery/04-identify-software-modules.md
-.brs2spec/3-planning-and-modular-delivery/05-map-capabilities-to-modules.md
-.brs2spec/3-planning-and-modular-delivery/06-define-delivery-increments.md
+.brs2spec/skills/3-planning-and-modular-delivery/04-identify-software-modules.md
+.brs2spec/skills/3-planning-and-modular-delivery/05-map-capabilities-to-modules.md
+.brs2spec/skills/3-planning-and-modular-delivery/06-define-delivery-increments.md
 ```
 
 `planning/delivery-structure.md` should define the initiative's Epic / Feature / User Story structure early enough to guide later architecture refinement.
@@ -318,8 +333,8 @@ Transition to Step 4 only when:
 Run:
 
 ```text
-.brs2spec/3-planning-and-modular-delivery/01-review-initial-architecture.md
-.brs2spec/3-planning-and-modular-delivery/02-create-global-architecture-rules.md
+.brs2spec/skills/3-planning-and-modular-delivery/01-review-initial-architecture.md
+.brs2spec/skills/3-planning-and-modular-delivery/02-create-global-architecture-rules.md
 ```
 
 Outputs:
@@ -353,15 +368,15 @@ Transition to Step 5 only when:
 For Enterprise Path, run:
 
 ```text
-.brs2spec/3-planning-and-modular-delivery/07-create-traceability-matrix.md
+.brs2spec/skills/3-planning-and-modular-delivery/07-create-traceability-matrix.md
 ```
 
 For Enterprise + Modular Delivery, also run:
 
 ```text
-.brs2spec/3-planning-and-modular-delivery/04-identify-software-modules.md when still needed
-.brs2spec/3-planning-and-modular-delivery/05-map-capabilities-to-modules.md when still needed
-.brs2spec/3-planning-and-modular-delivery/06-define-delivery-increments.md
+.brs2spec/skills/3-planning-and-modular-delivery/04-identify-software-modules.md when still needed
+.brs2spec/skills/3-planning-and-modular-delivery/05-map-capabilities-to-modules.md when still needed
+.brs2spec/skills/3-planning-and-modular-delivery/06-define-delivery-increments.md
 ```
 
 Use this step to refine the planning set after architecture review, not to postpone initial delivery shape until late in the flow.
@@ -377,7 +392,7 @@ Transition to Step 6 only when:
 Run:
 
 ```text
-.brs2spec/4-engineering-readiness/01-check-engineering-readiness.md
+.brs2spec/skills/4-engineering-readiness/01-check-engineering-readiness.md
 ```
 
 Output:
@@ -441,7 +456,7 @@ Transition to Step 8 only when:
 Run:
 
 ```text
-.brs2spec/5-handoff/01-create-openspec-change-for-active-deliverable.md
+.brs2spec/skills/5-handoff/01-create-openspec-change-for-active-deliverable.md
 ```
 
 Output:
@@ -516,7 +531,7 @@ Only stop if the boundary, interaction, or contract is still too unclear for eng
 Run:
 
 ```text
-.brs2spec/5-handoff/02-create-standalone-delivery-package.md
+.brs2spec/skills/5-handoff/02-create-standalone-delivery-package.md
 ```
 
 Output:
@@ -572,13 +587,13 @@ Use a coding-agent environment such as VS Code Copilot Agent mode only after the
 Run:
 
 ```text
-.brs2spec/8-copilot-implementation/01-implement-one-task.md
+.brs2spec/skills/8-copilot-implementation/01-implement-one-task.md
 ```
 
 If review findings come back, use:
 
 ```text
-.brs2spec/8-copilot-implementation/02-fix-review-comments.md
+.brs2spec/skills/8-copilot-implementation/02-fix-review-comments.md
 ```
 
 Do not implement from user stories alone.
@@ -598,10 +613,10 @@ Transition to Step 11 only when:
 Run the review prompts that match the change:
 
 ```text
-.brs2spec/9-reviewers/01-senior-code-review.md
-.brs2spec/9-reviewers/02-qa-review.md
-.brs2spec/9-reviewers/03-architecture-review.md
-.brs2spec/9-reviewers/04-security-review.md
+.brs2spec/skills/9-reviewers/01-senior-code-review.md
+.brs2spec/skills/9-reviewers/02-qa-review.md
+.brs2spec/skills/9-reviewers/03-architecture-review.md
+.brs2spec/skills/9-reviewers/04-security-review.md
 ```
 
 These prompts review actual code and tests after implementation.
@@ -652,7 +667,7 @@ Use this only when the delivery team plans and tracks work in GitLab, Jira, Azur
 Run after delivery increments and preferably after readiness check:
 
 ```text
-.brs2spec/7-perspectives/agile-planning/01-create-gitlab-planning-view.md
+.brs2spec/skills/7-perspectives/agile-planning/01-create-gitlab-planning-view.md
 ```
 
 Output:
@@ -680,7 +695,7 @@ If something changes, update the source artifacts and regenerate the view.
 To refresh the view after readiness or quality gates change, run:
 
 ```text
-.brs2spec/7-perspectives/agile-planning/02-refresh-gitlab-planning-view.md
+.brs2spec/skills/7-perspectives/agile-planning/02-refresh-gitlab-planning-view.md
 ```
 
 ## Using GitHub Copilot / VS Code
@@ -701,6 +716,18 @@ Copilot Chat slash commands (under `.github/prompts/brs2spec/`):
 /create-standalone-handoff
 /create-gitlab-planning-view
 /implement-one-task
+/resume-from-phase
+/brs2spec-new-initiative
+/brs2spec-dispatch-next
+/brs2spec-dispatch-all
+/brs2spec-repair-chain
+/brs2spec-repair-processing
+/brs2spec-restart
+/brs2spec-archive-done
+/brs2spec-resume
+/brs2spec-resume-from-phase
+/reset-to-phase
+/brs2spec-reset-to-phase
 /spec-correction
 /describe-repository          ← run inside a target repo to generate input/repositories/ descriptor
 ```

@@ -1,0 +1,51 @@
+event_template_id: EVT-TPL-032
+type: DRAFT_ARCHITECTURE_FROM_BRS
+persona: architect
+priority: high
+description: "Derive a draft architecture document from BRS when input/architecture.md is missing. Output feeds REVIEW_INITIAL_ARCHITECTURE."
+
+skill_ref: ".brs2spec2/skills/architect/draft-architecture-from-brs.md"
+persona_ref: ".brs2spec2/personas/architect.md"
+
+inputs:
+  required:
+    - "input/brs.md"
+    - "input/brs/*.md"
+  optional:
+    - "business-intake/business-intake-summary.md"
+  condition: "input/architecture.md does not exist"
+
+outputs:
+  primary: "input/architecture.md"
+
+must_include:
+  - "## Executive Summary section is present"
+  - "## Component Overview table lists all identified components"
+  - "At least one Mermaid diagram (topology or data flow)"
+  - "## Technology Constraints table with certainty levels (Confirmed/Assumed/Unknown)"
+  - "## Open Architecture Questions section is present"
+  - "Status: Draft in document header"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) all major BRS feature areas have identified components,
+    (2) technology constraints have certainty levels,
+    (3) at least one Mermaid diagram is present with valid syntax,
+    (4) open questions are listed.
+  machine:
+    file_exists: "input/architecture.md"
+  skip_if: "input/architecture.md already exists"
+
+on_success:
+  create_events:
+    - template: "EVT-TPL-008"
+      reason: "Draft architecture produced — run architecture review"
+  update_state:
+    artifact_status:
+      "input/architecture.md": "draft"
+
+on_failure:
+  raise_decision:
+    question: "Architecture draft from BRS failed. BRS may be too vague to derive components."
+    blocking: true
+    owner: "architect"

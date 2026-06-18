@@ -1,0 +1,78 @@
+event_id: EVT-00001
+type: ROUTE_INITIATIVE
+persona: orchestrator
+stage: "0-routing"
+priority: critical
+
+skill_ref: .brs2spec2/skills/orchestrator/route-initiative.md
+persona_ref: .brs2spec2/personas/orchestrator.md
+artifact_template_ref: .brs2spec2/artifact-templates/routing-decision.md
+
+task:
+  title: Route initiative — select delivery mode and execution mode
+  objective: >
+    Analyse the BRS input and available context to select the delivery mode
+    (OpenSpec, Standalone, FastPath, or BusinessCopilot) and execution mode
+    (Enterprise, Enterprise+Modular, or Standard) for this initiative.
+    Produce state/routing-decision.md.
+
+read_from:
+  - input/brs.md
+  - input/brs/*.md
+  - input/architecture.md
+  - input/architecture/*.md
+  - input/input-package.md
+
+required_inputs:
+  - input/brs.md
+
+write_to:
+  - state/routing-decision.md
+
+must_include:
+  - delivery_mode field is present and set to one of the four allowed values
+  - execution_mode field is present and set to one of the three allowed values
+  - every scoring criterion in Delivery Mode Assessment has a score and evidence from source inputs
+  - Required Next Events section lists at least one event
+  - Events Not Needed section is present
+  - Risks of Under-Processing is not empty
+  - Risks of Over-Processing is not empty
+  - small-change path applicability is stated explicitly
+
+validation_rules:
+  natural_language:
+    - delivery_mode is one of exactly four values: OpenSpec, Standalone, FastPath, BusinessCopilot
+    - execution_mode is one of exactly three values: Enterprise, Enterprise+Modular, Standard
+    - every criterion row in the Delivery Mode Assessment table has a non-generic evidence entry
+    - no placeholder text (TBD / TODO / [fill in]) in the output
+    - Required Next Events section contains at least one event with a reason
+    - Risks sections each contain at least one specific risk
+  machine:
+    - validator: no_placeholders
+    - validator: status_field_required
+      args:
+        field: delivery_mode
+        allowed: [OpenSpec, Standalone, FastPath, BusinessCopilot]
+
+blocked_by: []
+
+on_success:
+  create_events:
+    - EVT-TPL-002-create-business-intake-summary
+  update_state:
+    current_stage: "2-business-intake"
+  append_log: true
+
+on_failure:
+  raise_decision:
+    question: >
+      Routing failed — delivery mode or execution mode could not be determined
+      from the available inputs. A human must review the BRS source and either
+      provide a cleaner input-package or override the routing decision manually.
+    owner: human
+    blocking: true
+
+meta:
+  created_by: orchestrator
+  created_at: "2026-06-13T00:00:00Z"
+  template_id: EVT-TPL-001-route-initiative

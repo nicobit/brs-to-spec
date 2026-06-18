@@ -1,0 +1,8 @@
+event_id: EVT-00002
+status: done
+completed_at: "2026-06-15T10:10:00Z"
+artifacts_written:
+  - business-analysis/requirements.md
+validation:
+  must_include: pass
+  natural_language: pass

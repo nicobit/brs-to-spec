@@ -50,9 +50,9 @@ See [Handoff](05-handoff.md) for how repo descriptors affect handoff output stru
 Input preparation prompts:
 
 ```text
-.brs2spec/0-input-preparation/01-convert-brs-word-to-markdown.md
-.brs2spec/0-input-preparation/02-create-brs-from-text.md
-.brs2spec/0-input-preparation/03-normalize-input-package.md
-.brs2spec/0-input-preparation/04-draft-architecture-from-brs.md
+.brs2spec/skills/0-input-preparation/01-convert-brs-word-to-markdown.md
+.brs2spec/skills/0-input-preparation/02-create-brs-from-text.md
+.brs2spec/skills/0-input-preparation/03-normalize-input-package.md
+.brs2spec/skills/0-input-preparation/04-draft-architecture-from-brs.md
 ```
 

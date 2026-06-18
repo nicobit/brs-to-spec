@@ -1,0 +1,18 @@
+event_id: EVT-00001
+event_type: ROUTE_INITIATIVE
+action: route_initiative
+persona: orchestrator
+priority: high
+task:
+  title: Route Initiative
+  objective: Determine delivery mode and execution mode
+read_from:
+  - "input/brs.md"
+required_inputs:
+  - "input/brs.md"
+write_to:
+  - "routing/routing-decision.md"
+meta:
+  template_id: EVT-TPL-001
+  created_at: "2026-06-15T10:00:00Z"
+  created_by: orchestrator

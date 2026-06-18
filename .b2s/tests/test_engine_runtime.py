@@ -23,6 +23,7 @@ if str(SCRIPT_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPT_ROOT))
 
 from b2s_engine import validation as validation_module  # noqa: E402
+from b2s_engine import dispatch as dispatch_module  # noqa: E402
 
 
 def run_cli(*args: str) -> subprocess.CompletedProcess[str]:
@@ -76,6 +77,10 @@ class EngineRuntimeTests(unittest.TestCase):
             if line.strip()
         ]
 
+    def load_action(self, action_id: str) -> dict:
+        stage_actions = yaml.safe_load((REPO_ROOT / ".b2s" / "workflow" / "stage-actions.yaml").read_text(encoding="utf-8"))["actions"]
+        return next(action for action in stage_actions if action["action_id"] == action_id)
+
     def test_next_step_then_gate_approval_progresses_to_requirements(self) -> None:
         run_cli("next-step", "--workspace-root", str(self.workspace_root))
         next_step = self.read_json(".b2s/state/next-step.json")
@@ -85,6 +90,30 @@ class EngineRuntimeTests(unittest.TestCase):
         current_inputs = self.read_json(".b2s/tmp/current-inputs.json")
         self.assertEqual(current_inputs["overall"], "pass")
         self.assertEqual(current_inputs["action_id"], "route-initiative")
+        self.assertEqual(
+            current_inputs["prompt_placeholders"]["required_inputs"],
+            ["input/brs.md"],
+        )
+        self.assertEqual(
+            current_inputs["prompt_placeholders"]["optional_inputs"],
+            ["input/architecture.md", "input/input-package.md"],
+        )
+        self.assertEqual(
+            current_inputs["prompt_placeholders"]["resolved_required_inputs"],
+            ["input/brs.md"],
+        )
+        self.assertEqual(
+            current_inputs["prompt_placeholders"]["resolved_optional_inputs"],
+            [],
+        )
+        self.assertEqual(
+            current_inputs["prompt_placeholders"]["primary_output"],
+            "routing/routing-decision.md",
+        )
+        self.assertEqual(
+            current_inputs["prompt_placeholders"]["secondary_outputs"],
+            [],
+        )
 
         (self.workspace_root / "routing").mkdir()
         (self.workspace_root / "routing" / "routing-decision.md").write_text(
@@ -187,6 +216,122 @@ class EngineRuntimeTests(unittest.TestCase):
         next_step = self.read_json(".b2s/state/next-step.json")
         self.assertEqual(next_step["selected_action"], "create-requirements")
         self.assertEqual(next_step["selected_stage"], "2b-business-analysis")
+
+    def test_dispatch_renderer_substitutes_supported_placeholders(self) -> None:
+        rendered = dispatch_module._render_prompt_text(
+            "Read {resolved_required_inputs}\nWrite {primary_output}\nKeep {workspace_root}",
+            {
+                "resolved_required_inputs": ["input/brs.md", "routing/routing-decision.md"],
+                "primary_output": "routing/routing-decision.md",
+                "required_inputs": [],
+                "optional_inputs": [],
+                "resolved_optional_inputs": [],
+                "secondary_outputs": [],
+            },
+        )
+        self.assertIn("- input/brs.md", rendered)
+        self.assertIn("- routing/routing-decision.md", rendered)
+        self.assertIn("Write routing/routing-decision.md", rendered)
+        self.assertIn("{workspace_root}", rendered)
+
+    def test_dispatch_renderer_fails_when_supported_placeholder_is_missing(self) -> None:
+        with self.assertRaisesRegex(ValueError, "Missing prompt placeholder: primary_output"):
+            dispatch_module._render_prompt_text(
+                "Write {primary_output}",
+                {
+                    "required_inputs": [],
+                    "optional_inputs": [],
+                    "resolved_required_inputs": [],
+                    "resolved_optional_inputs": [],
+                    "secondary_outputs": [],
+                },
+            )
+
+    def test_action_summary_renders_business_intake_prompt_with_resolved_placeholders(self) -> None:
+        (self.workspace_root / "routing").mkdir()
+        (self.workspace_root / "routing" / "routing-decision.md").write_text(
+            "# Routing Decision\n",
+            encoding="utf-8",
+        )
+        (self.workspace_root / "input" / "brs").mkdir()
+        (self.workspace_root / "input" / "brs" / "appendix.md").write_text(
+            "# Appendix\n",
+            encoding="utf-8",
+        )
+        (self.workspace_root / "input" / "architecture.md").write_text(
+            "# Architecture\n",
+            encoding="utf-8",
+        )
+
+        action = self.load_action("create-business-intake-summary")
+        summary = dispatch_module._action_summary(action, self.workspace_root)
+        rendered = summary["rendered_skill_text"]
+
+        self.assertIsNotNone(rendered)
+        self.assertIn("- input/brs.md", rendered)
+        self.assertIn("- routing/routing-decision.md", rendered)
+        self.assertIn("- input/brs/appendix.md", rendered)
+        self.assertIn("- input/architecture.md", rendered)
+        self.assertIn("Write the artifact to `business-intake/business-intake-summary.md`", rendered)
+        self.assertNotIn("{resolved_required_inputs}", rendered)
+        self.assertNotIn("{resolved_optional_inputs}", rendered)
+        self.assertNotIn("{primary_output}", rendered)
+
+    def test_action_summary_renders_delivery_structure_prompt_with_resolved_placeholders(self) -> None:
+        (self.workspace_root / "routing").mkdir()
+        (self.workspace_root / "routing" / "routing-decision.md").write_text(
+            "# Routing Decision\n",
+            encoding="utf-8",
+        )
+        (self.workspace_root / "business-intake").mkdir()
+        (self.workspace_root / "business-intake" / "business-intake-summary.md").write_text(
+            "# Business Intake Summary\n",
+            encoding="utf-8",
+        )
+        (self.workspace_root / "business-analysis").mkdir()
+        (self.workspace_root / "business-analysis" / "requirements.md").write_text(
+            "# Requirements\n",
+            encoding="utf-8",
+        )
+        (self.workspace_root / "business-analysis" / "business-rules.md").write_text(
+            "# Business Rules\n",
+            encoding="utf-8",
+        )
+        (self.workspace_root / "business-analysis" / "actors-and-personas.md").write_text(
+            "# Actors and Personas\n",
+            encoding="utf-8",
+        )
+        (self.workspace_root / "business-analysis" / "use-cases").mkdir()
+        (self.workspace_root / "business-analysis" / "use-cases" / "UC-001.md").write_text(
+            "# UC-001\n",
+            encoding="utf-8",
+        )
+        (self.workspace_root / "architecture").mkdir()
+        (self.workspace_root / "architecture" / "architecture-review.md").write_text(
+            "# Architecture Review\n",
+            encoding="utf-8",
+        )
+        (self.workspace_root / "input" / "appendix.md").write_text(
+            "# Appendix\n",
+            encoding="utf-8",
+        )
+
+        action = self.load_action("create-delivery-structure")
+        summary = dispatch_module._action_summary(action, self.workspace_root)
+        rendered = summary["rendered_skill_text"]
+
+        self.assertIsNotNone(rendered)
+        self.assertIn("- business-analysis/use-cases/", rendered)
+        self.assertIn("- architecture/architecture-review.md", rendered)
+        self.assertIn("- business-analysis/requirements.md", rendered)
+        self.assertIn("- business-analysis/business-rules.md", rendered)
+        self.assertIn("- business-analysis/actors-and-personas.md", rendered)
+        self.assertIn("Write the main artifact to `planning/delivery-structure.md`", rendered)
+        self.assertIn("Also produce any paths listed in `[]`.", rendered)
+        self.assertNotIn("{resolved_required_inputs}", rendered)
+        self.assertNotIn("{resolved_optional_inputs}", rendered)
+        self.assertNotIn("{primary_output}", rendered)
+        self.assertNotIn("{secondary_outputs}", rendered)
 
     def test_routing_validation_fails_when_decision_values_missing(self) -> None:
         (self.workspace_root / "routing").mkdir()
@@ -329,20 +474,76 @@ class EngineRuntimeTests(unittest.TestCase):
         self.assertEqual(log_entries[-1]["action_id"], "route-initiative")
         self.assertEqual(log_entries[-1]["details"]["next_action"], "create-business-intake-summary")
 
-    def test_validate_artifact_uses_profile_dispatch_when_no_dedicated_validator_exists(self) -> None:
+    def test_validate_artifact_uses_template_dispatch_when_template_ref_exists(self) -> None:
         (self.workspace_root / "architecture").mkdir()
         (self.workspace_root / "architecture" / "draft-architecture.md").write_text(
             textwrap.dedent(
                 """\
                 # Draft Architecture
 
-                ## Overview
+                ## Metadata
 
-                This draft architecture covers the initial service design.
+                | Field | Value |
+                |---|---|
+                | Initiative ID | TEST-001 |
+                | Created at | 2026-06-18 |
+                | Created by | architect |
+                | Status | Draft |
 
-                ## Risks
+                ## Executive Summary
 
-                Integration risk exists if upstream contracts change.
+                This initiative introduces a loan origination platform with AI scoring,
+                underwriter workflows, and core banking integration for disbursement.
+
+                ## Component Overview
+
+                | Component | Type | Responsibility | Technology |
+                |---|---|---|---|
+                | Intake API | New | Accept loan applications | Confirmed |
+
+                ## Deployment Topology
+
+                ```mermaid
+                graph TD
+                  A[Client] --> B[Intake API]
+                  B --> C[(Application DB)]
+                ```
+
+                ## Data Flow
+
+                ```mermaid
+                flowchart LR
+                  Applicant --> IntakeAPI
+                  IntakeAPI --> ScoringService
+                ```
+
+                ## Integration Points
+
+                | External System | Protocol | Auth | Sync/Async | Contract Status |
+                |---|---|---|---|---|
+                | Experian | REST | API Key | Sync | Assumed |
+
+                ## Technology Constraints
+
+                | Area | Technology | Status | Notes |
+                |---|---|---|---|
+                | API | REST/JSON | Confirmed | Standard stack |
+
+                ## Security Architecture
+
+                Authentication via OAuth2. PII encrypted at rest. Audit trail for all underwriter actions.
+
+                ## Key Architecture Risks
+
+                | Risk | Type | Impact | Mitigation |
+                |---|---|---|---|
+                | Experian SLA | Integration | Medium | Fallback to manual review |
+
+                ## Open Architecture Questions
+
+                | Question | Impact | Owner | Default Assumption |
+                |---|---|---|---|
+                | Final field validation rules | Low | Product | Proceed with documented fields |
                 """
             ),
             encoding="utf-8",
@@ -356,7 +557,7 @@ class EngineRuntimeTests(unittest.TestCase):
         )
         validation = self.read_yaml(".b2s/tmp/current-validation.yaml")
         self.assertEqual(validation["overall"], "pass")
-        self.assertEqual(validation["checks"][1]["detail"], "profile: architecture/draft-architecture.md")
+        self.assertEqual(validation["checks"][1]["detail"], "template: architecture/draft-architecture.md")
 
     def test_validate_artifact_uses_dedicated_validator_when_available(self) -> None:
         (self.workspace_root / "routing").mkdir()
@@ -489,7 +690,8 @@ class EngineRuntimeTests(unittest.TestCase):
         self.assertTrue(audit_checks)
         self.assertTrue(all(check["result"] == "pass" for check in audit_checks))
 
-    def test_validation_audit_rejects_high_criticality_profile_without_required_sections(self) -> None:
+    def test_template_validation_rejects_shallow_critical_artifact(self) -> None:
+        """A minimal artifact that has a template_ref fails template-driven structural checks."""
         (self.workspace_root / "planning").mkdir()
         (self.workspace_root / "planning" / "delivery-structure.md").write_text(
             "# Delivery Structure\n\n## Metadata\n\nText.\n\n## FR Coverage\n\n| FR-NNN | Stories | Status |\n|---|---|---|\n| FR-001 | F-001.1 | Covered |\n",
@@ -524,8 +726,10 @@ class EngineRuntimeTests(unittest.TestCase):
             validation_module.run(args)
         validation = self.read_yaml(".b2s/tmp/current-validation.yaml")
         self.assertEqual(validation["overall"], "fail")
-        audit_failures = [check["detail"] for check in validation["checks"] if check["name"] == "validation_audit" and check["result"] == "fail"]
-        self.assertTrue(any("lacks required_sections structural contract" in detail for detail in audit_failures))
+        self.assertTrue(
+            any("tmpl_section_" in item for item in validation["failures"]),
+            "shallow artifact must fail template section checks",
+        )
 
     def test_high_criticality_target_set_has_explicit_structural_coverage(self) -> None:
         stage_actions = yaml.safe_load((REPO_ROOT / ".b2s" / "workflow" / "stage-actions.yaml").read_text(encoding="utf-8"))["actions"]
@@ -685,6 +889,336 @@ class EngineRuntimeTests(unittest.TestCase):
         self.assertTrue(state["awaiting_human"])
         self.assertEqual(state["current_gate"]["gate_id"], "architecture-review")
 
+
+
+class TechnicalSpecWorkflowTests(unittest.TestCase):
+    """Tests for technical-spec-modular workflow type wiring, state parsing, and prompt rendering."""
+
+    def setUp(self) -> None:
+        RUNTIME_ROOT.mkdir(parents=True, exist_ok=True)
+        self.workspace_root = RUNTIME_ROOT / self._testMethodName
+        if self.workspace_root.exists():
+            shutil.rmtree(self.workspace_root)
+        (self.workspace_root / "input").mkdir(parents=True)
+        (self.workspace_root / "input" / "brs.md").write_text(
+            "# BRS\n\n## Functional Requirements\n- FR-001: Submit application.\n",
+            encoding="utf-8",
+        )
+
+    def tearDown(self) -> None:
+        if self.workspace_root.exists():
+            shutil.rmtree(self.workspace_root)
+
+    def read_json(self, relative_path: str) -> dict:
+        return json.loads((self.workspace_root / relative_path).read_text(encoding="utf-8"))
+
+    def read_yaml(self, relative_path: str) -> dict:
+        return yaml.safe_load((self.workspace_root / relative_path).read_text(encoding="utf-8"))
+
+    def _load_tsm_actions(self) -> tuple[list, dict]:
+        """Load stage-actions from technical-spec-modular workflow type."""
+        from b2s_engine import workspace as ws
+        sa_path = REPO_ROOT / ".b2s" / "workflow-types" / "technical-spec-modular" / "stage-actions.yaml"
+        data = yaml.safe_load(sa_path.read_text(encoding="utf-8"))
+        actions = data["actions"]
+        return actions, {a["action_id"]: a for a in actions}
+
+    # --- Workflow-type initialization ---
+
+    def test_init_workspace_with_technical_spec_modular_copies_files(self) -> None:
+        """init-workspace --workflow-type technical-spec-modular must copy both YAML files."""
+        workspace_root = RUNTIME_ROOT / f"{self._testMethodName}-ws"
+        if workspace_root.exists():
+            shutil.rmtree(workspace_root)
+        try:
+            run_cli(
+                "init-workspace",
+                "--workspace-root", str(workspace_root),
+                "--initiative-id", "I099-TSM",
+                "--workflow-type", "technical-spec-modular",
+            )
+            self.assertTrue((workspace_root / ".b2s" / "workflow" / "stage-actions.yaml").exists())
+            self.assertTrue((workspace_root / ".b2s" / "workflow" / "workflow-definition.yaml").exists())
+            record = json.loads((workspace_root / ".b2s" / "workflow" / "workflow-type.json").read_text(encoding="utf-8"))
+            self.assertEqual(record["workflow_type"], "technical-spec-modular")
+            state = json.loads((workspace_root / ".b2s" / "state" / "workflow-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["workflow_type"], "technical-spec-modular")
+        finally:
+            if workspace_root.exists():
+                shutil.rmtree(workspace_root)
+
+    def test_technical_spec_modular_index_entry_is_registered(self) -> None:
+        """workflow-types/index.yaml must include technical-spec-modular."""
+        index_path = REPO_ROOT / ".b2s" / "workflow-types" / "index.yaml"
+        index = yaml.safe_load(index_path.read_text(encoding="utf-8"))
+        ids = [wt["id"] for wt in index.get("workflow_types", [])]
+        self.assertIn("technical-spec-modular", ids)
+
+    def test_technical_spec_modular_index_entry_has_both_files(self) -> None:
+        """The workflow-type path must contain both stage-actions.yaml and workflow-definition.yaml."""
+        index_path = REPO_ROOT / ".b2s" / "workflow-types" / "index.yaml"
+        index = yaml.safe_load(index_path.read_text(encoding="utf-8"))
+        entry = next(wt for wt in index["workflow_types"] if wt["id"] == "technical-spec-modular")
+        type_dir = REPO_ROOT / entry["path"]
+        self.assertTrue((type_dir / "stage-actions.yaml").exists())
+        self.assertTrue((type_dir / "workflow-definition.yaml").exists())
+
+    # --- Stage-action wiring ---
+
+    def test_tech_spec_actions_belong_to_4c_stage(self) -> None:
+        """All four create-*-specs actions must have stage_id == 4c-technical-specifications."""
+        _, actions_by_id = self._load_tsm_actions()
+        for action_id in ("create-exposed-api-specs", "create-consumed-api-specs",
+                          "create-data-schema-specs", "create-integration-specs"):
+            action = actions_by_id[action_id]
+            self.assertEqual(
+                action["stage_id"], "4c-technical-specifications",
+                msg=f"{action_id}: expected stage_id 4c-technical-specifications, got {action['stage_id']}",
+            )
+
+    def test_handoff_action_blocked_by_4d_not_4b_in_tsm(self) -> None:
+        """In technical-spec-modular, create-openspec-handoff must be blocked by 4d-quality-gates."""
+        _, actions_by_id = self._load_tsm_actions()
+        handoff = actions_by_id["create-openspec-handoff"]
+        blocked_stages = handoff.get("blocked_by_stage", [])
+        self.assertIn("4d-quality-gates", blocked_stages)
+        self.assertNotIn("4b-quality-gates", blocked_stages)
+
+    def test_quality_gate_actions_belong_to_4d_stage_in_tsm(self) -> None:
+        """In technical-spec-modular, core quality-gate actions must use stage_id 4d-quality-gates."""
+        _, actions_by_id = self._load_tsm_actions()
+        for action_id in ("create-bdd-scenarios", "create-api-contract", "create-security-review"):
+            action = actions_by_id[action_id]
+            self.assertEqual(
+                action["stage_id"], "4d-quality-gates",
+                msg=f"{action_id}: expected 4d-quality-gates in tsm, got {action['stage_id']}",
+            )
+
+    def test_tsm_create_exposed_api_specs_blocked_by_engineering_readiness(self) -> None:
+        """In technical-spec-modular, create-exposed-api-specs must be blocked by 4-engineering-readiness."""
+        _, actions_by_id = self._load_tsm_actions()
+        action = actions_by_id["create-exposed-api-specs"]
+        self.assertIn("4-engineering-readiness", action.get("blocked_by_stage", []))
+
+    def test_tsm_workflow_definition_has_4c_stage(self) -> None:
+        """technical-spec-modular workflow-definition.yaml must define stage 4c-technical-specifications."""
+        wd_path = REPO_ROOT / ".b2s" / "workflow-types" / "technical-spec-modular" / "workflow-definition.yaml"
+        wd = yaml.safe_load(wd_path.read_text(encoding="utf-8"))
+        stage_ids = [s["id"] for s in wd["stages"]]
+        self.assertIn("4c-technical-specifications", stage_ids)
+        self.assertIn("4d-quality-gates", stage_ids)
+        self.assertNotIn("4b-quality-gates", stage_ids)
+
+    # --- State field parsing ---
+
+    def test_api_contract_mode_defaults_to_internal_when_absent(self) -> None:
+        """When readiness-check.md has no API contract mode row, state must default to 'internal'."""
+        from b2s_engine import state as state_module
+        run_cli("next-step", "--workspace-root", str(self.workspace_root))
+        (self.workspace_root / "engineering-readiness").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / "engineering-readiness" / "readiness-check.md").write_text(
+            textwrap.dedent("""\
+                # Engineering Readiness Check
+
+                ## Core Checklist
+
+                | # | Item | Status |
+                |---|---|---|
+                | 1 | BRS complete | Pass |
+
+                ## Gate Trigger Decisions
+
+                | Gate | Triggered | Trigger Evidence | Required |
+                |---|---|---|---|
+                | BDD Scenarios | Yes | coverage needed | Yes |
+
+                ## Readiness Decision
+
+                | Field | Value |
+                |---|---|
+                | Readiness score | 75 / 100 |
+                | Decision | Ready |
+            """),
+            encoding="utf-8",
+        )
+        state = json.loads((self.workspace_root / ".b2s" / "state" / "workflow-state.json").read_text(encoding="utf-8"))
+        state_module._parse_readiness_fields(self.workspace_root, state)
+        self.assertEqual(state["api_contract_mode"], "internal")
+
+    def test_api_contract_mode_parsed_as_product(self) -> None:
+        """When readiness-check.md has 'API contract mode | product', state must store 'product'."""
+        from b2s_engine import state as state_module
+        run_cli("next-step", "--workspace-root", str(self.workspace_root))
+        (self.workspace_root / "engineering-readiness").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / "engineering-readiness" / "readiness-check.md").write_text(
+            textwrap.dedent("""\
+                # Engineering Readiness Check
+
+                ## Gate Trigger Decisions
+
+                | Gate | Triggered | Trigger Evidence | Required |
+                |---|---|---|---|
+                | API contract mode | product | external consumers | Required |
+
+                ## Readiness Decision
+
+                | Field | Value |
+                |---|---|
+                | Readiness score | 80 / 100 |
+                | Decision | Ready |
+            """),
+            encoding="utf-8",
+        )
+        state = json.loads((self.workspace_root / ".b2s" / "state" / "workflow-state.json").read_text(encoding="utf-8"))
+        state_module._parse_readiness_fields(self.workspace_root, state)
+        self.assertEqual(state["api_contract_mode"], "product")
+
+    def test_api_contract_mode_parsed_as_coordinated(self) -> None:
+        """When readiness-check.md has 'API contract mode | coordinated', state must store 'coordinated'."""
+        from b2s_engine import state as state_module
+        run_cli("next-step", "--workspace-root", str(self.workspace_root))
+        (self.workspace_root / "engineering-readiness").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / "engineering-readiness" / "readiness-check.md").write_text(
+            textwrap.dedent("""\
+                # Engineering Readiness Check
+
+                ## Gate Trigger Decisions
+
+                | Gate | Triggered | Trigger Evidence | Required |
+                |---|---|---|---|
+                | API contract mode | coordinated | draft early | Required |
+
+                ## Readiness Decision
+
+                | Field | Value |
+                |---|---|
+                | Readiness score | 72 / 100 |
+                | Decision | Ready |
+            """),
+            encoding="utf-8",
+        )
+        state = json.loads((self.workspace_root / ".b2s" / "state" / "workflow-state.json").read_text(encoding="utf-8"))
+        state_module._parse_readiness_fields(self.workspace_root, state)
+        self.assertEqual(state["api_contract_mode"], "coordinated")
+
+    def test_api_contract_mode_invalid_value_defaults_to_internal(self) -> None:
+        """An unrecognized api_contract_mode value must fall back to 'internal'."""
+        from b2s_engine import state as state_module
+        run_cli("next-step", "--workspace-root", str(self.workspace_root))
+        (self.workspace_root / "engineering-readiness").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / "engineering-readiness" / "readiness-check.md").write_text(
+            textwrap.dedent("""\
+                # Engineering Readiness Check
+
+                ## Gate Trigger Decisions
+
+                | Gate | Triggered | Trigger Evidence | Required |
+                |---|---|---|---|
+                | API contract mode | unknown-value | typo | Required |
+
+                ## Readiness Decision
+
+                | Field | Value |
+                |---|---|
+                | Readiness score | 70 / 100 |
+                | Decision | Ready |
+            """),
+            encoding="utf-8",
+        )
+        state: dict = {"api_contract_mode": None}
+        state_module._parse_readiness_fields(self.workspace_root, state)
+        self.assertEqual(state["api_contract_mode"], "internal")
+
+    # --- Condition evaluation for tech-spec sequencing ---
+
+    def test_create_exposed_api_specs_condition_requires_api_contract_triggered(self) -> None:
+        """create-exposed-api-specs must require API_CONTRACT in quality_gates_triggered."""
+        from b2s_engine.next_step import evaluate_condition
+        from b2s_engine import workspace as ws
+        _, actions_by_id = self._load_tsm_actions()
+        action = actions_by_id["create-exposed-api-specs"]
+        conditions = action.get("conditions", [])
+        self.assertTrue(conditions, "create-exposed-api-specs must have at least one condition")
+
+        state_with_api = {
+            "action_status": {},
+            "readiness_score": 80,
+            "optional_artifacts_requested": [],
+            "quality_gates_triggered": ["API_CONTRACT"],
+        }
+        state_without_api = {
+            "action_status": {},
+            "readiness_score": 80,
+            "optional_artifacts_requested": [],
+            "quality_gates_triggered": ["BDD"],
+        }
+        condition = conditions[0]
+        self.assertTrue(
+            evaluate_condition(condition, state_with_api, self.workspace_root, actions_by_id),
+            "condition must pass when API_CONTRACT is in quality_gates_triggered",
+        )
+        self.assertFalse(
+            evaluate_condition(condition, state_without_api, self.workspace_root, actions_by_id),
+            "condition must fail when API_CONTRACT is absent from quality_gates_triggered",
+        )
+
+    def test_blocked_by_stage_satisfied_for_tsm_handoff_after_4d_complete(self) -> None:
+        """In tsm, create-openspec-handoff blocked_by_stage must be satisfied when 4d is complete."""
+        from b2s_engine.next_step import _blocked_by_stage_satisfied
+        _, actions_by_id = self._load_tsm_actions()
+
+        # 4d is complete when all condition-matching actions in it are done
+        state = {
+            "delivery_mode": "OpenSpec",
+            "readiness_score": 78,
+            "optional_artifacts_requested": [],
+            "quality_gates_triggered": ["API_CONTRACT", "BDD"],
+            "action_status": {
+                "create-api-contract": "ai_validated",
+                "create-bdd-scenarios": "ai_validated",
+            },
+            "artifact_status": {},
+        }
+        handoff_action = actions_by_id["create-openspec-handoff"]
+        result = _blocked_by_stage_satisfied(handoff_action, state, actions_by_id, self.workspace_root)
+        self.assertTrue(result, "tsm handoff must be unblocked when 4d-quality-gates actions are complete")
+
+    # --- Placeholder-driven prompt rendering ---
+
+    def test_create_exposed_api_specs_prompt_renders_without_placeholder_tokens(self) -> None:
+        """create-exposed-api-specs skill prompt must render with placeholders substituted."""
+        (self.workspace_root / "architecture").mkdir(parents=True)
+        (self.workspace_root / "architecture" / "architecture-review.md").write_text("# Review\n", encoding="utf-8")
+        (self.workspace_root / "architecture" / "architecture-rules.md").write_text("# Rules\n", encoding="utf-8")
+        (self.workspace_root / "engineering-readiness").mkdir()
+        (self.workspace_root / "engineering-readiness" / "readiness-check.md").write_text("# Readiness\n", encoding="utf-8")
+
+        tsm_sa_path = REPO_ROOT / ".b2s" / "workflow-types" / "technical-spec-modular" / "stage-actions.yaml"
+        actions = yaml.safe_load(tsm_sa_path.read_text(encoding="utf-8"))["actions"]
+        action = next(a for a in actions if a["action_id"] == "create-exposed-api-specs")
+
+        summary = dispatch_module._action_summary(action, self.workspace_root)
+        rendered = summary.get("rendered_skill_text") or ""
+
+        self.assertNotIn("{resolved_required_inputs}", rendered)
+        self.assertNotIn("{resolved_optional_inputs}", rendered)
+        self.assertNotIn("{primary_output}", rendered)
+
+    def test_tsm_handoff_skill_references_technical_spec_paths(self) -> None:
+        """create-openspec-handoff skill must mention technical-specifications/ paths after imp/08."""
+        skill_path = REPO_ROOT / ".b2s" / "skills" / "engineering-lead" / "create-openspec-handoff.md"
+        skill_text = skill_path.read_text(encoding="utf-8")
+        self.assertIn("technical-specifications/api/exposed/", skill_text)
+        self.assertIn("technical-specifications/api/consumed/", skill_text)
+        self.assertIn("technical-specifications/data/", skill_text)
+        self.assertIn("technical-specifications/integrations/", skill_text)
+
+    def test_tsm_standalone_handoff_skill_references_technical_spec_paths(self) -> None:
+        """create-standalone-handoff skill must mention technical-specifications/ paths after imp/08."""
+        skill_path = REPO_ROOT / ".b2s" / "skills" / "engineering-lead" / "create-standalone-handoff.md"
+        skill_text = skill_path.read_text(encoding="utf-8")
+        self.assertIn("technical-specifications/api/exposed/", skill_text)
+        self.assertIn("technical-specifications/integrations/", skill_text)
 
 
 class ValidationProfileUnitTests(unittest.TestCase):

@@ -1,0 +1,47 @@
+event_template_id: EVT-TPL-036
+type: CREATE_TEST_PLAN_PER_STORY
+persona: qa-analyst
+priority: medium
+description: "Generate per-story TC-NNN unit test case definitions complementing BDD acceptance scenarios — business rule branches, boundaries, error paths."
+
+skill_ref: ".brs2spec2/skills/qa-analyst/create-test-plan-per-story.md"
+persona_ref: ".brs2spec2/personas/qa-analyst.md"
+
+inputs:
+  required:
+    - "quality-gates/test-strategy.md"
+    - "quality-gates/bdd/"
+    - "planning/delivery-structure.md"
+    - "business-analysis/business-rules.md"
+    - "input/brs.md"
+    - "input/brs/*.md"
+
+outputs:
+  primary: "quality-gates/test-plans/"
+
+must_include:
+  - "One file per story: quality-gates/test-plans/F-NNN.X.md"
+  - "Every file has a Metadata table with Status: In progress"
+  - "TC-NNN IDs globally sequential across all story files"
+  - "Every TC-NNN has Condition, Input, Expected Outcome (verbatim from source)"
+  - "Every BR-NNN rule in scope has at least one TC-NNN per branch"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) every story from delivery-structure.md has a test plan file,
+    (2) TC-NNN IDs are globally sequential,
+    (3) every BR-NNN rule has branch coverage,
+    (4) TC-NNN are distinct from SCN-NNN (unit level not acceptance level).
+  machine:
+    file_exists: "quality-gates/test-plans/"
+
+on_success:
+  update_state:
+    artifact_status:
+      "quality-gates/test-plans/": "draft"
+
+on_failure:
+  raise_decision:
+    question: "Per-story test plan creation failed. business-rules.md and BDD scenarios must exist."
+    blocking: false
+    owner: "qa-analyst"

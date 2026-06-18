@@ -1,0 +1,50 @@
+event_template_id: EVT-TPL-031
+type: CREATE_BUSINESS_TEST_EXPECTATIONS
+persona: product-owner
+priority: medium
+description: "Write business-level test expectations (BTE-NNN) in business language for PO/stakeholder sign-off before BDD scenarios are authored."
+
+skill_ref: ".brs2spec2/skills/product-owner/create-business-test-expectations.md"
+persona_ref: ".brs2spec2/personas/product-owner.md"
+artifact_template_ref: ".brs2spec2/artifact-templates/business-test-expectations.md"
+
+inputs:
+  required:
+    - "business-analysis/requirements.md"
+    - "business-intake/business-intake-summary.md"
+  optional:
+    - "business-analysis/use-cases/"
+    - "business-analysis/business-rules.md"
+    - "business-analysis/actors-and-personas.md"
+    - "input/brs.md"
+    - "input/brs/*.md"
+
+outputs:
+  primary: "business-intake/business-test-expectations.md"
+
+must_include:
+  - "## Metadata table with Status: Draft"
+  - "## BTE Catalog table lists all BTE-NNN entries"
+  - "Every BTE-NNN has Expected Outcome and Failure Signal"
+  - "## Coverage Map table maps FR-NNN to BTE-NNN(s)"
+  - "Written in business language (no technical implementation detail)"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) every FR-NNN has at least one BTE-NNN,
+    (2) expected outcomes are observable without implementation knowledge,
+    (3) failure signals are specific,
+    (4) no BDD Gherkin syntax used (this is PO-level, not QA-level).
+  machine:
+    file_exists: "business-intake/business-test-expectations.md"
+
+on_success:
+  update_state:
+    artifact_status:
+      "business-intake/business-test-expectations.md": "draft"
+
+on_failure:
+  raise_decision:
+    question: "Business test expectations creation failed."
+    blocking: false
+    owner: "product-owner"

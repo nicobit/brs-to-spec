@@ -62,7 +62,11 @@ Trigger these when applicable:
 - `Event Contract` for event schema or async behavior changes
 - `Observability Plan` for operational flows, SLI/SLO needs, or alerting concerns
 
-Every `No` decision must include explicit written justification.
+Every `No` decision must include explicit written justification explaining why
+the initiative does not need this gate. Do not write "Not yet created", "TBD",
+or "To be defined" — those describe artifact status, not trigger evaluation.
+`Triggered` answers "does this initiative need this quality gate?" based on the
+initiative's characteristics, not whether the artifact has been produced yet.
 
 Calculate readiness score:
 

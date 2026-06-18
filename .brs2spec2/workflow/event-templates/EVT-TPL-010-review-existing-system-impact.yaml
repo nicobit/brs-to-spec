@@ -1,0 +1,48 @@
+event_template_id: EVT-TPL-010
+type: REVIEW_EXISTING_SYSTEM_IMPACT
+persona: architect
+priority: high
+description: "Targeted brownfield impact assessment: affected components, consumers, compatibility, migration, and rollback sensitivity."
+
+skill_ref: ".brs2spec2/skills/architect/review-existing-system-impact.md"
+persona_ref: ".brs2spec2/personas/architect.md"
+
+inputs:
+  required:
+    - "input/brs.md"
+    - "input/brs/*.md"
+    - "input/architecture.md or input/architecture/*.md"
+    - "architecture/architecture-review.md"
+    - "business-intake/business-intake-summary.md"
+
+outputs:
+  primary: "architecture/existing-system-impact.md"
+
+must_include:
+  - "## Metadata table is present with Status: Draft"
+  - "## Affected Components table lists all changed components with consumers"
+  - "Backward compatibility is explicitly assessed for each component"
+  - "Rollback sensitivity is stated with an approach or explicit 'cannot rollback' justification"
+  - "## Regression Surface Assessment is present with a risk level"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) all affected components from the BRS are identified,
+    (2) consumer mapping is complete for each affected component,
+    (3) backward compatibility is not silently skipped,
+    (4) rollback sensitivity has a level and approach,
+    (5) no invented consumers or dependencies.
+  machine:
+    file_exists: "architecture/existing-system-impact.md"
+  skip_if: "routing-decision.md execution_mode is greenfield"
+
+on_success:
+  update_state:
+    artifact_status:
+      "architecture/existing-system-impact.md": "ai_validated"
+
+on_failure:
+  raise_decision:
+    question: "Existing system impact assessment failed. Check input/architecture.md availability."
+    blocking: false
+    owner: "architect"

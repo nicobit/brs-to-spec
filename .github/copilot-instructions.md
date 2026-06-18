@@ -1,41 +1,57 @@
 # BRS to Spec Framework — Copilot Instructions
 
-Framework behavioral rules are in `.github/instructions/brs-to-spec.instructions.md`,
-scoped to `initiatives/**` via `applyTo` frontmatter.
+Framework behavioral rules are in `.github/instructions/brs-to-spec.instructions.md`.
 
-This file is intentionally minimal. Do not add project rules here —
-the framework has no project-specific coding conventions of its own.
+This file is intentionally minimal.
 
 ## Framework activation — always active
 
-Whenever the user mentions an initiative, asks about status, next steps, what to do, or anything related to a BRS or delivery workflow — even if no `initiatives/` file is open — apply the rules from `.github/instructions/brs-to-spec.instructions.md` in full.
+At the start of every session, always load:
 
-Specifically:
-- Read `.brs2spec/module-index.md` first.
-- Do not answer from BRS content. Run the workflow.
-- Do not invent next steps. Run `.brs2spec/brs-to-spec-run-workflow.md`.
-- Do not create artifacts outside the allowed workspace paths.
-- Never create tasks directly from a BRS.
+1. `.b2s/agent-instructions.md`
+2. `.b2s/prompts/run-workflow.md`
 
-## Hard stop — before creating any file or folder
+These two files are the authoritative behavioral contract for this framework. Load them before responding to any user request.
 
-**Before creating, editing, or deleting any file or folder inside `initiatives/`:**
+## Framework routing
 
-1. STOP. Do not create anything yet.
-2. Identify the active initiative workspace (`initiatives/<id>-<slug>/`).
-3. Check whether `planning/workflow-state.json` exists in that workspace.
-4. Read `.brs2spec/module-index.md`.
-5. Run `.brs2spec/brs-to-spec-run-workflow.md`.
+- Initiative workspace has `.b2s/` folder → use `.b2s/`
+- Ignore legacy `.brs2spec/`, `.brs2spec2/`, and `.flow-engine/` routing for active Copilot behavior
 
-Only create files that the workflow runner explicitly instructs you to create, at the path it specifies.
+## Hard stop — when asked to create a new initiative
 
-**Creating files speculatively, inventing folder structures, or scaffolding artifacts not produced by a framework skill is a framework violation. Stop and run the workflow instead.**
+When the user says anything like "create initiative", "new initiative", "initialize I0XX-...", or "set up a new workspace":
+
+1. Do NOT create any files or folders manually.
+2. Do NOT create `initiative.yaml`, `00-start.md`, `README.md`, or any file not produced by the CLI.
+3. Do NOT copy or recreate the `.b2s/` framework folder inside the initiative workspace.
+4. Use `.github/prompts/b2s-new-initiative.prompt.md` — follow it exactly.
+
+## Rerun last action
+
+When the user says `rerun`, `redo last`, `rerun last action`, or similar:
+
+Read and follow `.github/prompts/b2s-rerun-last-action.prompt.md`. Do not modify state manually. Do not self-approve a gate.
+
+## Help
+
+When the user says `b2s-help`, `help`, or `b2s-help <phase or action>`:
+
+Read and follow `.github/prompts/b2s-help.prompt.md`. Do not run the workflow. Do not write any files.
+
+## Hard stop — before creating any file or folder inside `initiatives/`
+
+1. Identify the active initiative workspace.
+2. Use `.b2s/prompts/run-workflow.md` for staged execution.
+3. Do not follow event queues or `.flow/` buckets.
 
 ## Hard stop — before answering "what should I do?" or "what is next?"
 
-Do not read the BRS and summarize it. Do not invent a plan. Do not present options.
+Read `.b2s/state/workflow-state.json` when it exists, then use `.b2s/prompts/run-workflow.md` and the `.b2s` engine outputs to determine the next staged action.
 
-1. Read `planning/workflow-state.json` if it exists.
-2. Run `.brs2spec/brs-to-spec-run-workflow.md`.
+Do not invent next steps. Do not summarize the BRS. Run the workflow.
 
-The workflow runner will determine and execute the next step. Your job is to run it, not to answer around it.
+## Hard stop — when staged state is inconsistent or blocked
+
+Do NOT invent progress. Do NOT bypass validation or gates.
+Use `.github/prompts/b2s-repair-chain.prompt.md` (repair), `.github/prompts/b2s-reset-to-phase.prompt.md` (rewind to a stage), or `.github/prompts/b2s-resume.prompt.md` (repair/retry/reset decision then continue) only when the user explicitly triggers repair, reset, or resume.

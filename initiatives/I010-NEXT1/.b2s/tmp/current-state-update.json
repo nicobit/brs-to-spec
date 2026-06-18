@@ -1,0 +1,24 @@
+{
+  "overall": "pass",
+  "action_id": "create-actors-and-personas",
+  "previous_state_summary": {
+    "current_stage": "2b-business-analysis",
+    "next_action": "create-actors-and-personas"
+  },
+  "applied_changes": {
+    "current_stage": "2b-business-analysis",
+    "artifact_status": {
+      "routing/routing-decision.md": "accepted",
+      "business-intake/business-intake-summary.md": "accepted",
+      "business-analysis/requirements.md": "ai_validated",
+      "business-analysis/use-cases.puml": "ai_validated",
+      "business-analysis/use-cases.md": "ai_validated",
+      "business-analysis/entity-model.md": "ai_validated",
+      "business-analysis/business-rules.md": "ai_validated",
+      "business-analysis/gaps-and-questions.md": "ai_validated",
+      "business-analysis/actors-and-personas.md": "ai_validated"
+    }
+  },
+  "next_action": "create-use-case-specs",
+  "gate_state": null
+}

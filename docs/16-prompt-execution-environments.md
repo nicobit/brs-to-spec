@@ -8,16 +8,16 @@ Do not assume every prompt should run in GitHub Copilot Coding Agent or in a bus
 
 | Prompt group | Typical owner | Recommended environment | Repository / code access |
 |---|---|---|---|
-| `.brs2spec/0-input-preparation` | Business analyst / product owner / architect | Microsoft 365 Copilot, ChatGPT, VS Code Copilot Chat | Not usually required |
-| `.brs2spec/1-routing` | Product owner / architect / tech lead | VS Code Copilot Chat or another repository-aware assistant | Helpful |
-| `.brs2spec/2-business-intake` | Product owner / business analyst | Microsoft 365 Copilot, ChatGPT, VS Code Copilot Chat | Not usually required |
-| `.brs2spec/3-planning-and-modular-delivery` | Architect / tech lead / senior engineer | VS Code Copilot Chat | Recommended |
-| `.brs2spec/4-engineering-readiness` | Tech lead / QA / architect / security lead | VS Code Copilot Chat | Recommended |
-| `.brs2spec/5-handoff` | Engineering lead / senior engineer | VS Code Copilot Chat | Recommended |
-| `.brs2spec/6-business-copilot` | Business user / business analyst | Microsoft 365 Copilot / Copilot Studio | No |
-| `.brs2spec/7-perspectives` | Delivery lead / scrum master / PM | VS Code Copilot Chat | Helpful |
-| `.brs2spec/8-copilot-implementation` | Developer | VS Code Copilot Agent mode / GitHub Copilot Coding Agent | Yes |
-| `.brs2spec/9-reviewers` | Senior developer / QA / architect / security reviewer | VS Code Copilot Chat / PR review surface | Yes |
+| `.brs2spec/skills/0-input-preparation` | Business analyst / product owner / architect | Microsoft 365 Copilot, ChatGPT, VS Code Copilot Chat | Not usually required |
+| `.brs2spec/skills/1-routing` | Product owner / architect / tech lead | VS Code Copilot Chat or another repository-aware assistant | Helpful |
+| `.brs2spec/skills/2-business-intake` | Product owner / business analyst | Microsoft 365 Copilot, ChatGPT, VS Code Copilot Chat | Not usually required |
+| `.brs2spec/skills/3-planning-and-modular-delivery` | Architect / tech lead / senior engineer | VS Code Copilot Chat | Recommended |
+| `.brs2spec/skills/4-engineering-readiness` | Tech lead / QA / architect / security lead | VS Code Copilot Chat | Recommended |
+| `.brs2spec/skills/5-handoff` | Engineering lead / senior engineer | VS Code Copilot Chat | Recommended |
+| `.brs2spec/skills/6-business-copilot` | Business user / business analyst | Microsoft 365 Copilot / Copilot Studio | No |
+| `.brs2spec/skills/7-perspectives` | Delivery lead / scrum master / PM | VS Code Copilot Chat | Helpful |
+| `.brs2spec/skills/8-copilot-implementation` | Developer | VS Code Copilot Agent mode / GitHub Copilot Coding Agent | Yes |
+| `.brs2spec/skills/9-reviewers` | Senior developer / QA / architect / security reviewer | VS Code Copilot Chat / PR review surface | Yes |
 
 ## Operating Rule
 

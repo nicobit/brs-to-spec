@@ -66,6 +66,22 @@ class EngineFixtureTests(unittest.TestCase):
         inputs = self.read_json(".b2s/tmp/current-inputs.json")
         self.assertEqual(inputs["overall"], "fail")
         self.assertEqual(inputs["missing_required_inputs"], ["input/brs.md"])
+        self.assertEqual(
+            inputs["prompt_placeholders"]["required_inputs"],
+            ["input/brs.md"],
+        )
+        self.assertEqual(
+            inputs["prompt_placeholders"]["resolved_required_inputs"],
+            [],
+        )
+        self.assertEqual(
+            inputs["prompt_placeholders"]["primary_output"],
+            "routing/routing-decision.md",
+        )
+        self.assertEqual(
+            inputs["prompt_placeholders"]["secondary_outputs"],
+            [],
+        )
 
     def test_next_step_from_valid_business_intake_fixture_selects_requirements(self) -> None:
         self.materialize_fixture("valid-business-intake-flow")
@@ -163,7 +179,7 @@ class EngineFixtureTests(unittest.TestCase):
         )
         validation = self.read_yaml(".b2s/tmp/current-validation.yaml")
         self.assertEqual(validation["overall"], "fail")
-        self.assertTrue(any("fit_section_populated failed" in item for item in validation["failures"]))
+        self.assertTrue(any("tmpl_section_" in item for item in validation["failures"]))
 
     def test_validate_artifact_passes_for_valid_architecture_review(self) -> None:
         self.materialize_fixture("valid-architecture-review")
@@ -278,8 +294,8 @@ class EngineFixtureTests(unittest.TestCase):
         validation = self.read_yaml(".b2s/tmp/current-validation.yaml")
         self.assertEqual(validation["overall"], "pass")
 
-    def test_validate_artifact_profile_dispatch_is_recorded_for_analytical_review(self) -> None:
-        """The validation_dispatch check must be present and the outer dispatch must be profile."""
+    def test_validate_artifact_template_dispatch_is_recorded_for_architecture_review(self) -> None:
+        """The validation_dispatch check must be present and the outer dispatch must be template."""
         self.materialize_fixture("valid-architecture-review")
         run_cli(
             "validate-artifact",
@@ -291,10 +307,9 @@ class EngineFixtureTests(unittest.TestCase):
         validation = self.read_yaml(".b2s/tmp/current-validation.yaml")
         dispatch_checks = [c for c in validation["checks"] if c["name"] == "validation_dispatch"]
         self.assertTrue(dispatch_checks, "validation_dispatch check must be present")
-        # The outer dispatch check detail contains the artifact path under "profile: ..."
         self.assertTrue(
-            any(c["detail"].startswith("profile:") for c in dispatch_checks),
-            "outer dispatch check must record profile dispatch, not dedicated or fallback",
+            any(c["detail"].startswith("template:") for c in dispatch_checks),
+            "outer dispatch check must record template dispatch for actions with artifact_template_ref",
         )
 
     def test_validate_artifact_audit_check_passes_for_valid_architecture_review(self) -> None:
@@ -328,12 +343,12 @@ class EngineFixtureTests(unittest.TestCase):
         validation = self.read_yaml(".b2s/tmp/current-validation.yaml")
         self.assertEqual(validation["overall"], "fail")
         self.assertTrue(
-            any("fit_section_populated failed" in item for item in validation["failures"]),
-            "placeholder review must fail the Initiative-Architecture Fit section check",
+            any("tmpl_section_" in item for item in validation["failures"]),
+            "placeholder review must fail template section checks",
         )
         self.assertTrue(
-            any("not_summary_only failed" in item for item in validation["failures"]),
-            "placeholder review must fail the not_summary_only length check",
+            any("tmpl_content_depth failed" in item for item in validation["failures"]),
+            "placeholder review must fail the template content depth check",
         )
 
 
@@ -422,6 +437,122 @@ class StoryPackageValidatorTests(unittest.TestCase):
         )
         validation = self.read_yaml(".b2s/tmp/current-validation.yaml")
         self.assertEqual(validation["overall"], "pass")
+
+
+class TechnicalSpecValidatorTests(unittest.TestCase):
+    def setUp(self) -> None:
+        RUNTIME_ROOT.mkdir(parents=True, exist_ok=True)
+        self.workspace_root = RUNTIME_ROOT / self._testMethodName
+        if self.workspace_root.exists():
+            shutil.rmtree(self.workspace_root)
+
+    def tearDown(self) -> None:
+        if self.workspace_root.exists():
+            shutil.rmtree(self.workspace_root)
+
+    def materialize_fixture(self, name: str) -> None:
+        shutil.copytree(FIXTURES_ROOT / name, self.workspace_root)
+
+    def read_yaml(self, relative_path: str) -> dict:
+        return yaml.safe_load((self.workspace_root / relative_path).read_text(encoding="utf-8"))
+
+    def test_validate_exposed_api_spec_fails_for_shallow(self) -> None:
+        self.materialize_fixture("shallow-exposed-api-spec")
+        run_cli(
+            "validate-artifact",
+            "--workspace-root", str(self.workspace_root),
+            "--action-id", "create-exposed-api-specs",
+        )
+        validation = self.read_yaml(".b2s/tmp/current-validation.yaml")
+        self.assertEqual(validation["overall"], "fail")
+        failures = " ".join(validation["failures"])
+        self.assertIn("exposed_api_has_endpoints", failures)
+        self.assertIn("exposed_api_has_contract_mode", failures)
+        self.assertIn("exposed_api_no_placeholders", failures)
+
+    def test_validate_exposed_api_spec_passes_for_valid(self) -> None:
+        self.materialize_fixture("valid-exposed-api-spec")
+        run_cli(
+            "validate-artifact",
+            "--workspace-root", str(self.workspace_root),
+            "--action-id", "create-exposed-api-specs",
+        )
+        validation = self.read_yaml(".b2s/tmp/current-validation.yaml")
+        self.assertEqual(validation["overall"], "pass")
+
+    def test_validate_consumed_api_spec_fails_for_shallow(self) -> None:
+        self.materialize_fixture("shallow-consumed-api-spec")
+        run_cli(
+            "validate-artifact",
+            "--workspace-root", str(self.workspace_root),
+            "--action-id", "create-consumed-api-specs",
+        )
+        validation = self.read_yaml(".b2s/tmp/current-validation.yaml")
+        self.assertEqual(validation["overall"], "fail")
+        failures = " ".join(validation["failures"])
+        self.assertIn("consumed_api_has_endpoints", failures)
+        self.assertIn("consumed_api_has_auth", failures)
+        self.assertIn("consumed_api_no_placeholders", failures)
+
+    def test_validate_consumed_api_spec_passes_for_valid(self) -> None:
+        self.materialize_fixture("valid-consumed-api-spec")
+        run_cli(
+            "validate-artifact",
+            "--workspace-root", str(self.workspace_root),
+            "--action-id", "create-consumed-api-specs",
+        )
+        validation = self.read_yaml(".b2s/tmp/current-validation.yaml")
+        self.assertEqual(validation["overall"], "pass")
+
+    def test_validate_integration_spec_fails_for_shallow(self) -> None:
+        self.materialize_fixture("shallow-integration-spec")
+        run_cli(
+            "validate-artifact",
+            "--workspace-root", str(self.workspace_root),
+            "--action-id", "create-integration-specs",
+        )
+        validation = self.read_yaml(".b2s/tmp/current-validation.yaml")
+        self.assertEqual(validation["overall"], "fail")
+        failures = " ".join(validation["failures"])
+        self.assertIn("integration_has_timeout", failures)
+        self.assertIn("integration_has_events", failures)
+        self.assertIn("integration_no_placeholders", failures)
+
+    def test_validate_integration_spec_passes_for_valid(self) -> None:
+        self.materialize_fixture("valid-integration-spec")
+        run_cli(
+            "validate-artifact",
+            "--workspace-root", str(self.workspace_root),
+            "--action-id", "create-integration-specs",
+        )
+        validation = self.read_yaml(".b2s/tmp/current-validation.yaml")
+        self.assertEqual(validation["overall"], "pass")
+
+    def test_technical_spec_validators_are_registered_as_dedicated(self) -> None:
+        """All three tech-spec validators must dispatch as dedicated, not profile or fallback."""
+        import tempfile
+        from b2s_engine import validation as validation_module
+        import yaml as _yaml
+
+        tsm_sa_path = REPO_ROOT / ".b2s" / "workflow-types" / "technical-spec-modular" / "stage-actions.yaml"
+        actions = _yaml.safe_load(tsm_sa_path.read_text(encoding="utf-8"))["actions"]
+        actions_by_id = {a["action_id"]: a for a in actions}
+
+        targets = [
+            ("create-exposed-api-specs", "technical-specifications/api/exposed/"),
+            ("create-consumed-api-specs", "technical-specifications/api/consumed/"),
+            ("create-integration-specs", "technical-specifications/integrations/"),
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            for action_id, artifact_path in targets:
+                action = actions_by_id[action_id]
+                dir_path = Path(tmp) / artifact_path
+                dir_path.mkdir(parents=True, exist_ok=True)
+                dispatch, _ = validation_module._validator_for_artifact(action, artifact_path, dir_path)
+                self.assertEqual(
+                    dispatch, "dedicated",
+                    msg=f"{action_id}: expected dedicated dispatch for {artifact_path}, got {dispatch}",
+                )
 
 
 class WorkflowLoadingTests(unittest.TestCase):

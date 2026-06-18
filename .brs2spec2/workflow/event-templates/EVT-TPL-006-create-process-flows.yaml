@@ -1,0 +1,47 @@
+event_template_id: EVT-TPL-006
+type: CREATE_PROCESS_FLOWS
+persona: product-owner
+priority: medium
+description: "Synthesize end-to-end process flows (PF-NNN) from use-case specs and stable actor IDs."
+
+skill_ref: ".brs2spec2/skills/product-owner/create-process-flows.md"
+persona_ref: ".brs2spec2/personas/product-owner.md"
+artifact_template_ref: ".brs2spec2/artifact-templates/process-flows.md"
+
+inputs:
+  required:
+    - "business-analysis/use-cases/"
+    - "business-analysis/actors-and-personas.md"
+  optional:
+    - "business-analysis/business-rules.md"
+    - "architecture/architecture-review.md"
+
+outputs:
+  primary: "business-analysis/process-flows.md"
+
+must_include:
+  - "## Metadata table is present with Status: Draft"
+  - "## Process Flow Catalog table lists all PF-NNN entries"
+  - "At least one PF-NNN flow is defined with Steps and Post-conditions"
+  - "At least one Mermaid flowchart diagram is present"
+  - "All actors referenced use ACT-NNN IDs from actors-and-personas.md"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) every major feature area has at least one PF-NNN flow,
+    (2) actors are referenced by ACT-NNN not by invented names,
+    (3) decision points reference BR-NNN rules where applicable,
+    (4) Mermaid diagrams use valid syntax (alphanumeric node IDs, quoted labels with special chars).
+  machine:
+    file_exists: "business-analysis/process-flows.md"
+
+on_success:
+  update_state:
+    artifact_status:
+      "business-analysis/process-flows.md": "ai_validated"
+
+on_failure:
+  raise_decision:
+    question: "Process flow creation failed. Check actors-and-personas.md completeness."
+    blocking: false
+    owner: "product-owner"

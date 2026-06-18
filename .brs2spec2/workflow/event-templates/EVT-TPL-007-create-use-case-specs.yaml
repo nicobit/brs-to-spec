@@ -1,0 +1,62 @@
+event_template_id: EVT-TPL-007
+type: CREATE_USE_CASE_SPECS
+persona: product-owner
+priority: high
+description: "Write one UC-NNN.md file per use case identified in use-cases.puml. Output is a folder of per-UC behavioral specifications, not a monolithic file."
+
+skill_ref: ".brs2spec2/skills/product-owner/create-use-case-specs.md"
+persona_ref: ".brs2spec2/personas/product-owner.md"
+artifact_template_ref: ".brs2spec2/artifact-templates/use-case-detail.md"
+
+inputs:
+  required:
+    - "business-analysis/requirements.md"
+    - "business-analysis/use-cases.puml"
+  optional:
+    - "business-analysis/use-cases.md"
+    - "business-analysis/business-rules.md"
+    - "business-analysis/actors-and-personas.md"
+    - "architecture/architecture-review.md"
+
+outputs:
+  primary: "business-analysis/use-cases/"
+
+must_include:
+  - "business-analysis/use-cases/ folder exists and contains at least one UC-NNN.md file"
+  - "Every UC-NNN.md file in use-cases/ has an Overview section with Status: Draft"
+  - "Every UC-NNN.md file has a Main Success Scenario section with at least 3 numbered steps"
+  - "Every UC-NNN.md file has at least one Alternative Flow section"
+  - "Every UC-NNN.md file has a Postconditions section with both Success and Failure states"
+  - "Every UC-NNN.md file has an FR Sources section listing at least one FR-NNN"
+  - "No UC-NNN.md file contains placeholder text: {{, }}, ACT-NNN as a name, UC-NNN as a title, TBD, TODO"
+  - "Across the use-cases/ folder, the UC files collectively cover the FR-NNN breadth from requirements.md rather than only the first one or two requirements"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) business-analysis/use-cases/ folder exists; (2) for every UC-NNN declared
+    in use-cases.puml there is exactly one UC-NNN.md file in use-cases/ — count UC-NNN entries
+    in the puml and count files in the folder; if folder has fewer files than diagram has UCs,
+    this is a stub and must fail; (3) no file in the folder contains more than one use case;
+    (4) every file has preconditions, a numbered main success scenario, at least one alternative
+    flow, and postconditions — a file with only one or two sentences per section is a stub and
+    must fail; (5) main scenario steps use business language only — no technology names or
+    implementation detail; (6) every UC traces to at least one FR-NNN; (7) across the folder,
+    every FR-NNN in requirements.md is covered by at least one UC file or explicitly excluded
+    with justification; (8) Status is Draft in every file; (9) use case content is domain-consistent
+    with the initiative BRS — a UC titled "Create Order" in a Loan Origination Platform initiative
+    is domain-mismatched and must fail.
+  machine:
+    folder_exists: "business-analysis/use-cases/"
+    folder_contains_at_least_one: "UC-*.md"
+
+on_success:
+  update_state:
+    current_stage: "2b-business-analysis"
+    artifact_status:
+      "business-analysis/use-cases/": "ai_validated"
+
+on_failure:
+  raise_decision:
+    question: "Use case spec creation failed. Verify use-cases.puml and requirements.md are complete."
+    blocking: false
+    owner: "product-owner"

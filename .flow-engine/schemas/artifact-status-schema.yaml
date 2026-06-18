@@ -1,0 +1,174 @@
+# Flow Engine — Artifact Status Schema
+# Version: 1.0
+#
+# Defines the structure of each entry in the `artifacts` map inside
+# workflow-state.json. Every artifact tracked by the engine has one entry.
+#
+# In workflow-state.json:
+#
+#   "artifacts": {
+#     "input/brs.md": { "status": "accepted", "produced_by": "human" },
+#     "business-analysis/business-rules.md": { "status": "missing" }
+#   }
+#
+# Keys are artifact paths relative to the initiative workspace root.
+# Values are status objects conforming to this schema.
+
+# ---------------------------------------------------------------------------
+# STATUS VALUES
+# ---------------------------------------------------------------------------
+
+# status: REQUIRED
+# The current state of this artifact.
+#
+# Allowed values:
+#
+#   missing
+#     Artifact does not exist. Default state for all artifacts at init.
+#     Transitions to: draft (when a CREATE_ARTIFACT event starts writing it)
+#                 or: accepted (when written and validated in one step)
+#
+#   draft
+#     Artifact exists but has not yet been accepted.
+#     It is either in progress (event in processing/) or awaiting explicit acceptance.
+#     Transitions to: ai_validated (validation passes for non-gate artifacts)
+#                 or: accepted (validation passes and event sets accepted directly)
+#                 or: failed (validation fails)
+#
+#   ai_validated
+#     Artifact exists and has passed AI validation for its producing event.
+#     The flow engine treats this the same as accepted for blocked_by checks —
+#     downstream events may use this artifact without human approval.
+#     Transitions to: accepted (human approves via WAIT_HUMAN gate resolution)
+#                 or: stale (if a dependency changes after validation)
+#
+#   accepted
+#     Artifact exists and has been accepted — either by AI (same as ai_validated)
+#     or explicitly by a human via a WAIT_HUMAN gate.
+#     Both ai_validated and accepted satisfy blocked_by checks.
+#     Transitions to: stale (if a dependency changes after acceptance)
+#
+#   failed
+#     Artifact was attempted but the producing event failed validation.
+#     The file may or may not exist on disk (partial write).
+#     Transitions to: draft (when a REPAIR_ARTIFACT or RETRY_FAILED_TASK event starts)
+#
+#   stale
+#     Artifact exists and was previously accepted or ai_validated, but a dependency
+#     has changed since it was produced (e.g. BRS updated after business-intake-summary
+#     was accepted). Does NOT satisfy blocked_by checks — downstream events treat stale
+#     as missing.
+#     Transitions to: draft (when an UPDATE_ARTIFACT event starts)
+#                 or: accepted (when re-validated and still valid)
+#
+#   blocked
+#     Artifact cannot be produced because a required input is missing or a blocking
+#     decision is unresolved. The event that would produce it is blocked in pending/.
+#     Transitions to: missing → draft (when blocker is resolved and event runs)
+
+# ---------------------------------------------------------------------------
+# STATUS OBJECT FIELDS
+# ---------------------------------------------------------------------------
+
+# status: REQUIRED — one of the six values above
+
+# produced_by: OPTIONAL
+# The EVT-ID of the event that produced (or last updated) this artifact.
+# Use "human" for artifacts written directly by the user (e.g. input/brs.md).
+# Example: EVT-00023
+# Example: human
+
+# accepted_at: OPTIONAL
+# ISO-8601 datetime when status last became "accepted".
+# Only present when status is "accepted" or "stale".
+# Example: 2026-06-13T10:22:00Z
+
+# last_updated: OPTIONAL
+# ISO-8601 datetime of the last status change (any transition).
+# Example: 2026-06-13T10:22:00Z
+
+# notes: OPTIONAL
+# Reason for current status. Most useful for "blocked" and "failed".
+# Example: "blocked — routing/routing-decision.md missing"
+# Example: "failed — BR-NNN to FR-NNN mapping incomplete (EVT-00023)"
+
+# ---------------------------------------------------------------------------
+# FULL workflow-state.json artifacts BLOCK EXAMPLE
+# ---------------------------------------------------------------------------
+#
+# "artifacts": {
+#
+#   "input/brs.md": {
+#     "status": "accepted",
+#     "produced_by": "human",
+#     "accepted_at": "2026-06-13T09:00:00Z",
+#     "last_updated": "2026-06-13T09:00:00Z"
+#   },
+#
+#   "routing/routing-decision.md": {
+#     "status": "accepted",
+#     "produced_by": "EVT-00001",
+#     "accepted_at": "2026-06-13T10:01:00Z",
+#     "last_updated": "2026-06-13T10:01:00Z"
+#   },
+#
+#   "business-intake/business-intake-summary.md": {
+#     "status": "accepted",
+#     "produced_by": "EVT-00002",
+#     "accepted_at": "2026-06-13T10:14:00Z",
+#     "last_updated": "2026-06-13T10:14:00Z"
+#   },
+#
+#   "business-analysis/business-rules.md": {
+#     "status": "failed",
+#     "produced_by": "EVT-00023",
+#     "last_updated": "2026-06-13T10:25:00Z",
+#     "notes": "failed — BR-004, BR-007, BR-012 missing FR-NNN traceability link"
+#   },
+#
+#   "business-analysis/actors-and-personas.md": {
+#     "status": "missing",
+#     "last_updated": "2026-06-13T10:00:00Z"
+#   },
+#
+#   "architecture/architecture-review.md": {
+#     "status": "blocked",
+#     "last_updated": "2026-06-13T10:00:00Z",
+#     "notes": "blocked — planning/delivery-structure.md has status: draft, not accepted"
+#   },
+#
+#   "quality-gates/bdd/": {
+#     "status": "stale",
+#     "produced_by": "EVT-00041",
+#     "accepted_at": "2026-06-13T11:00:00Z",
+#     "last_updated": "2026-06-13T12:30:00Z",
+#     "notes": "stale — planning/delivery-structure.md was updated after BDD was accepted"
+#   }
+#
+# }
+
+# ---------------------------------------------------------------------------
+# VALID STATUS TRANSITIONS
+# ---------------------------------------------------------------------------
+#
+# missing       → draft          (CREATE_ARTIFACT or UPDATE_ARTIFACT event starts)
+# missing       → blocked        (orchestrator detects blocked_by not satisfied)
+# draft         → ai_validated   (event validation passes; event does not require human gate)
+# draft         → accepted       (event validation passes; event explicitly sets accepted)
+# draft         → failed         (event validation fails)
+# ai_validated  → accepted       (human approves via WAIT_HUMAN gate resolution)
+# ai_validated  → stale          (a dependency artifact is updated after validation)
+# accepted      → stale          (a dependency artifact is updated after this was accepted)
+# stale         → draft          (UPDATE_ARTIFACT or REPAIR_ARTIFACT event starts)
+# stale         → accepted       (re-validation confirms artifact still valid)
+# failed        → draft          (REPAIR_ARTIFACT or RETRY_FAILED_TASK event starts)
+# blocked       → missing        (blocker resolved — artifact reverts to missing, event unblocked)
+#
+# Transitions NOT allowed:
+# accepted      → missing        (accepted artifacts are never deleted by the engine)
+# accepted      → failed         (accepted artifacts are not re-validated unless explicitly repaired)
+# ai_validated  → failed         (ai_validated artifacts are not downgraded without a repair event)
+#
+# BLOCKED_BY CHECK RULE:
+# Both ai_validated and accepted satisfy blocked_by checks.
+# draft, failed, stale, missing, blocked do NOT satisfy blocked_by checks.

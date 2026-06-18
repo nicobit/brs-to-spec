@@ -1,0 +1,46 @@
+event_template_id: EVT-TPL-014
+type: DEFINE_DELIVERY_INCREMENTS
+persona: delivery-lead
+priority: medium
+description: "Define D1, D2, ... delivery increments with scope, entry/exit criteria, and inter-increment dependencies. Enterprise+Modular only."
+
+skill_ref: ".brs2spec2/skills/delivery-lead/define-delivery-increments.md"
+persona_ref: ".brs2spec2/personas/delivery-lead.md"
+
+inputs:
+  required:
+    - "planning/delivery-structure.md"
+    - "routing/routing-decision.md"
+    - "architecture/architecture-review.md"
+  condition: "execution_mode == Enterprise+Modular"
+
+outputs:
+  primary: "planning/delivery-increments.md"
+
+must_include:
+  - "## Metadata table confirms execution_mode is Enterprise+Modular"
+  - "## Increment Summary table lists D1 at minimum"
+  - "Every increment has Entry criteria, Exit criteria, and Dependencies defined"
+  - "Every F-XXX.X story is assigned to exactly one increment"
+  - "Cross-increment dependency graph (Mermaid) is present"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) every F-XXX.X story is in exactly one increment,
+    (2) no story in Dn depends on a story in Dn+1,
+    (3) D1 is minimum viable (not the full scope),
+    (4) entry and exit criteria are specific.
+  machine:
+    file_exists: "planning/delivery-increments.md"
+  skip_if: "execution_mode != Enterprise+Modular"
+
+on_success:
+  update_state:
+    artifact_status:
+      "planning/delivery-increments.md": "ai_validated"
+
+on_failure:
+  raise_decision:
+    question: "Delivery increments definition failed. Confirm execution mode is Enterprise+Modular."
+    blocking: false
+    owner: "delivery-lead"

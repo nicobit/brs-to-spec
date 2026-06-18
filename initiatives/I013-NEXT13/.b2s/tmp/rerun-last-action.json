@@ -1,0 +1,19 @@
+{
+  "overall": "pass",
+  "action_id": "create-openspec-handoff",
+  "previous_state_summary": {
+    "current_stage": "6-review-package",
+    "last_completed_action": "create-openspec-handoff",
+    "action_status": "ai_validated"
+  },
+  "applied_changes": {
+    "action_reopened": "create-openspec-handoff",
+    "gate_cleared": null,
+    "artifacts_cleared": [
+      "specs/"
+    ],
+    "next_action": "create-openspec-handoff"
+  },
+  "next_action": "create-openspec-handoff",
+  "gate_state": null
+}

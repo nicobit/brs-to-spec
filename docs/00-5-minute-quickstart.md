@@ -32,7 +32,7 @@ initiatives/I002-customer-onboarding/input/brs.md
 If your BRS is a Word document or raw notes, the framework can convert it:
 
 ```text
-.brs2spec/0-input-preparation/01-convert-brs-word-to-markdown.md
+.brs2spec/skills/0-input-preparation/01-convert-brs-word-to-markdown.md
 ```
 
 Optionally, add architecture context at:

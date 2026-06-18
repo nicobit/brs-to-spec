@@ -1,0 +1,53 @@
+event_template_id: EVT-TPL-023
+type: CREATE_OBSERVABILITY_PLAN
+persona: engineering-lead
+priority: medium
+description: "Conditional gate: define logs, metrics, traces, alerts, dashboards, runbook notes, and support diagnostics."
+
+skill_ref: ".brs2spec2/skills/engineering-lead/create-observability-plan.md"
+persona_ref: ".brs2spec2/personas/engineering-lead.md"
+artifact_template_ref: ".brs2spec2/artifact-templates/observability-plan.md"
+
+inputs:
+  required:
+    - "engineering-readiness/readiness-check.md"
+    - "input/brs.md"
+    - "input/brs/*.md"
+    - "architecture/architecture-review.md"
+    - "architecture/architecture-rules.md"
+  optional:
+    - "planning/traceability-matrix.md"
+    - "business-intake/business-intake-summary.md"
+  condition: "quality_gates_triggered contains OBSERVABILITY_PLAN"
+
+outputs:
+  primary: "quality-gates/observability-plan.md"
+
+must_include:
+  - "## Metadata table with Status: In progress as first table in file"
+  - "## Observability Scope section is present"
+  - "## Logs specification table is present with PII-safe column"
+  - "## Metrics catalog is present"
+  - "## Alerts catalog is present with Severity and Owner columns"
+  - "## Runbook Notes section has at least one runbook"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) all new operational flows have log, metric, and alert coverage,
+    (2) SLI/SLO requirements from BRS are reflected,
+    (3) PII safety is confirmed in log specification,
+    (4) every alert has severity, threshold, and owner.
+  machine:
+    file_exists: "quality-gates/observability-plan.md"
+  skip_if: "OBSERVABILITY_PLAN not in quality_gates_triggered"
+
+on_success:
+  update_state:
+    artifact_status:
+      "quality-gates/observability-plan.md": "draft"
+
+on_failure:
+  raise_decision:
+    question: "Observability plan creation failed."
+    blocking: false
+    owner: "engineering-lead"

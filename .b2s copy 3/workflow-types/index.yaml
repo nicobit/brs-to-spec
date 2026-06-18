@@ -1,0 +1,26 @@
+version: 1
+description: Registry of available workflow types for initiative initialisation.
+
+workflow_types:
+  - id: enterprise-modular
+    path: ".b2s/workflow-types/enterprise-modular"
+    description: "Full staged workflow with business analysis, quality gates, and story packages."
+    suitable_for:
+      - "Regulated industries"
+      - "Multi-team deliveries"
+      - "External integrations"
+      - "Complex initiatives"
+    delivery_modes:
+      - OpenSpec
+      - Standalone
+      - FastPath
+
+  - id: fast-path
+    path: ".b2s/workflow-types/fast-path"
+    description: "Lightweight workflow for simple or internal initiatives."
+    suitable_for:
+      - "Internal tools"
+      - "Spikes and proof-of-concepts"
+      - "Small enhancements"
+    delivery_modes:
+      - FastPath

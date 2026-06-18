@@ -10,20 +10,20 @@ This example workspace shows one coherent initiative using:
 Generate the downstream delivery package first:
 
 ```text
-.brs2spec/5-handoff/02-create-standalone-delivery-package.md
+.brs2spec/skills/5-handoff/02-create-standalone-delivery-package.md
 ```
 
 Then implement one task at a time:
 
 ```text
-.brs2spec/8-copilot-implementation/01-implement-one-task.md
+.brs2spec/skills/8-copilot-implementation/01-implement-one-task.md
 ```
 
 Review implemented work with:
 
 ```text
-.brs2spec/9-reviewers/01-senior-code-review.md
-.brs2spec/9-reviewers/02-qa-review.md
-.brs2spec/9-reviewers/03-architecture-review.md
-.brs2spec/9-reviewers/04-security-review.md
+.brs2spec/skills/9-reviewers/01-senior-code-review.md
+.brs2spec/skills/9-reviewers/02-qa-review.md
+.brs2spec/skills/9-reviewers/03-architecture-review.md
+.brs2spec/skills/9-reviewers/04-security-review.md
 ```

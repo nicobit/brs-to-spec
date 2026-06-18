@@ -1,0 +1,17 @@
+name: Data Contract Checks
+on: [push, pull_request]
+jobs:
+  great_expectations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install Great Expectations
+        run: |
+          python -m pip install --upgrade pip
+          pip install great_expectations
+      - name: Run GE checkpoint
+        run: great_expectations checkpoint run data_contract_checkpoint

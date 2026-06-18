@@ -35,22 +35,13 @@ If a required input is missing, stop and report the blocker.
 
 ### Step 1 - Read all inputs
 
-Read these files in full before writing anything:
-- `{workspace_root}/routing/routing-decision.md`
-- `{workspace_root}/business-intake/business-intake-summary.md`
-- `{workspace_root}/business-analysis/requirements.md`
-- `{workspace_root}/architecture/architecture-review.md`
-
-If optional files exist, read them too:
-- `{workspace_root}/business-analysis/business-rules.md`
-- `{workspace_root}/business-analysis/actors-and-personas.md`
-- BRS source files under `{workspace_root}/input/`
-
-Do not start writing until all available inputs are read completely.
+Read every path listed in `{resolved_required_inputs}` fully before writing anything.
+If `{resolved_optional_inputs}` is not empty, read those paths fully as well before writing.
+Do not start writing until all available resolved inputs are read completely.
 
 ### Step 2 - Understand scope and delivery mode
 
-Use `{workspace_root}/routing/routing-decision.md` to determine:
+Use the resolved routing material to determine:
 - delivery mode
 - execution mode
 
@@ -101,7 +92,8 @@ When execution mode is `Enterprise+Modular`:
 
 ## Output requirements
 
-Write `planning/delivery-structure.md` using `.b2s/artifact-templates/delivery-structure.md`.
+Write the main artifact to `{primary_output}` using `.b2s/artifact-templates/delivery-structure.md`.
+Also produce any paths listed in `{secondary_outputs}`.
 
 The artifact must contain:
 - metadata with `Status: Draft`

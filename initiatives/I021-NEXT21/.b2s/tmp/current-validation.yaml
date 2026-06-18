@@ -1,0 +1,65 @@
+overall: pass
+action_id: create-api-contract
+artifact_path: quality-gates/api-contract.md
+checks:
+- name: file_exists
+  target: quality-gates/api-contract.md
+  result: pass
+  detail: artifact exists
+- name: validation_dispatch
+  target: api-contract.md
+  result: pass
+  detail: 'profile: quality-gates/api-contract.md'
+- name: validation_dispatch
+  target: api-contract.md
+  result: pass
+  detail: 'profile: structured-document'
+- name: non_empty_file
+  target: api-contract.md
+  result: pass
+  detail: artifact has content
+- name: has_metadata
+  target: api-contract.md
+  result: pass
+  detail: '## Metadata section present'
+- name: has_endpoint_catalog
+  target: api-contract.md
+  result: pass
+  detail: '## Endpoint Catalog section present'
+- name: has_endpoint_definitions
+  target: api-contract.md
+  result: pass
+  detail: '## Endpoint Definitions section present'
+- name: has_error_code_reference
+  target: api-contract.md
+  result: pass
+  detail: '## Error Code Reference section present'
+- name: has_versioning_and_consumer_impact
+  target: api-contract.md
+  result: pass
+  detail: '## Versioning and Consumer Impact section present'
+- name: has_accepted_risks
+  target: api-contract.md
+  result: pass
+  detail: '## Accepted Risks section present'
+- name: has_decision
+  target: api-contract.md
+  result: pass
+  detail: '## Decision section present'
+- name: has_minimum_headings
+  target: api-contract.md
+  result: pass
+  detail: document contains multiple section headings
+- name: has_structured_content
+  target: api-contract.md
+  result: pass
+  detail: document includes a table or enough content to be structured
+- name: placeholders_absent
+  target: api-contract.md
+  result: pass
+  detail: document does not contain known placeholder markers
+- name: validation_audit
+  target: quality-gates/api-contract.md
+  result: pass
+  detail: validation coverage is acceptable (dispatch=profile, downstream_consumers=1)
+failures: []

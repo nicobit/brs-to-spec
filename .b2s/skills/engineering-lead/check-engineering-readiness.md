@@ -42,7 +42,10 @@ Read the full upstream artifact set before writing any conclusion.
 
 ### Step 2 - Apply gate trigger rules
 
-For each gate, evaluate explicit evidence and write a reason for either triggering or not triggering it.
+For each gate, evaluate whether the initiative's characteristics require this quality gate.
+`Triggered = Yes` means "this initiative needs this artifact" — NOT "this artifact already exists."
+Do not write "Not yet created" or "To be defined" as justification for `No`. A `No` justification
+must explain why the initiative does not need the gate based on its functional and technical scope.
 
 Trigger `BDD Scenarios` if any of these apply:
 - role-based authorization

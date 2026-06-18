@@ -32,13 +32,13 @@ It detects where you are, executes the next stage, and continues automatically u
 BRS + Architecture → Routing → Business Intake → Architecture Review → Delivery Structure → Engineering Readiness → Quality Gates (if triggered) → Handoff
 ```
 
-Each stage produces a traceable artifact. The workflow runner loads `.brs2spec/module-index.md`, reads `planning/workflow-state.json`, checks content (not just file existence), selects the correct persona skill, and re-assesses automatically.
+Each stage produces a traceable artifact. The workflow runner loads `.brs2spec/module-index.md`, reads `state/workflow-state.json`, checks content (not just file existence), selects the correct persona skill, and re-assesses automatically.
 
 ## Example output
 
 See `initiatives/I001-customer-onboarding/` for a complete worked example. Key files:
 
-- `planning/workflow-state.json` — machine-readable stage tracker
+- `state/workflow-state.json` — machine-readable stage tracker
 - `planning/delivery-structure.md` — epics, features, user stories with traceability
 - `openspec/changes/dependency-graph.md` — wave-ordered story execution plan
 - `openspec/changes/F-001.1-onboarding-submission/` — one self-contained story folder

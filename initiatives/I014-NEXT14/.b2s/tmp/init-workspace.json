@@ -1,0 +1,12 @@
+{
+  "overall": "pass",
+  "initiative_id": "I014-NEXT14",
+  "workspace_root": "C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I014-NEXT14",
+  "created": [
+    "input\\brs.md",
+    ".b2s/state/workflow-state.json",
+    ".b2s/state/open-decisions.md"
+  ],
+  "next_action": "route-initiative",
+  "message": "Initiative I014-NEXT14 workspace created. Fill in input\\brs.md then run the workflow."
+}

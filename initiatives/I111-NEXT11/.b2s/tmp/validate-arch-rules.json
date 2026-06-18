@@ -1,0 +1,57 @@
+overall: pass
+action_id: create-architecture-rules
+artifact_path: architecture/architecture-rules.md
+checks:
+- name: file_exists
+  target: architecture/architecture-rules.md
+  result: pass
+  detail: artifact exists
+- name: validation_dispatch
+  target: architecture-rules.md
+  result: pass
+  detail: 'profile: architecture/architecture-rules.md'
+- name: validation_dispatch
+  target: architecture-rules.md
+  result: pass
+  detail: 'profile: structured-document'
+- name: non_empty_file
+  target: architecture-rules.md
+  result: pass
+  detail: artifact has content
+- name: has_metadata
+  target: architecture-rules.md
+  result: pass
+  detail: '## Metadata section present'
+- name: has_rules_catalog
+  target: architecture-rules.md
+  result: pass
+  detail: '## Rules Catalog section present'
+- name: has_forbidden_patterns
+  target: architecture-rules.md
+  result: pass
+  detail: '## Forbidden Patterns section present'
+- name: has_coverage
+  target: architecture-rules.md
+  result: pass
+  detail: '## Coverage section present'
+- name: has_minimum_headings
+  target: architecture-rules.md
+  result: pass
+  detail: document contains multiple section headings
+- name: has_structured_content
+  target: architecture-rules.md
+  result: pass
+  detail: document includes a table or enough content to be structured
+- name: placeholders_absent
+  target: architecture-rules.md
+  result: pass
+  detail: document does not contain known placeholder markers
+- name: has_catalog_rows
+  target: architecture-rules.md
+  result: pass
+  detail: catalog contains at least one typed identifier row
+- name: validation_audit
+  target: architecture/architecture-rules.md
+  result: pass
+  detail: validation coverage is acceptable (dispatch=profile, downstream_consumers=11)
+failures: []

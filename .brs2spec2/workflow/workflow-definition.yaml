@@ -1,0 +1,325 @@
+# BRS-to-Spec v2 — Workflow Definition
+# Version: 2.0
+#
+# Stage graph for the brs-to-spec framework.
+# The orchestrator reads this file to know which event templates to instantiate
+# at each stage transition and what conditions gate each stage.
+#
+# Stage IDs map to the event template naming convention (EVT-TPL-NNN-*).
+# parallelizable: true means events in that stage CAN run concurrently in v2.1+;
+#   in v2.0 (chat-operated) they run sequentially in priority order.
+
+version: 2
+framework: brs-to-spec
+description: >
+  Default workflow definition for brs-to-spec v2. Defines the stage sequence,
+  which event templates to instantiate at each stage, dependencies between stages,
+  and gate conditions for conditional stages.
+
+# ---------------------------------------------------------------------------
+# STAGE GRAPH
+# ---------------------------------------------------------------------------
+
+stages:
+
+  # Stage 0 — Routing
+  # Always the first stage. Created automatically on initiative init.
+
+  - id: "0-routing"
+    name: "Initiative routing"
+    description: "Determine delivery mode and execution mode before any other work begins"
+    events:
+      - template: EVT-TPL-001-route-initiative
+        auto_create: true
+    parallelizable: false
+    gates: []
+    next_stages:
+      - id: "2-business-intake"
+        condition: always
+
+  # Stage 2 — Business Intake
+  # Blocked by: 0-routing
+
+  - id: "2-business-intake"
+    name: "Business intake"
+    description: "Create the primary PO-reviewable intake artifact from BRS source"
+    events:
+      - template: EVT-TPL-002-create-business-intake-summary
+        blocked_by_stage: "0-routing"
+    parallelizable: false
+    gates: []
+    next_stages:
+      - id: "2b-business-analysis"
+        condition: always
+
+  # Stage 2b — Business Analysis
+  # Blocked by: 2-business-intake
+  # Events are parallelizable after CREATE_REQUIREMENTS_CATALOG completes
+
+  - id: "2b-business-analysis"
+    name: "Business analysis"
+    description: "Requirements catalog, then entity model, use-case diagram, business rules, gaps, actors, use-case specs, process flows"
+    events:
+      - template: EVT-TPL-043-create-requirements
+        blocked_by_stage: "2-business-intake"
+      - template: EVT-TPL-044-create-use-case-diagram
+        blocked_by_event: "EVT-TPL-043-create-requirements"
+      - template: EVT-TPL-030-create-entity-model
+        blocked_by_event: "EVT-TPL-043-create-requirements"
+      - template: EVT-TPL-003-create-business-rules
+        blocked_by_event: "EVT-TPL-043-create-requirements"
+      - template: EVT-TPL-005-find-gaps-and-questions
+        blocked_by_event: "EVT-TPL-043-create-requirements"
+      - template: EVT-TPL-004-create-actors-and-personas
+        blocked_by_event: "EVT-TPL-044-create-use-case-diagram"
+      - template: EVT-TPL-007-create-use-case-specs
+        blocked_by_event: "EVT-TPL-044-create-use-case-diagram"
+      - template: EVT-TPL-006-create-process-flows
+        blocked_by_event:
+          - "EVT-TPL-007-create-use-case-specs"
+          - "EVT-TPL-004-create-actors-and-personas"
+    parallelizable: true
+    gates: []
+    next_stages:
+      - id: "3-planning"
+        condition: always
+
+  # Stage 2c — Optional Business Analysis (conditional, triggered on demand)
+  # Blocked by: 2b-business-analysis
+  # Condition: triggered by readiness-check or human request
+
+  - id: "2c-optional-business-analysis"
+    name: "Optional business analysis"
+    description: "Business test expectations — conditional artifact"
+    events:
+      - template: EVT-TPL-031-create-business-test-expectations
+        blocked_by_stage: "2b-business-analysis"
+        condition: "BUSINESS_TEST_EXPECTATIONS in optional_artifacts_requested"
+    parallelizable: true
+    gates: []
+    next_stages: []    # feeds into 3-planning when complete
+
+  # Stage 3 — Architecture and Planning
+  #
+  # Architecture overlap model (encoded here, per Step 3 of the improvement plan):
+  #
+  # Architecture starts after the minimum business-analysis baseline:
+  #   - business-intake/business-intake-summary.md  (EVT-TPL-002)
+  #   - business-analysis/requirements.md           (EVT-TPL-043)
+  #   - business-analysis/gaps-and-questions.md     (EVT-TPL-005, draft state acceptable)
+  #
+  # Architecture does NOT wait for: entity-model, use-case diagram, use-case specs,
+  # actors, business rules, or process flows.
+  #
+  # Architecture feedback loop: after REVIEW_INITIAL_ARCHITECTURE completes, its findings
+  # are available as optional_reads for entity-model, use-case specs, and business rules
+  # (those events read architecture/architecture-review.md as an optional input).
+  #
+  # Planning gate: delivery-structure and planning events require BOTH use-case specs
+  # AND architecture review to be complete before they can start.
+
+  - id: "3-planning"
+    name: "Architecture and planning"
+    description: "Architecture review (starts after minimum BA baseline), then delivery structure and planning (waits for UC specs and architecture both complete)"
+    events:
+      - template: EVT-TPL-032-draft-architecture-from-brs
+        blocked_by_event:
+          - "EVT-TPL-043-create-requirements"
+        condition: "input/architecture.md does not exist"
+      - template: EVT-TPL-008-review-initial-architecture
+        blocked_by_event:
+          - "EVT-TPL-043-create-requirements"
+          - "EVT-TPL-005-find-gaps-and-questions"
+      - template: EVT-TPL-009-create-architecture-rules
+        blocked_by_event: "EVT-TPL-008-review-initial-architecture"
+      - template: EVT-TPL-010-review-existing-system-impact
+        blocked_by_event:
+          - "EVT-TPL-043-create-requirements"
+        condition: "project_type == brownfield"
+      - template: EVT-TPL-011-create-delivery-structure
+        blocked_by_event:
+          - "EVT-TPL-007-create-use-case-specs"
+          - "EVT-TPL-008-review-initial-architecture"
+      - template: EVT-TPL-012-create-traceability-matrix
+        blocked_by_event: "EVT-TPL-011-create-delivery-structure"
+      - template: EVT-TPL-013-identify-software-modules
+        blocked_by_event: "EVT-TPL-011-create-delivery-structure"
+        condition: "execution_mode in [Enterprise, Enterprise+Modular]"
+      - template: EVT-TPL-035-map-capabilities-to-modules
+        blocked_by_event: "EVT-TPL-013-identify-software-modules"
+        condition: "execution_mode in [Enterprise, Enterprise+Modular]"
+      - template: EVT-TPL-014-define-delivery-increments
+        blocked_by_event: "EVT-TPL-013-identify-software-modules"
+        condition: "execution_mode == Enterprise+Modular"
+    parallelizable: true
+    gates: []
+    next_stages:
+      - id: "4-engineering-readiness"
+        condition: always
+
+  # Stage 4 — Engineering Readiness
+  # Blocked by: 3-planning (all events)
+
+  - id: "4-engineering-readiness"
+    name: "Engineering readiness"
+    description: "Readiness check gate and initiative context document"
+    events:
+      - template: EVT-TPL-015-check-engineering-readiness
+        blocked_by_stage: "3-planning"
+      - template: EVT-TPL-016-generate-initiative-context
+        blocked_by_event: "EVT-TPL-015-check-engineering-readiness"
+    parallelizable: false
+    gates: []
+    next_stages:
+      - id: "4b-quality-gates"
+        condition: "readiness_score >= 70"
+
+  # Stage 4b — Quality Gates
+  # Blocked by: 4-engineering-readiness
+  # All conditional on readiness-check.md gate trigger decisions
+
+  - id: "4b-quality-gates"
+    name: "Quality gates"
+    description: "BDD, test strategy, security, threat model, API contract, data contract, event contract, observability"
+    events:
+      - template: EVT-TPL-017-create-bdd-scenarios
+        blocked_by_stage: "4-engineering-readiness"
+        condition: "BDD in quality_gates_triggered"
+      - template: EVT-TPL-018-create-test-strategy
+        blocked_by_stage: "4-engineering-readiness"
+        condition: "TEST_STRATEGY in quality_gates_triggered"
+      - template: EVT-TPL-019-create-security-review
+        blocked_by_stage: "4-engineering-readiness"
+        condition: "SECURITY_REVIEW in quality_gates_triggered"
+      - template: EVT-TPL-034-create-threat-model
+        blocked_by_stage: "4-engineering-readiness"
+        condition: "THREAT_MODEL in quality_gates_triggered"
+      - template: EVT-TPL-020-create-api-contract
+        blocked_by_stage: "4-engineering-readiness"
+        condition: "API_CONTRACT in quality_gates_triggered"
+      - template: EVT-TPL-021-create-data-contract
+        blocked_by_stage: "4-engineering-readiness"
+        condition: "DATA_CONTRACT in quality_gates_triggered"
+      - template: EVT-TPL-022-create-event-contract
+        blocked_by_stage: "4-engineering-readiness"
+        condition: "EVENT_CONTRACT in quality_gates_triggered"
+      - template: EVT-TPL-023-create-observability-plan
+        blocked_by_stage: "4-engineering-readiness"
+        condition: "OBSERVABILITY in quality_gates_triggered"
+      - template: EVT-TPL-036-create-test-plan-per-story
+        blocked_by_event: "EVT-TPL-018-create-test-strategy"
+        condition: "TEST_STRATEGY in quality_gates_triggered and BDD in quality_gates_triggered"
+    parallelizable: true
+    gates:
+      - required_artifact: "engineering-readiness/readiness-check.md"
+        status: accepted
+    next_stages:
+      - id: "5-handoff"
+        condition: "delivery_mode in [OpenSpec, Standalone]"
+      - id: "5-fastpath-handoff"
+        condition: "delivery_mode == FastPath"
+
+  # Stage 5 — Handoff (OpenSpec / Standalone)
+  # Blocked by: 4b-quality-gates
+  # Gate: engineering-readiness/initiative-context.md must exist
+
+  - id: "5-handoff"
+    name: "Handoff"
+    description: "Generate full implementation handoff package"
+    events:
+      - template: EVT-TPL-024-create-openspec-handoff
+        blocked_by_stage: "4b-quality-gates"
+        condition: "delivery_mode == OpenSpec"
+      - template: EVT-TPL-025-create-standalone-handoff
+        blocked_by_stage: "4b-quality-gates"
+        condition: "delivery_mode == Standalone"
+    parallelizable: false
+    gates:
+      - required_artifact: "engineering-readiness/initiative-context.md"
+        status: exists
+    next_stages:
+      - id: "5b-post-handoff"
+        condition: always
+      - id: "6-review-package"
+        condition: always
+
+  # Stage 5 FastPath — Compact handoff only
+  # Blocked by: 4b-quality-gates
+
+  - id: "5-fastpath-handoff"
+    name: "FastPath handoff"
+    description: "Compact handoff for FastPath delivery mode — minimal surface area"
+    events:
+      - template: EVT-TPL-026-create-compact-handoff
+        blocked_by_stage: "4b-quality-gates"
+        condition: "delivery_mode == FastPath"
+    parallelizable: false
+    gates:
+      - required_artifact: "engineering-readiness/initiative-context.md"
+        status: exists
+    next_stages:
+      - id: "6-review-package"
+        condition: always
+
+  # Stage 5b — Post-Handoff (optional, conditional)
+  # Blocked by: 5-handoff
+
+  - id: "5b-post-handoff"
+    name: "Post-handoff optional artifacts"
+    description: "Test stubs generation and agile planning view — conditional"
+    events:
+      - template: EVT-TPL-027-generate-test-stubs
+        blocked_by_stage: "5-handoff"
+        condition: "TEST_STUBS_REQUESTED == true and BDD in quality_gates_triggered"
+      - template: EVT-TPL-029-create-agile-planning-view
+        blocked_by_stage: "5-handoff"
+        condition: "AGILE_PLANNING_VIEW_REQUESTED == true"
+    parallelizable: true
+    gates: []
+    next_stages: []    # feeds into 6-review-package when complete
+
+  # Stage 6 — Review Package
+  # Blocked by: 5-handoff or 5-fastpath-handoff (terminal stage)
+
+  - id: "6-review-package"
+    name: "Review package"
+    description: "Assemble PO and stakeholder review package from all completed artifacts"
+    events:
+      - template: EVT-TPL-028-create-review-package
+        blocked_by_stage: "5-handoff"
+    parallelizable: false
+    gates: []
+    next_stages: []    # terminal stage
+
+# ---------------------------------------------------------------------------
+# HUMAN-TRIGGERED EVENTS (any stage, not in the main stage graph)
+# ---------------------------------------------------------------------------
+# These are dispatched on demand by a human operator or via on_success chains.
+# They are never auto-created by the stage engine.
+
+human_triggered_templates:
+
+  # BRS authoring / normalization — triggered before or during Stage 2
+  - template: EVT-TPL-033-create-brs
+    description: "Author or normalize BRS from raw material before intake begins"
+
+  # Post-implementation review events — triggered after implementation
+  - template: EVT-TPL-037-senior-code-review
+    description: "Senior code review of implemented task"
+
+  - template: EVT-TPL-038-architecture-review-implementation
+    description: "Architecture review of implemented task"
+
+  # Spec correction — triggered when a review finding requires artifact correction
+  - template: EVT-TPL-039-spec-correction
+    description: "Minimal targeted correction to a specific framework artifact"
+
+# ---------------------------------------------------------------------------
+# GLOBAL CONSTRAINTS
+# ---------------------------------------------------------------------------
+
+constraints:
+  max_events_per_dispatch_all: 50
+  state_files_orchestrator_only: true
+  result_file_required_before_state_update: true
+  blocked_events_stay_in_pending: true

@@ -1,136 +1,136 @@
 # Prompt Index
 
-All framework prompts live inside `.brs2spec/`. This page lists every prompt with its purpose and approximate token cost when loaded into context.
+All framework prompts live inside `.brs2spec/`. This page lists every prompt with its purpose and relative loading size when brought into working context.
 
-> Agents use `.brs2spec/module-index.md` (Skill Index + routing tables, ~3,500 tokens) to discover which prompt to load. `.brs2spec/module-full.md` provides per-skill detail when needed. `.brs2spec/module-registry.yaml` is the machine-readable companion used only by the validator scripts.
+> Agents use `.brs2spec/module-index.md` (Skill Index + routing tables, compact startup entry point) to discover which prompt to load. `.brs2spec/module-full.md` provides per-skill detail when needed. `.brs2spec/module-registry.yaml` is the machine-readable companion used only by the validator scripts.
 
 ---
 
 ## Framework entry points
 
-| Prompt | ~Tokens | What it does |
+| Prompt | Relative Size | What it does |
 |---|---|---|
-| `00-start.md` | ~1,350 | Interview the user (5 questions) to determine entry mode, delivery mode, and first prompt to run |
-| `brs-to-spec-run-workflow.md` | ~6,500 | Full workflow orchestrator — detects current stage, executes it, re-assesses automatically |
+| `00-start.md` | Medium | Interview the user (5 questions) to determine entry mode, delivery mode, and first prompt to run |
+| `brs-to-spec-run-workflow.md` | Large | Full workflow orchestrator — detects current stage, executes it, re-assesses automatically |
 
 ---
 
 ## Phase 0 — Input preparation
 
-| Prompt | ~Tokens | What it does |
+| Prompt | Relative Size | What it does |
 |---|---|---|
-| `0-input-preparation/01-convert-brs-word-to-markdown.md` | ~600 | Convert a Word BRS document to structured markdown |
-| `0-input-preparation/02-convert-architecture-word-to-markdown.md` | ~650 | Convert a Word architecture document to structured markdown |
-| `0-input-preparation/03-normalize-input-package.md` | ~220 | Normalize and validate `input/input-package.md` |
-| `0-input-preparation/04-draft-architecture-from-brs.md` | ~2,700 | Generate a draft architecture from BRS when no architecture input exists |
-| `0-intake/00-create-brs.md` | ~1,650 | Create or convert a BRS — from existing doc, bullet notes, or structured interview |
+| `skills/0-input-preparation/01-convert-brs-word-to-markdown.md` | Small | Convert a Word BRS document to structured markdown |
+| `skills/0-input-preparation/02-convert-architecture-word-to-markdown.md` | Small | Convert a Word architecture document to structured markdown |
+| `skills/0-input-preparation/03-normalize-input-package.md` | Small | Normalize and validate `input/input-package.md` |
+| `skills/0-input-preparation/04-draft-architecture-from-brs.md` | Large | Generate a draft architecture from BRS when no architecture input exists |
+| `skills/0-intake/00-create-brs.md` | Medium | Create or convert a BRS — from existing doc, bullet notes, or structured interview |
 
 ---
 
 ## Phase 1 — Routing
 
-| Prompt | ~Tokens | What it does |
+| Prompt | Relative Size | What it does |
 |---|---|---|
-| `1-routing/01-select-delivery-and-execution-mode.md` | ~810 | Select delivery mode (Fast/Standard/Enterprise/Modular) and execution mode (OpenSpec/Standalone/Business Copilot) |
+| `skills/1-routing/01-select-delivery-and-execution-mode.md` | Small | Select delivery mode (Fast/Standard/Enterprise/Modular) and execution mode (OpenSpec/Standalone/Business Copilot) |
 
 ---
 
 ## Phase 2 — Business intake
 
-| Prompt | ~Tokens | What it does |
+| Prompt | Relative Size | What it does |
 |---|---|---|
-| `2-business-intake/01-create-business-intake-summary.md` | ~800 | Create `business-intake/business-intake-summary.md` — objectives, scope, requirements, gaps |
-| `2-business-intake/advanced/02-extract-detailed-requirements.md` | ~130 | Extract detailed requirements from BRS (advanced) |
-| `2-business-intake/advanced/03-find-gaps-and-questions.md` | ~125 | Find gaps and open questions (advanced) |
-| `2-business-intake/advanced/04-create-business-test-expectations.md` | ~125 | Create business test expectations (advanced) |
-| `2-business-intake/advanced/05-create-user-stories-if-needed.md` | ~130 | Create user stories when delivery structure is not yet defined (advanced) |
+| `skills/2-business-intake/01-create-business-intake-summary.md` | Small | Create `business-intake/business-intake-summary.md` — objectives, scope, requirements, gaps |
+| `skills/2-business-intake/advanced/02-extract-detailed-requirements.md` | Small | Extract detailed requirements from BRS (advanced) |
+| `skills/2-business-intake/advanced/03-find-gaps-and-questions.md` | Small | Find gaps and open questions (advanced) |
+| `skills/2-business-intake/advanced/04-create-business-test-expectations.md` | Small | Create business test expectations (advanced) |
+| `skills/2-business-intake/advanced/05-create-user-stories-if-needed.md` | Small | Create user stories when delivery structure is not yet defined (advanced) |
 
 ---
 
 ## Phase 3 — Planning and architecture
 
-| Prompt | ~Tokens | What it does |
+| Prompt | Relative Size | What it does |
 |---|---|---|
-| `3-planning-and-modular-delivery/00-maintain-open-decisions.md` | ~1,000 | Create or update `planning/open-decisions.md` |
-| `3-planning-and-modular-delivery/01-maintain-workflow-state.md` | ~1,470 | Update `planning/workflow-state.json` after any stage completes |
-| `3-planning-and-modular-delivery/01-review-initial-architecture.md` | ~1,310 | Create `architecture/architecture-review.md` |
-| `3-planning-and-modular-delivery/02-create-global-architecture-rules.md` | ~785 | Create `architecture/architecture-rules.md` |
-| `3-planning-and-modular-delivery/03-create-delivery-structure.md` | ~1,660 | Create `planning/delivery-structure.md` — epics, features, user stories |
-| `3-planning-and-modular-delivery/04-identify-software-modules.md` | ~465 | Identify software modules for modular delivery |
-| `3-planning-and-modular-delivery/05-map-capabilities-to-modules.md` | ~460 | Map capabilities to software modules |
-| `3-planning-and-modular-delivery/06-define-delivery-increments.md` | ~465 | Define delivery increments for Enterprise + Modular mode |
-| `3-planning-and-modular-delivery/07-create-traceability-matrix.md` | ~465 | Create traceability matrix |
+| `skills/3-planning-and-modular-delivery/00-maintain-open-decisions.md` | Medium | Create or update `planning/open-decisions.md` |
+| `skills/3-planning-and-modular-delivery/01-maintain-workflow-state.md` | Medium | Update `planning/workflow-state.json` after any stage completes |
+| `skills/3-planning-and-modular-delivery/01-review-initial-architecture.md` | Medium | Create `architecture/architecture-review.md` |
+| `skills/3-planning-and-modular-delivery/02-create-global-architecture-rules.md` | Small | Create `architecture/architecture-rules.md` |
+| `skills/3-planning-and-modular-delivery/03-create-delivery-structure.md` | Medium | Create `planning/delivery-structure.md` — epics, features, user stories |
+| `skills/3-planning-and-modular-delivery/04-identify-software-modules.md` | Small | Identify software modules for modular delivery |
+| `skills/3-planning-and-modular-delivery/05-map-capabilities-to-modules.md` | Small | Map capabilities to software modules |
+| `skills/3-planning-and-modular-delivery/06-define-delivery-increments.md` | Small | Define delivery increments for Enterprise + Modular mode |
+| `skills/3-planning-and-modular-delivery/07-create-traceability-matrix.md` | Small | Create traceability matrix |
 
 ---
 
 ## Phase 4 — Engineering readiness and quality gates
 
-| Prompt | ~Tokens | What it does |
+| Prompt | Relative Size | What it does |
 |---|---|---|
-| `4-engineering-readiness/01-check-engineering-readiness.md` | ~1,775 | Create `readiness-check.md` — Ready / Not ready decision, triggered gates |
-| `4-engineering-readiness/02-generate-initiative-context.md` | ~915 | Create `initiative-context.md` — technology constraints, binding rules |
-| `4-engineering-readiness/quality-gates/create-bdd-scenarios.md` | ~3,940 | Create BDD scenarios with Gherkin and SCN-NNN IDs |
-| `4-engineering-readiness/quality-gates/create-api-contract.md` | ~545 | Create API contract gate |
-| `4-engineering-readiness/quality-gates/create-data-contract.md` | ~540 | Create data contract gate |
-| `4-engineering-readiness/quality-gates/create-event-contract.md` | ~540 | Create event contract gate |
-| `4-engineering-readiness/quality-gates/create-security-review.md` | ~490 | Create security review gate |
-| `4-engineering-readiness/quality-gates/create-threat-model.md` | ~545 | Create threat model gate |
-| `4-engineering-readiness/quality-gates/create-test-strategy.md` | ~490 | Create test strategy gate |
-| `4-engineering-readiness/quality-gates/create-observability-plan.md` | ~540 | Create observability plan gate |
-| `4-engineering-readiness/quality-gates/create-qa-review.md` | ~480 | Create QA review gate |
-| `4-engineering-readiness/quality-gates/create-release-readiness-review.md` | ~495 | Create release readiness review gate |
-| `quality-gates/generate-ci-gate-config.md` | ~870 | Generate CI pipeline config for an accepted quality gate |
+| `skills/4-engineering-readiness/01-check-engineering-readiness.md` | Medium | Create `readiness-check.md` — Ready / Not ready decision, triggered gates |
+| `skills/4-engineering-readiness/02-generate-initiative-context.md` | Small | Create `initiative-context.md` — technology constraints, binding rules |
+| `skills/4-engineering-readiness/quality-gates/create-bdd-scenarios.md` | Large | Create BDD scenarios with Gherkin and SCN-NNN IDs |
+| `skills/4-engineering-readiness/quality-gates/create-api-contract.md` | Small | Create API contract gate |
+| `skills/4-engineering-readiness/quality-gates/create-data-contract.md` | Small | Create data contract gate |
+| `skills/4-engineering-readiness/quality-gates/create-event-contract.md` | Small | Create event contract gate |
+| `skills/4-engineering-readiness/quality-gates/create-security-review.md` | Small | Create security review gate |
+| `skills/4-engineering-readiness/quality-gates/create-threat-model.md` | Small | Create threat model gate |
+| `skills/4-engineering-readiness/quality-gates/create-test-strategy.md` | Small | Create test strategy gate |
+| `skills/4-engineering-readiness/quality-gates/create-observability-plan.md` | Small | Create observability plan gate |
+| `skills/4-engineering-readiness/quality-gates/create-qa-review.md` | Small | Create QA review gate |
+| `skills/4-engineering-readiness/quality-gates/create-release-readiness-review.md` | Small | Create release readiness review gate |
+| `quality-gates/generate-ci-gate-config.md` | Small | Generate CI pipeline config for an accepted quality gate |
 
 ---
 
 ## Phase 5 — Handoff
 
-| Prompt | ~Tokens | What it does |
+| Prompt | Relative Size | What it does |
 |---|---|---|
-| `5-handoff/01-create-openspec-change-for-active-deliverable.md` | ~4,230 | Create full OpenSpec handoff — dependency graph + one folder per user story |
-| `5-handoff/02-create-standalone-delivery-package.md` | ~1,035 | Create standalone delivery package |
-| `5-handoff/03-create-compact-handoff-package.md` | ~300 | Create compact handoff for Fast Path or small changes |
+| `skills/5-handoff/01-create-openspec-change-for-active-deliverable.md` | Large | Create full OpenSpec handoff — dependency graph + one folder per user story |
+| `skills/5-handoff/02-create-standalone-delivery-package.md` | Medium | Create standalone delivery package |
+| `skills/5-handoff/03-create-compact-handoff-package.md` | Small | Create compact handoff for Fast Path or small changes |
 
 ---
 
 ## Phase 6 — Business Copilot
 
-| Prompt | ~Tokens | What it does |
+| Prompt | Relative Size | What it does |
 |---|---|---|
-| `6-business-copilot/01-analyze-brs.md` | ~810 | Analyze BRS — structured business summary |
-| `6-business-copilot/02-identify-gaps-and-questions.md` | ~965 | Identify gaps, questions, risky assumptions |
-| `6-business-copilot/03-draft-epics-and-features.md` | ~1,200 | Draft epics and features |
+| `skills/6-business-copilot/01-analyze-brs.md` | Small | Analyze BRS — structured business summary |
+| `skills/6-business-copilot/02-identify-gaps-and-questions.md` | Medium | Identify gaps, questions, risky assumptions |
+| `skills/6-business-copilot/03-draft-epics-and-features.md` | Medium | Draft epics and features |
 
 ---
 
 ## Phase 7 — Perspectives
 
-| Prompt | ~Tokens | What it does |
+| Prompt | Relative Size | What it does |
 |---|---|---|
-| `7-perspectives/agile-planning/01-create-gitlab-planning-view.md` | ~1,170 | Create GitLab / Jira / ADO planning view |
-| `7-perspectives/agile-planning/02-refresh-gitlab-planning-view.md` | ~1,200 | Refresh planning view after changes |
+| `skills/7-perspectives/agile-planning/01-create-gitlab-planning-view.md` | Medium | Create GitLab / Jira / ADO planning view |
+| `skills/7-perspectives/agile-planning/02-refresh-gitlab-planning-view.md` | Medium | Refresh planning view after changes |
 
 ---
 
 ## Phase 8 — Implementation
 
-| Prompt | ~Tokens | What it does |
+| Prompt | Relative Size | What it does |
 |---|---|---|
-| `8-copilot-implementation/01-implement-one-task.md` | ~955 | Implement one approved task |
-| `8-copilot-implementation/02-fix-review-comments.md` | ~670 | Fix review comments on an implemented task |
-| `8-copilot-implementation/03-generate-test-stubs-from-bdd.md` | ~1,280 | Generate failing test stubs from BDD scenarios |
+| `skills/8-copilot-implementation/01-implement-one-task.md` | Small | Implement one approved task |
+| `skills/8-copilot-implementation/02-fix-review-comments.md` | Small | Fix review comments on an implemented task |
+| `skills/8-copilot-implementation/03-generate-test-stubs-from-bdd.md` | Medium | Generate failing test stubs from BDD scenarios |
 
 ---
 
 ## Phase 9 — Review
 
-| Prompt | ~Tokens | What it does |
+| Prompt | Relative Size | What it does |
 |---|---|---|
-| `9-reviewers/01-senior-code-review.md` | ~1,055 | Senior code review |
-| `9-reviewers/02-qa-review.md` | ~695 | QA review |
-| `9-reviewers/03-architecture-review.md` | ~970 | Architecture review |
-| `9-reviewers/04-security-review.md` | ~800 | Security review |
-| `9-reviewers/05-spec-correction.md` | ~1,405 | Correct a spec artifact when implementation reveals it was wrong |
+| `skills/9-reviewers/01-senior-code-review.md` | Medium | Senior code review |
+| `skills/9-reviewers/02-qa-review.md` | Small | QA review |
+| `skills/9-reviewers/03-architecture-review.md` | Medium | Architecture review |
+| `skills/9-reviewers/04-security-review.md` | Small | Security review |
+| `skills/9-reviewers/05-spec-correction.md` | Medium | Correct a spec artifact when implementation reveals it was wrong |
 
 ---
 
@@ -159,15 +159,15 @@ To add a new initiative to the documentation nav, follow the instructions at the
 
 ### Tool prompt reference
 
-| Prompt | ~Tokens | What it does |
+| Prompt | Relative Size | What it does |
 |---|---|---|
-| `tools/prompts/describe-repository.md` | ~1,130 | Analyse a repository and generate an `input/repositories/` descriptor |
-| `tools/prompts/generate-architecture-diagrams.md` | ~800 | Regenerate `architecture/diagrams/component.mmd` and `deployment.mmd` independently of the review |
-| `tools/prompts/generate-initiative-summary.md` | ~800 | Generate `docs/initiatives/<slug>/initiative-summary.md` — one-page readable brief |
-| `tools/prompts/generate-decision-log.md` | ~750 | Generate `docs/initiatives/<slug>/decision-log.md` — full decision audit trail |
-| `tools/prompts/generate-delivery-overview.md` | ~850 | Generate `docs/initiatives/<slug>/delivery-overview.md` — epics, features, stories with status |
-| `tools/prompts/generate-architecture-summary.md` | ~800 | Generate `docs/initiatives/<slug>/architecture-summary.md` — constraints and rules for developers |
-| `tools/prompts/generate-quality-gates-summary.md` | ~900 | Generate `docs/initiatives/<slug>/quality-gates-summary.md` — gate status and audit trail |
+| `tools/prompts/describe-repository.md` | Medium | Analyse a repository and generate an `input/repositories/` descriptor |
+| `tools/prompts/generate-architecture-diagrams.md` | Small | Regenerate `architecture/diagrams/component.mmd` and `deployment.mmd` independently of the review |
+| `tools/prompts/generate-initiative-summary.md` | Small | Generate `docs/initiatives/<slug>/initiative-summary.md` — one-page readable brief |
+| `tools/prompts/generate-decision-log.md` | Small | Generate `docs/initiatives/<slug>/decision-log.md` — full decision audit trail |
+| `tools/prompts/generate-delivery-overview.md` | Small | Generate `docs/initiatives/<slug>/delivery-overview.md` — epics, features, stories with status |
+| `tools/prompts/generate-architecture-summary.md` | Small | Generate `docs/initiatives/<slug>/architecture-summary.md` — constraints and rules for developers |
+| `tools/prompts/generate-quality-gates-summary.md` | Small | Generate `docs/initiatives/<slug>/quality-gates-summary.md` — gate status and audit trail |
 
 ---
 
@@ -175,16 +175,16 @@ To add a new initiative to the documentation nav, follow the instructions at the
 
 | Workflow stage | Prompt |
 |---|---|
-| Routing | `1-routing/01-select-delivery-and-execution-mode.md` |
-| Business intake | `2-business-intake/01-create-business-intake-summary.md` |
-| Architecture draft | `0-input-preparation/04-draft-architecture-from-brs.md` |
-| Delivery structure | `3-planning-and-modular-delivery/03-create-delivery-structure.md` |
-| Architecture review | `3-planning-and-modular-delivery/01-review-initial-architecture.md` |
-| Architecture rules | `3-planning-and-modular-delivery/02-create-global-architecture-rules.md` |
-| Open decisions | `3-planning-and-modular-delivery/00-maintain-open-decisions.md` |
-| Engineering readiness | `4-engineering-readiness/01-check-engineering-readiness.md` |
-| Initiative context | `4-engineering-readiness/02-generate-initiative-context.md` |
-| Quality gates | `4-engineering-readiness/quality-gates/create-<gate>.md` |
-| OpenSpec handoff | `5-handoff/01-create-openspec-change-for-active-deliverable.md` |
-| Standalone handoff | `5-handoff/02-create-standalone-delivery-package.md` |
-| Workflow state update | `3-planning-and-modular-delivery/01-maintain-workflow-state.md` |
+| Routing | `skills/1-routing/01-select-delivery-and-execution-mode.md` |
+| Business intake | `skills/2-business-intake/01-create-business-intake-summary.md` |
+| Architecture draft | `skills/0-input-preparation/04-draft-architecture-from-brs.md` |
+| Delivery structure | `skills/3-planning-and-modular-delivery/03-create-delivery-structure.md` |
+| Architecture review | `skills/3-planning-and-modular-delivery/01-review-initial-architecture.md` |
+| Architecture rules | `skills/3-planning-and-modular-delivery/02-create-global-architecture-rules.md` |
+| Open decisions | `skills/3-planning-and-modular-delivery/00-maintain-open-decisions.md` |
+| Engineering readiness | `skills/4-engineering-readiness/01-check-engineering-readiness.md` |
+| Initiative context | `skills/4-engineering-readiness/02-generate-initiative-context.md` |
+| Quality gates | `skills/4-engineering-readiness/quality-gates/create-<gate>.md` |
+| OpenSpec handoff | `skills/5-handoff/01-create-openspec-change-for-active-deliverable.md` |
+| Standalone handoff | `skills/5-handoff/02-create-standalone-delivery-package.md` |
+| Workflow state update | `skills/3-planning-and-modular-delivery/01-maintain-workflow-state.md` |

@@ -1,0 +1,10 @@
+{
+  "initiative_id": "I-FIXTURE-ORPHAN-PROC",
+  "current_stage": "0-routing",
+  "event_counter": 1,
+  "active_events": ["EVT-00001"],
+  "failed_events": [],
+  "last_completed_event": null,
+  "artifact_status": {},
+  "last_updated": "2026-06-15T10:00:00Z"
+}

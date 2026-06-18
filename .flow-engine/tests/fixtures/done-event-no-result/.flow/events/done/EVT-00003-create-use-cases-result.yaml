@@ -1,0 +1,5 @@
+event_id: EVT-00003
+status: pass
+artifacts_written:
+  - "business-analysis/use-cases.md"
+completed_at: "2026-06-15T10:05:30Z"

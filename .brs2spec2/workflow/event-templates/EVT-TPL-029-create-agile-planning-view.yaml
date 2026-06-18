@@ -1,0 +1,48 @@
+event_template_id: EVT-TPL-029
+type: CREATE_AGILE_PLANNING_VIEW
+persona: delivery-lead
+priority: low
+description: "Create GitLab planning projection of the initiative for team coordination. Read-only projection — not a second source of truth."
+
+skill_ref: ".brs2spec2/skills/delivery-lead/create-agile-planning-view.md"
+persona_ref: ".brs2spec2/personas/delivery-lead.md"
+
+inputs:
+  required:
+    - "planning/delivery-structure.md"
+    - "business-intake/business-intake-summary.md"
+  optional:
+    - "planning/delivery-increments.md"
+    - "planning/traceability-matrix.md"
+    - "engineering-readiness/readiness-check.md"
+    - "quality-gates/*.md"
+
+outputs:
+  primary: "perspectives/agile-planning/gitlab-planning-view.md"
+
+must_include:
+  - "File explicitly states it is a projection not the source of truth"
+  - "Every F-XXX.X story appears in the planning view"
+  - "Quality gate items reference source artifact paths not duplicated content"
+  - "GitLab planning mapping table is present"
+  - "Status: Draft in Metadata table"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) the file states it is a projection not source of truth,
+    (2) all F-XXX.X stories appear,
+    (3) no requirements redefined independently,
+    (4) no new scope introduced.
+  machine:
+    file_exists: "perspectives/agile-planning/gitlab-planning-view.md"
+
+on_success:
+  update_state:
+    artifact_status:
+      "perspectives/agile-planning/gitlab-planning-view.md": "draft"
+
+on_failure:
+  raise_decision:
+    question: "Agile planning view creation failed."
+    blocking: false
+    owner: "delivery-lead"

@@ -42,6 +42,11 @@ Assess:
 
 Write `architecture/architecture-review.md` using the provided template.
 
+Use the exact column names from the template for each table section. In
+particular, `## Quality Attribute Assessment` must be one flat table with
+columns `Attribute | Requirement (from BRS) | Assessment | Risk` — do not
+split into sub-headings per attribute.
+
 The artifact must be specific and actionable. Do not produce a summary-only
 placeholder.
 

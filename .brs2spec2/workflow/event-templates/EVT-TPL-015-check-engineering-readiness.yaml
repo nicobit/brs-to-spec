@@ -1,0 +1,62 @@
+event_template_id: EVT-TPL-015
+type: CHECK_ENGINEERING_READINESS
+persona: engineering-lead
+priority: critical
+description: "Main governance gate: assess readiness for engineering handoff, apply explicit gate trigger rules, calculate readiness score."
+
+skill_ref: ".brs2spec2/skills/engineering-lead/check-engineering-readiness.md"
+persona_ref: ".brs2spec2/personas/engineering-lead.md"
+artifact_template_ref: ".brs2spec2/artifact-templates/readiness-check.md"
+
+inputs:
+  required:
+    - "business-analysis/requirements.md"
+    - "architecture/architecture-review.md"
+    - "architecture/architecture-rules.md"
+    - "planning/delivery-structure.md"
+    - "routing/routing-decision.md"
+  optional:
+    - "business-analysis/use-cases/"
+    - "business-analysis/gaps-and-questions.md"
+    - "architecture/existing-system-impact.md"
+    - "planning/delivery-increments.md"
+    - "planning/traceability-matrix.md"
+    - "input/brs.md"
+    - "input/brs/*.md"
+    - "business-intake/business-intake-summary.md"
+
+outputs:
+  primary: "engineering-readiness/readiness-check.md"
+
+must_include:
+  - "## Metadata table is present with Status: Draft"
+  - "## Core Checklist has Pass/Fail for every item"
+  - "## Gate Trigger Decisions table covers all 7 gates with Triggered and justification"
+  - "Every 'No' trigger decision has explicit written justification (not blank)"
+  - "## Readiness Decision table has a numeric score (NN/100) and Ready/Not Ready decision"
+  - "Status field is Draft — not Accepted (self-acceptance is forbidden)"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) every gate has an explicit Triggered Yes/No with justification,
+    (2) no gate is suppressed with a blank justification,
+    (3) readiness score is calculated and present,
+    (4) challenge questions were considered (visible in reasoning),
+    (5) Status is Draft not Accepted.
+  machine:
+    file_exists: "engineering-readiness/readiness-check.md"
+    status_field_not: "Accepted"
+
+on_success:
+  create_events:
+    - template: "EVT-TPL-042"
+      reason: "Readiness check AI-validated — trigger human review gate before handoff generation"
+  update_state:
+    artifact_status:
+      "engineering-readiness/readiness-check.md": "ai_validated"
+
+on_failure:
+  raise_decision:
+    question: "Engineering readiness check could not be completed — required inputs are missing or the initiative is Not Ready. List blocking items and resolve before proceeding."
+    blocking: true
+    owner: "engineering-lead"

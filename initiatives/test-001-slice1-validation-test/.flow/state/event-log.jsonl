@@ -1,0 +1,1 @@
+{"event_id":"EVT-00001","type":"ROUTE_INITIATIVE","persona":"orchestrator","status":"failed","completed_at":"2026-06-13T10:10:00Z","artifacts_written":["state/routing-decision.md"],"failure_reason":"Required content missing: delivery_mode field is present and set to one of the four allowed values — field not found in state/routing-decision.md"}

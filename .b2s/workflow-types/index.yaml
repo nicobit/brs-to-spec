@@ -24,3 +24,16 @@ workflow_types:
       - "Small enhancements"
     delivery_modes:
       - FastPath
+
+  - id: technical-spec-modular
+    path: ".b2s/workflow-types/technical-spec-modular"
+    description: "Parallel staged workflow prepared for first-class technical specifications and contract-governed handoff."
+    suitable_for:
+      - "Initiatives requiring canonical technical specifications"
+      - "Multi-team deliveries with explicit contract surfaces"
+      - "External integrations with deeper design-detail artifacts"
+      - "Complex initiatives evolving beyond flat quality-gate contracts"
+    delivery_modes:
+      - OpenSpec
+      - Standalone
+      - FastPath

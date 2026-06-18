@@ -1,0 +1,54 @@
+event_template_id: EVT-TPL-004
+type: CREATE_ACTORS_AND_PERSONAS
+persona: product-owner
+priority: high
+description: "Identify all human actors and systems that interact with the initiative scope and assign stable ACT-NNN / SYS-NNN IDs."
+
+skill_ref: ".brs2spec2/skills/product-owner/create-actors-and-personas.md"
+persona_ref: ".brs2spec2/personas/product-owner.md"
+artifact_template_ref: ".brs2spec2/artifact-templates/actors-and-personas.md"
+
+inputs:
+  required:
+    - "business-analysis/requirements.md"
+    - "business-analysis/use-cases.puml"
+  optional:
+    - "business-analysis/business-rules.md"
+    - "input/brs.md"
+    - "input/brs/*.md"
+
+outputs:
+  primary: "business-analysis/actors-and-personas.md"
+
+must_include:
+  - "## Metadata table is present with Status: Draft"
+  - "## Human Actors (ACT-NNN) section is present with at least one entry"
+  - "## Systems (SYS-NNN) section is present with at least one entry"
+  - "## Interaction Matrix is present and populated — not an empty table"
+  - "All ACT-NNN entries have Name, Description, Primary Goal"
+  - "No cell contains placeholder text: {{, }}, ACT-NNN as a name, SYS-NNN as a name, TBD, TODO"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) every actor declared in use-cases.puml has an ACT-NNN entry in the artifact
+    with a matching name — a mismatch between diagram actors and catalog entries is a fail;
+    (2) every external system mentioned in requirements.md has a SYS-NNN entry — scan FR-NNN rows
+    for integration references and confirm each has a corresponding SYS-NNN;
+    (3) no actors are invented beyond requirements.md and use-cases.puml;
+    (4) Status is Draft;
+    (5) no actor is domain-mismatched — if requirements.md describes a Loan Origination Platform,
+    actors named "Customer" with goal "places orders" or systems named "Payment Gateway" without
+    a BRS source reference are domain-mismatched and must fail.
+  machine:
+    file_exists: "business-analysis/actors-and-personas.md"
+
+on_success:
+  update_state:
+    artifact_status:
+      "business-analysis/actors-and-personas.md": "ai_validated"
+
+on_failure:
+  raise_decision:
+    question: "Actors and personas extraction failed. Review BRS for identifiable roles."
+    blocking: false
+    owner: "product-owner"

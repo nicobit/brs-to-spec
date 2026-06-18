@@ -1,0 +1,23 @@
+{
+  "initiative_id": "test-001",
+  "initiative_slug": "slice1-validation-test",
+  "current_stage": "0-routing",
+  "delivery_mode": null,
+  "execution_mode": null,
+  "last_completed_event": null,
+  "active_events": [],
+  "blocked_events": [],
+  "failed_events": ["EVT-00001"],
+  "artifacts": {
+    "input/brs.md": {"status": "missing"},
+    "state/routing-decision.md": {
+      "status": "failed",
+      "produced_by": "EVT-00001",
+      "last_updated": "2026-06-13T10:10:00Z"
+    }
+  },
+  "open_decisions": 1,
+  "blocking_decisions": 1,
+  "event_counter": 1,
+  "last_updated": "2026-06-13T10:10:00Z"
+}

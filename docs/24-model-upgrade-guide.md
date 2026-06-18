@@ -14,8 +14,8 @@ This is not a bug — it is the mechanism. This page tells you what to check and
 | Architecture review, delivery spec | Low | Human-reviewed before use | None unless re-running the prompt |
 | BDD scenarios (unexecuted markdown) | Low | Gherkin structure is explicit | Spot-check one scenario if re-running |
 | `.github/prompts/*.prompt.md` | Medium | Execution artifacts — model interprets them | Run smoke test after upgrade |
-| `.brs2spec/1-routing/*.md` | Medium | Routing affects everything downstream | Run smoke test after upgrade |
-| `.brs2spec/8-copilot-implementation/*.md` | Medium | Code generation prompts — long prose | Run smoke test after upgrade |
+| `.brs2spec/skills/1-routing/*.md` | Medium | Routing affects everything downstream | Run smoke test after upgrade |
+| `.brs2spec/skills/8-copilot-implementation/*.md` | Medium | Code generation prompts — long prose | Run smoke test after upgrade |
 | Long narrative prompts (any) | High | Most sensitive to model interpretation variance | Review and tighten if output drifts |
 
 The key principle: **human artifacts are validated by human review, not by the model.**
@@ -28,7 +28,7 @@ Run these checks after any model upgrade before using the framework on a live in
 
 ### 1. Routing smoke test
 
-Run `.brs2spec/1-routing/01-select-delivery-and-execution-mode.md` against a simple known
+Run `.brs2spec/skills/1-routing/01-select-delivery-and-execution-mode.md` against a simple known
 BRS fixture (one or two requirements, no architecture input).
 
 **Verify:**
@@ -50,7 +50,7 @@ Run `.brs2spec/brs-to-spec-run-workflow.md` against the same simple fixture.
 
 ### 3. Implementation prompt smoke test
 
-Run `.brs2spec/8-copilot-implementation/01-implement-one-task.md` against a trivial
+Run `.brs2spec/skills/8-copilot-implementation/01-implement-one-task.md` against a trivial
 known task with a clear SCN-NNN reference.
 
 **Verify:**

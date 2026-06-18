@@ -1,0 +1,11 @@
+event_id: EVT-00001
+status: fail
+completed_at: "2026-06-13T10:10:00Z"
+artifacts_written:
+  - state/routing-decision.md
+failure_reason: "Required content missing: delivery_mode field is present and set to one of the four allowed values — field not found in state/routing-decision.md"
+validation_notes:
+  - "must_include[0]: delivery_mode field is present — FAIL (field absent)"
+  - "must_include[1]: execution_mode field is present — PASS (Standalone)"
+  - "natural_language: skipped (must_include failed)"
+  - "machine[no_placeholders]: skipped (must_include failed)"

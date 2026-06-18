@@ -121,7 +121,30 @@ def _section_table_rows(text: str, heading: str) -> list[list[str]]:
         if cells and all(cell.replace("-", "").strip() == "" for cell in cells):
             continue
         rows.append(cells)
-    if rows and all(cell.lower() in {"field", "value", "id", "constraint", "rationale", "source", "question", "owner", "unknown", "impact", "discovery path", "assumption", "if false, then", "feature area", "existing components touched", "new components / boundaries", "contract changes", "blast radius", "component", "change type", "consumers", "backward compatible?", "migration required", "rollback possible", "attribute", "requirement (from brs)", "assessment", "risk"} for cell in rows[0]):
+    _KNOWN_HEADERS = {
+        "field", "value", "id", "constraint", "rationale", "source",
+        "question", "owner", "unknown", "impact", "discovery path",
+        "assumption", "if false, then",
+        # Initiative-Architecture Fit — template columns
+        "feature area", "existing components touched",
+        "new components / boundaries", "contract changes", "blast radius",
+        # Initiative-Architecture Fit — common LLM-generated columns
+        "proposed component", "fit", "rationale", "owner",
+        # Brownfield Impact
+        "component", "change type", "consumers", "backward compatible?",
+        "migration required", "rollback possible",
+        # Quality Attribute Assessment — template columns
+        "attribute", "requirement (from brs)", "assessment", "risk",
+        # Quality Attribute Assessment — common LLM-generated columns
+        "target", "evidence",
+        # Architecture Constraints — common LLM-generated columns
+        "violation consequence", "mitigation",
+        # Open Decisions
+        "decision", "status", "default assumption", "required before",
+        # Known Unknowns
+        "discovery path",
+    }
+    if rows and all(cell.lower() in _KNOWN_HEADERS for cell in rows[0]):
         rows = rows[1:]
     return rows
 
@@ -373,12 +396,15 @@ def _validate_architecture_review_sections(path: Path, workspace_root: Path, tex
     )
 
     quality_rows = _section_table_rows(text, "## Quality Attribute Assessment")
-    quality_map = {row[0]: row for row in quality_rows if row}
+    quality_map = {
+        row[0]: row for row in quality_rows
+        if row and row[0] not in {"Attribute", "attribute"}
+    }
     required_quality = ["Performance", "Security", "Scalability", "Availability"]
     quality_populated = all(
         attribute in quality_map
-        and len(quality_map[attribute]) >= 4
-        and all(_cell_is_populated(cell) for cell in quality_map[attribute][:4])
+        and len(quality_map[attribute]) >= 3
+        and all(_cell_is_populated(cell) for cell in quality_map[attribute][:3])
         for attribute in required_quality
     )
     checks.append(
@@ -747,13 +773,41 @@ def _validate_readiness_check(path: Path, workspace_root: Path) -> list[dict[str
             "gate trigger table contains explicit Yes/No rows",
         )
     )
-    no_with_blank_reason = any(triggered == "No" and not reason.strip() for _, triggered, reason, _ in gate_rows)
+    _ARTIFACT_EXISTENCE_PATTERNS = re.compile(
+        r"(?i)not yet created|to be defined|to be created|TBD|TODO|"
+        r"not yet produced|will be created|to be determined|pending creation|"
+        r"not yet available|to be done|not created yet"
+    )
+    no_with_blank_reason = False
+    no_with_existence_reason = False
+    bad_gate_names: list[str] = []
+    for gate_name, triggered, reason, _required in gate_rows:
+        if triggered != "No":
+            continue
+        stripped = reason.strip()
+        if not stripped:
+            no_with_blank_reason = True
+            bad_gate_names.append(f"{gate_name.strip()} (blank)")
+        elif _ARTIFACT_EXISTENCE_PATTERNS.search(stripped):
+            no_with_existence_reason = True
+            bad_gate_names.append(f"{gate_name.strip()} (artifact-existence)")
     checks.append(
         _result(
             "no_gates_have_justification",
             path.name,
             not no_with_blank_reason,
             'every "No" gate row includes a non-empty justification',
+        )
+    )
+    checks.append(
+        _result(
+            "no_gates_justify_by_need_not_existence",
+            path.name,
+            not no_with_existence_reason,
+            'every "No" gate justification explains why the initiative does not need the gate'
+            if not no_with_existence_reason
+            else f'"No" justification must explain why the gate is not needed, not that the artifact '
+                 f'does not exist yet — offending gates: {bad_gate_names}',
         )
     )
     checks.append(
@@ -838,7 +892,6 @@ def _validate_use_case_specs_directory(path: Path, workspace_root: Path) -> list
             "directory contains UC-NNN.md detail files" if uc_files else "no UC-NNN.md files found — wrong structure (got sub-folders instead of UC-NNN.md files?)",
         )
     )
-    # Must not contain story sub-folders (that is the OpenSpec specs/ structure, not UC detail)
     story_folders = [child for child in path.iterdir() if child.is_dir()]
     checks.append(
         _result(
@@ -848,33 +901,105 @@ def _validate_use_case_specs_directory(path: Path, workspace_root: Path) -> list
             "directory contains flat UC-NNN.md files as expected" if not story_folders else f"found story sub-folders ({[f.name for f in story_folders]}) — use-case specs must be flat UC-NNN.md files, not OpenSpec story folders",
         )
     )
-    if uc_files:
-        sample = _read_text(uc_files[0])
+
+    _UC_REQUIRED_SECTIONS = [
+        "## Overview",
+        "## Preconditions",
+        "## Main Success Scenario",
+        "## Alternative Flows",
+        "## Postconditions",
+        "## FR Sources",
+    ]
+
+    for uc_file in uc_files:
+        text = _read_text(uc_file)
+        label = uc_file.name
+
+        for heading in _UC_REQUIRED_SECTIONS:
+            tag = heading.strip("# ").lower().replace(" ", "_")
+            checks.append(
+                _result(
+                    f"uc_has_{tag}",
+                    label,
+                    heading in text,
+                    f"{label}: {heading} section present" if heading in text
+                    else f"{label}: missing required section '{heading}'",
+                )
+            )
+
+        has_overview_table = bool(re.search(
+            r"\|\s*Use Case ID\s*\|", text, flags=re.IGNORECASE
+        ))
         checks.append(
             _result(
-                "uc_detail_has_main_scenario",
-                uc_files[0].name,
-                "## Main Success Scenario" in sample,
-                "sample UC detail file contains a Main Success Scenario section",
+                "uc_has_overview_table",
+                label,
+                has_overview_table,
+                f"{label}: overview table with Use Case ID present" if has_overview_table
+                else f"{label}: missing overview table (expected '| Use Case ID | UC-NNN |' row)",
             )
         )
+
+        has_scenario_table = bool(re.search(
+            r"^\|\s*\d+\s*\|", text, flags=re.MULTILINE
+        ))
         checks.append(
             _result(
-                "uc_detail_has_postconditions",
-                uc_files[0].name,
-                "## Postconditions" in sample,
-                "sample UC detail file contains a Postconditions section",
+                "uc_main_scenario_is_table",
+                label,
+                has_scenario_table,
+                f"{label}: main scenario uses step table format" if has_scenario_table
+                else f"{label}: main scenario must use '| Step | Actor | Action |' table, not a numbered list",
             )
         )
+
+        alt_section = _section_block(text, "## Alternative Flows")
+        has_alt_content = bool(re.search(r"###\s+A\d+:", alt_section))
         checks.append(
             _result(
-                "uc_detail_has_fr_sources",
-                uc_files[0].name,
-                bool(re.search(r"FR-\d{3}", sample)),
-                "sample UC detail file traces to at least one FR-NNN",
+                "uc_has_alternative_flow_content",
+                label,
+                has_alt_content,
+                f"{label}: alternative flows section contains at least one A1: flow" if has_alt_content
+                else f"{label}: alternative flows section is empty or missing 'A1:' sub-heading",
             )
         )
-    # Cross-check UC count against the use-cases.md catalog
+
+        has_postcondition_success = bool(re.search(
+            r"\*\*Success:?\*\*", text, flags=re.IGNORECASE
+        ))
+        checks.append(
+            _result(
+                "uc_postconditions_structured",
+                label,
+                has_postcondition_success,
+                f"{label}: postconditions include Success section" if has_postcondition_success
+                else f"{label}: postconditions must include '**Success:**' and '**Failure:**' sub-sections",
+            )
+        )
+
+        has_fr_trace = bool(re.search(r"FR-\d{3}", text))
+        checks.append(
+            _result(
+                "uc_has_fr_trace",
+                label,
+                has_fr_trace,
+                f"{label}: traces to at least one FR-NNN" if has_fr_trace
+                else f"{label}: no FR-NNN reference found — use case must trace to requirements",
+            )
+        )
+
+        meaningful_lines = [line for line in text.splitlines() if line.strip()]
+        checks.append(
+            _result(
+                "uc_not_stub",
+                label,
+                len(meaningful_lines) >= 20,
+                f"{label}: has {len(meaningful_lines)} lines of content" if len(meaningful_lines) >= 20
+                else f"{label}: only {len(meaningful_lines)} lines — too shallow, expected at least 20 meaningful lines per use case",
+            )
+        )
+
     uc_md = workspace_root / "business-analysis" / "use-cases.md"
     if uc_md.exists():
         catalog_count = _table_row_count(_read_text(uc_md), r"UC-\d{3}")
@@ -1106,6 +1231,194 @@ def _validate_specs_directory(path: Path, workspace_root: Path) -> list[dict[str
     return checks
 
 
+def _validate_exposed_api_spec_directory(path: Path, workspace_root: Path) -> list[dict[str, str]]:
+    checks: list[dict[str, str]] = []
+    checks.extend(_non_empty_directory(path))
+    spec_files = sorted(path.glob("*.md"))
+    if not spec_files:
+        return checks
+
+    for spec_file in spec_files:
+        text = _read_text(spec_file)
+        label = spec_file.name
+
+        checks.append(_result(
+            "exposed_api_has_endpoints",
+            label,
+            bool(re.search(r"\|\s*EP-\d+\s*\|\s*(GET|POST|PUT|PATCH|DELETE)\s*\|\s*/v\d+/", text)),
+            f"{label}: endpoint catalog contains a METHOD and /v1/ path row",
+        ))
+
+        auth_row = re.search(r"\|\s*Auth mechanism\s*\|\s*([^|]+?)\s*\|", text, flags=re.IGNORECASE)
+        auth_ok = bool(auth_row) and _cell_is_populated(auth_row.group(1)) if auth_row else False
+        checks.append(_result(
+            "exposed_api_has_auth",
+            label,
+            auth_ok,
+            f"{label}: Auth mechanism row is present and populated",
+        ))
+
+        contract_row = re.search(
+            r"\|\s*Contract mode\s*\|\s*(product|internal|coordinated)\s*\|",
+            text,
+            flags=re.IGNORECASE,
+        )
+        checks.append(_result(
+            "exposed_api_has_contract_mode",
+            label,
+            bool(contract_row),
+            f"{label}: Contract mode row contains a valid value (product/internal/coordinated)",
+        ))
+
+        sla_section = re.search(r"^##\s+SLA", text, flags=re.MULTILINE | re.IGNORECASE)
+        sla_has_row = False
+        if sla_section:
+            after_sla = text[sla_section.end():]
+            next_section = re.search(r"^##\s", after_sla, flags=re.MULTILINE)
+            sla_body = after_sla[:next_section.start()] if next_section else after_sla
+            sla_has_row = bool(re.search(r"^\|\s*EP-\d+\s*\|", sla_body, flags=re.MULTILINE))
+        checks.append(_result(
+            "exposed_api_has_sla",
+            label,
+            sla_has_row,
+            f"{label}: SLA section contains at least one EP-NNN row",
+        ))
+
+        checks.append(_result(
+            "exposed_api_no_placeholders",
+            label,
+            _placeholders_absent(text, extra_patterns=[r"\{\{", r"\}\}", r"\bNNN\b", r"\bTBD\b", r"\bTODO\b"]),
+            f"{label}: no unfilled placeholder markers",
+        ))
+
+        checks.append(_result(
+            "exposed_api_has_story_ref",
+            label,
+            bool(re.search(r"F-\d{3}\.\d+", text)),
+            f"{label}: endpoint table references at least one story (F-NNN.N)",
+        ))
+
+    return checks
+
+
+def _validate_consumed_api_spec_directory(path: Path, workspace_root: Path) -> list[dict[str, str]]:
+    checks: list[dict[str, str]] = []
+    checks.extend(_non_empty_directory(path))
+    spec_files = sorted(path.glob("*.md"))
+    if not spec_files:
+        return checks
+
+    for spec_file in spec_files:
+        text = _read_text(spec_file)
+        label = spec_file.name
+
+        checks.append(_result(
+            "consumed_api_has_endpoints",
+            label,
+            bool(re.search(r"\|\s*EP-\d+\s*\|", text)),
+            f"{label}: contains at least one endpoint row",
+        ))
+
+        auth_row = re.search(r"\|\s*Auth mechanism\s*\|\s*([^|]+?)\s*\|", text, flags=re.IGNORECASE)
+        auth_ok = bool(auth_row) and _cell_is_populated(auth_row.group(1)) if auth_row else False
+        checks.append(_result(
+            "consumed_api_has_auth",
+            label,
+            auth_ok,
+            f"{label}: Auth mechanism row is present and populated",
+        ))
+
+        fallback_row = re.search(r"\|\s*Fallback behaviour\s*\|\s*([^|]+?)\s*\|", text, flags=re.IGNORECASE)
+        fallback_ok = (
+            bool(fallback_row)
+            and _cell_is_populated(fallback_row.group(1))
+            and not re.search(r"\bTBD\b", fallback_row.group(1), flags=re.IGNORECASE)
+        ) if fallback_row else False
+        checks.append(_result(
+            "consumed_api_has_fallback",
+            label,
+            fallback_ok,
+            f"{label}: Fallback behaviour row is present with an actionable value (not TBD)",
+        ))
+
+        checks.append(_result(
+            "consumed_api_has_pii_section",
+            label,
+            bool(re.search(r"^##.*PII", text, flags=re.MULTILINE | re.IGNORECASE)),
+            f"{label}: PII and Data Residency section is present",
+        ))
+
+        checks.append(_result(
+            "consumed_api_no_placeholders",
+            label,
+            _placeholders_absent(text, extra_patterns=[r"\{\{", r"\}\}", r"\bNNN\b", r"\bTBD\b", r"\bTODO\b"]),
+            f"{label}: no unfilled placeholder markers",
+        ))
+
+    return checks
+
+
+def _validate_integration_spec_directory(path: Path, workspace_root: Path) -> list[dict[str, str]]:
+    checks: list[dict[str, str]] = []
+    checks.extend(_non_empty_directory(path))
+    spec_files = sorted(path.glob("*.md"))
+    if not spec_files:
+        return checks
+
+    for spec_file in spec_files:
+        text = _read_text(spec_file)
+        label = spec_file.name
+
+        timeout_row = re.search(r"\|\s*Timeout per request\s*\|\s*([^|]+?)\s*\|", text, flags=re.IGNORECASE)
+        timeout_ok = bool(timeout_row) and bool(re.search(r"\d+", timeout_row.group(1))) if timeout_row else False
+        checks.append(_result(
+            "integration_has_timeout",
+            label,
+            timeout_ok,
+            f"{label}: Timeout per request row contains a numeric value (ms)",
+        ))
+
+        retry_row = re.search(r"\|\s*Max retries\s*\|\s*([^|]+?)\s*\|", text, flags=re.IGNORECASE)
+        retry_ok = bool(retry_row) and bool(re.search(r"\d+", retry_row.group(1))) if retry_row else False
+        checks.append(_result(
+            "integration_has_retry",
+            label,
+            retry_ok,
+            f"{label}: Max retries row contains a numeric value",
+        ))
+
+        fallback_row = re.search(r"\|\s*Fallback behaviour\s*\|\s*([^|]+?)\s*\|", text, flags=re.IGNORECASE)
+        fallback_ok = (
+            bool(fallback_row)
+            and _cell_is_populated(fallback_row.group(1))
+            and not re.search(r"\bTBD\b", fallback_row.group(1), flags=re.IGNORECASE)
+        ) if fallback_row else False
+        checks.append(_result(
+            "integration_has_fallback",
+            label,
+            fallback_ok,
+            f"{label}: Fallback behaviour row is present and not TBD",
+        ))
+
+        has_success_event = bool(re.search(r"\|\s*Success event\s*\|\s*([^|]+?)\s*\|", text, flags=re.IGNORECASE))
+        has_failure_event = bool(re.search(r"\|\s*Failure event\s*\|\s*([^|]+?)\s*\|", text, flags=re.IGNORECASE))
+        checks.append(_result(
+            "integration_has_events",
+            label,
+            has_success_event and has_failure_event,
+            f"{label}: Success event and Failure event rows are both present",
+        ))
+
+        checks.append(_result(
+            "integration_no_placeholders",
+            label,
+            _placeholders_absent(text, extra_patterns=[r"\{\{", r"\}\}", r"\bNNN\b", r"\bTBD\b", r"\bTODO\b"]),
+            f"{label}: no unfilled placeholder markers",
+        ))
+
+    return checks
+
+
 def _validate_standalone_directory(path: Path, workspace_root: Path) -> list[dict[str, str]]:
     checks = []
     checks.extend(_non_empty_directory(path))
@@ -1161,6 +1474,171 @@ def _validate_file_default(path: Path, workspace_root: Path) -> list[dict[str, s
     return _non_empty_file(path)
 
 
+# ---------------------------------------------------------------------------
+# Template-driven validation
+# ---------------------------------------------------------------------------
+
+def _parse_template_contract(template_path: Path) -> dict[str, Any]:
+    """Extract structural contract from an artifact template.
+
+    Returns a dict with:
+      headings: list of '## Heading' strings found in the template
+      tables: dict mapping heading -> list of column-name lists (one per table in that section)
+      has_tables: bool
+      line_count: int (meaningful lines in the template)
+    """
+    text = _read_text(template_path)
+    lines = text.splitlines()
+
+    headings: list[str] = []
+    tables: dict[str, list[list[str]]] = {}
+    current_heading: str | None = None
+
+    for line in lines:
+        stripped = line.strip()
+        if re.match(r"^##\s+", stripped) and not re.match(r"^###\s+", stripped):
+            current_heading = stripped
+            headings.append(current_heading)
+            tables.setdefault(current_heading, [])
+            continue
+
+        if not stripped.startswith("|") or current_heading is None:
+            continue
+        if re.match(r"^\|(?:\s*:?-{3,}:?\s*\|)+\s*$", stripped):
+            continue
+        cells = [cell.strip() for cell in stripped.strip("|").split("|")]
+        if cells and all(cell.replace("-", "").strip() == "" for cell in cells):
+            continue
+        is_header = any(
+            re.search(r"\{\{", cell) or "/" in cell or cell in {"", "…"}
+            for cell in cells
+        )
+        if not is_header:
+            tables[current_heading].append(cells)
+        elif not tables[current_heading]:
+            tables[current_heading].append(cells)
+
+    return {
+        "headings": headings,
+        "tables": tables,
+        "has_tables": any(bool(cols) for cols in tables.values()),
+        "line_count": len([l for l in lines if l.strip()]),
+    }
+
+
+def _is_template_placeholder_cell(value: str) -> bool:
+    """Return True if a cell value looks like an unfilled template placeholder."""
+    text = value.strip()
+    if not text:
+        return True
+    if re.search(r"\{\{", text):
+        return True
+    if re.search(r"\|", text) and "/" in text:
+        return True
+    if text in {"…", "..."}:
+        return True
+    return False
+
+
+def _validate_from_template(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+) -> list[dict[str, str]]:
+    """Validate an artifact against its template's structural contract."""
+    template_ref = _artifact_template_ref(action)
+    if not template_ref:
+        return _non_empty_file(path)
+
+    template_path = workspace.FRAMEWORK_ROOT / Path(template_ref).relative_to(".b2s") \
+        if template_ref.startswith(".b2s/") else workspace.FRAMEWORK_ROOT.parent / template_ref
+    if not template_path.exists():
+        return [_result(
+            "template_exists", path.name, False,
+            f"artifact_template_ref '{template_ref}' not found at {template_path}",
+        )]
+
+    contract = _parse_template_contract(template_path)
+    text = _read_text(path)
+    checks: list[dict[str, str]] = []
+
+    checks.extend(_non_empty_file(path))
+
+    for heading in contract["headings"]:
+        if re.search(r"\{\{", heading):
+            continue
+        tag = heading.strip("# ").lower().replace(" ", "_")
+        found = heading in text
+        checks.append(_result(
+            f"tmpl_section_{tag}", path.name, found,
+            f"{heading} section present" if found
+            else f"missing section '{heading}' required by template",
+        ))
+
+    if contract["has_tables"]:
+        checks.append(_result(
+            "tmpl_has_tables", path.name, _has_any_table(text),
+            "artifact contains at least one table" if _has_any_table(text)
+            else "template requires tables but artifact contains none",
+        ))
+
+    for heading, col_lists in contract["tables"].items():
+        if not col_lists:
+            continue
+        expected_cols = col_lists[0]
+        if all(_is_template_placeholder_cell(c) for c in expected_cols):
+            continue
+
+        section_text = _section_block(text, heading)
+        if not section_text.strip():
+            continue
+
+        section_rows = []
+        for line in section_text.splitlines():
+            s = line.strip()
+            if not s.startswith("|"):
+                continue
+            if re.match(r"^\|(?:\s*:?-{3,}:?\s*\|)+\s*$", s):
+                continue
+            cells = [cell.strip() for cell in s.strip("|").split("|")]
+            if cells and not all(cell.replace("-", "").strip() == "" for cell in cells):
+                section_rows.append(cells)
+
+        data_rows = [r for r in section_rows if len(r) >= 2]
+        prose_lines = [
+            l for l in section_text.splitlines()
+            if l.strip() and not l.strip().startswith("|") and not l.strip().startswith("---")
+        ]
+        has_table_content = len(data_rows) >= 2
+        has_prose_content = len(prose_lines) >= 2
+        checks.append(_result(
+            f"tmpl_table_populated_{heading.strip('# ').lower().replace(' ', '_')}",
+            path.name,
+            has_table_content or has_prose_content,
+            f"'{heading}' has content (table rows: {len(data_rows)}, prose lines: {len(prose_lines)})"
+            if has_table_content or has_prose_content
+            else f"'{heading}' needs a populated table or meaningful prose, found {len(data_rows)} table rows and {len(prose_lines)} prose lines",
+        ))
+
+    expected_min_lines = max(20, contract["line_count"] // 2)
+    meaningful = len([l for l in text.splitlines() if l.strip()])
+    checks.append(_result(
+        "tmpl_content_depth", path.name,
+        meaningful >= expected_min_lines,
+        f"artifact has {meaningful} lines (minimum {expected_min_lines})" if meaningful >= expected_min_lines
+        else f"artifact too shallow: {meaningful} lines, expected at least {expected_min_lines} based on template",
+    ))
+
+    checks.append(_result(
+        "tmpl_placeholders_absent", path.name,
+        _placeholders_absent(text, _forbidden_placeholders(action)),
+        "no known placeholder markers found",
+    ))
+
+    return checks
+
+
 VALIDATORS_BY_ARTIFACT = {
     "routing/routing-decision.md": _validate_routing_decision,
     "business-intake/business-intake-summary.md": _validate_business_intake_summary,
@@ -1172,6 +1650,9 @@ VALIDATORS_BY_ARTIFACT = {
     "engineering-readiness/readiness-check.md": _validate_readiness_check,
     "quality-gates/bdd/": _validate_bdd_directory,
     "specs/": _validate_story_package_directory,
+    "technical-specifications/api/exposed/": _validate_exposed_api_spec_directory,
+    "technical-specifications/api/consumed/": _validate_consumed_api_spec_directory,
+    "technical-specifications/integrations/": _validate_integration_spec_directory,
     "standalone-delivery/": _validate_standalone_directory,
     "review-package/": _validate_review_package,
 }
@@ -1289,7 +1770,7 @@ def _audit_validation_coverage(
     if _is_human_gated(action) and profile == "basic-file":
         findings.append("human-gated artifact uses basic-file validation")
 
-    if criticality in {"high", "critical"} and not profile and dispatch != "dedicated":
+    if criticality in {"high", "critical"} and not profile and dispatch not in {"dedicated", "template"}:
         findings.append(f"{criticality}-criticality artifact lacks explicit validation profile")
 
     if downstream_consumers >= 3 and dispatch == "fallback":
@@ -1297,12 +1778,12 @@ def _audit_validation_coverage(
             f"artifact is consumed by {downstream_consumers} downstream actions but resolves to fallback validation"
         )
 
-    if downstream_consumers >= 3 and profile == "basic-file" and dispatch != "dedicated":
+    if downstream_consumers >= 3 and profile == "basic-file" and dispatch not in {"dedicated", "template"}:
         findings.append(
             f"artifact is consumed by {downstream_consumers} downstream actions but only uses basic-file validation"
         )
 
-    if analytical_hint and (dispatch == "fallback" or profile == "basic-file"):
+    if analytical_hint and dispatch == "fallback":
         findings.append("analytical or authority artifact is treated as generic non-empty validation")
 
     if (
@@ -1311,7 +1792,7 @@ def _audit_validation_coverage(
         and criticality in {"high", "critical"}
         and profile in {"structured-document", "catalog", "analytical-review"}
     ):
-        if not _required_sections(action):
+        if not _required_sections(action) and not _artifact_template_ref(action):
             findings.append(
                 f"{criticality}-criticality {profile} artifact lacks required_sections structural contract"
             )
@@ -1346,6 +1827,9 @@ def _validator_for_artifact(
 ) -> tuple[str, Callable[..., list[dict[str, str]]]]:
     if artifact_path in VALIDATORS_BY_ARTIFACT:
         return "dedicated", VALIDATORS_BY_ARTIFACT[artifact_path]
+
+    if not path.is_dir() and _artifact_template_ref(action):
+        return "template", _validate_from_template
 
     profile = _normalized_profile_name(action)
     if profile:
@@ -1388,7 +1872,7 @@ def run(args: object) -> None:
             continue
 
         dispatch, validator = _validator_for_artifact(action, artifact_path, path)
-        if dispatch == "profile":
+        if dispatch in ("profile", "template"):
             validator_checks = validator(path, workspace_root, action, artifact_path)
         elif dispatch == "configuration-fail":
             validator_checks = validator(path, action, artifact_path)

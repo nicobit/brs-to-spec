@@ -1,0 +1,284 @@
+version: 1
+framework: b2s
+description: >
+  Stage action registry for the fast-path workflow type. Includes only the
+  actions referenced in the fast-path workflow-definition.yaml.
+
+actions:
+  - action_id: route-initiative
+    stage_id: "0-routing"
+    title: "Route initiative"
+    source_event_template: "EVT-TPL-001"
+    persona: orchestrator
+    skill_ref: ".b2s/skills/orchestrator/route-initiative.md"
+    artifact_template_ref: ".b2s/artifact-templates/routing-decision.md"
+    inputs:
+      required:
+        - "input/brs.md"
+      optional:
+        - "input/architecture.md"
+        - "input/input-package.md"
+    outputs:
+      primary: "routing/routing-decision.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: structured-document
+    artifact_criticality: high
+    blocked_by_stage: []
+    blocked_by_action: []
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: accepted
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "0-routing"
+
+  - action_id: create-business-intake-summary
+    stage_id: "2-business-intake"
+    title: "Create business intake summary"
+    source_event_template: "EVT-TPL-002"
+    persona: product-owner
+    skill_ref: ".b2s/skills/product-owner/create-business-intake-summary.md"
+    artifact_template_ref: ".b2s/artifact-templates/business-intake-summary.md"
+    inputs:
+      required:
+        - "input/brs.md"
+        - "routing/routing-decision.md"
+      optional:
+        - "input/brs/*.md"
+        - "input/architecture.md"
+        - "input/input-package.md"
+    outputs:
+      primary: "business-intake/business-intake-summary.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: structured-document
+    artifact_criticality: critical
+    blocked_by_stage:
+      - "0-routing"
+    blocked_by_action:
+      - "route-initiative"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "2-business-intake"
+
+  - action_id: review-initial-architecture
+    stage_id: "3-planning"
+    title: "Review initial architecture"
+    source_event_template: "EVT-TPL-008"
+    persona: architect
+    skill_ref: ".b2s/skills/architect/review-initial-architecture.md"
+    artifact_template_ref: ".b2s/artifact-templates/architecture-review.md"
+    inputs:
+      required:
+        - "business-intake/business-intake-summary.md"
+        - "routing/routing-decision.md"
+        - "input/brs.md"
+      optional:
+        - "input/brs/*.md"
+        - "input/architecture.md"
+    outputs:
+      primary: "architecture/architecture-review.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: analytical-review
+    artifact_criticality: critical
+    blocked_by_stage:
+      - "2-business-intake"
+    blocked_by_action:
+      - "create-business-intake-summary"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "3-planning"
+
+  - action_id: create-delivery-structure
+    stage_id: "3-planning"
+    title: "Create delivery structure"
+    source_event_template: "EVT-TPL-011"
+    persona: delivery-lead
+    skill_ref: ".b2s/skills/delivery-lead/create-delivery-structure.md"
+    artifact_template_ref: ".b2s/artifact-templates/delivery-structure.md"
+    inputs:
+      required:
+        - "business-intake/business-intake-summary.md"
+        - "routing/routing-decision.md"
+        - "input/brs.md"
+      optional:
+        - "input/brs/*.md"
+        - "architecture/architecture-review.md"
+    outputs:
+      primary: "planning/delivery-structure.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: structured-document
+    artifact_criticality: critical
+    blocked_by_stage: []
+    blocked_by_action:
+      - "review-initial-architecture"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
+  - action_id: create-compact-handoff
+    stage_id: "5-handoff"
+    title: "Create compact handoff"
+    source_event_template: "EVT-TPL-026"
+    persona: engineering-lead
+    skill_ref: ".b2s/skills/engineering-lead/create-compact-handoff.md"
+    artifact_template_ref: ".b2s/artifact-templates/compact-handoff.md"
+    inputs:
+      required:
+        - "business-intake/business-intake-summary.md"
+        - "planning/delivery-structure.md"
+      optional:
+        - "architecture/architecture-review.md"
+        - "input/brs.md"
+        - "input/brs/*.md"
+    outputs:
+      primary: "handoff/compact-handoff-summary.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: structured-document
+    artifact_criticality: standard
+    blocked_by_stage:
+      - "3-planning"
+    blocked_by_action:
+      - "create-delivery-structure"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "5-handoff"
+
+  - action_id: create-review-package
+    stage_id: "6-review-package"
+    title: "Create review package"
+    source_event_template: "EVT-TPL-028"
+    persona: delivery-lead
+    skill_ref: ".b2s/skills/delivery-lead/create-review-package.md"
+    artifact_template_ref: ".b2s/artifact-templates/review-package.md"
+    inputs:
+      required:
+        - "planning/delivery-structure.md"
+        - "business-intake/business-intake-summary.md"
+      optional:
+        - "architecture/architecture-review.md"
+        - "handoff/compact-handoff-summary.md"
+    outputs:
+      primary: "review-package/"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: artifact-package
+    artifact_criticality: high
+    blocked_by_stage:
+      - "5-handoff"
+    blocked_by_action:
+      - "create-compact-handoff"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "6-review-package"
+
+  - action_id: create-brs
+    stage_id: "human-triggered"
+    title: "Create BRS"
+    source_event_template: "EVT-TPL-033"
+    persona: product-owner
+    skill_ref: ".b2s/skills/product-owner/create-brs.md"
+    artifact_template_ref: ".b2s/artifact-templates/brs.md"
+    inputs:
+      required: []
+      optional:
+        - "input/input-package.md"
+    outputs:
+      primary: "input/brs.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    blocked_by_stage: []
+    blocked_by_action: []
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: draft
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
+  - action_id: spec-correction
+    stage_id: "human-triggered"
+    title: "Spec correction"
+    source_event_template: "EVT-TPL-039"
+    persona: reviewer
+    skill_ref: ".b2s/skills/reviewer/spec-correction.md"
+    artifact_template_ref: null
+    inputs:
+      required: []
+      optional: []
+    outputs:
+      primary: "corrections/"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    blocked_by_stage: []
+    blocked_by_action: []
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: draft
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}

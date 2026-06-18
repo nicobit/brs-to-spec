@@ -1,0 +1,24 @@
+{
+  "overall": "pass",
+  "action_id": "create-business-rules",
+  "required_inputs": [
+    {
+      "path": "business-analysis/requirements.md",
+      "exists": true,
+      "matches": [
+        "business-analysis/requirements.md"
+      ]
+    }
+  ],
+  "optional_inputs": [
+    {
+      "path": "business-intake/business-intake-summary.md",
+      "exists": true,
+      "matches": [
+        "business-intake/business-intake-summary.md"
+      ]
+    }
+  ],
+  "missing_required_inputs": [],
+  "read_evidence": []
+}

@@ -1,0 +1,61 @@
+overall: pass
+action_id: create-traceability-matrix
+artifact_path: planning/traceability-matrix.md
+checks:
+- name: file_exists
+  target: planning/traceability-matrix.md
+  result: pass
+  detail: artifact exists
+- name: validation_dispatch
+  target: traceability-matrix.md
+  result: pass
+  detail: 'profile: planning/traceability-matrix.md'
+- name: validation_dispatch
+  target: traceability-matrix.md
+  result: pass
+  detail: 'profile: structured-document'
+- name: non_empty_file
+  target: traceability-matrix.md
+  result: pass
+  detail: artifact has content
+- name: has_metadata
+  target: traceability-matrix.md
+  result: pass
+  detail: '## Metadata section present'
+- name: has_fr_->_story_matrix
+  target: traceability-matrix.md
+  result: pass
+  detail: '## FR -> Story Matrix section present'
+- name: has_story_->_requirements_matrix
+  target: traceability-matrix.md
+  result: pass
+  detail: '## Story -> Requirements Matrix section present'
+- name: has_coverage_summary
+  target: traceability-matrix.md
+  result: pass
+  detail: '## Coverage Summary section present'
+- name: has_gaps
+  target: traceability-matrix.md
+  result: pass
+  detail: '## Gaps section present'
+- name: has_minimum_headings
+  target: traceability-matrix.md
+  result: pass
+  detail: document contains multiple section headings
+- name: has_structured_content
+  target: traceability-matrix.md
+  result: pass
+  detail: document includes a table or enough content to be structured
+- name: placeholders_absent
+  target: traceability-matrix.md
+  result: pass
+  detail: document does not contain known placeholder markers
+- name: has_catalog_rows
+  target: traceability-matrix.md
+  result: pass
+  detail: catalog contains at least one typed identifier row
+- name: validation_audit
+  target: planning/traceability-matrix.md
+  result: pass
+  detail: validation coverage is acceptable (dispatch=profile, downstream_consumers=2)
+failures: []

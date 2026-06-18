@@ -1,0 +1,67 @@
+# Event Template — EVT-TPL-040: Gate — Business Intake Review
+# Version: 1.0
+#
+# WAIT_HUMAN gate triggered after business-intake-summary.md is ai_validated.
+# Pauses dispatch-all. Human reviews business intake scope before business analysis begins.
+# This is Gate 1 of 3 in the standard flow.
+#
+# On approval: business analysis events are created (business-rules, actors, gaps).
+# On rejection: blocking decision raised — producing event must be re-run or overridden.
+
+event_template_id: EVT-TPL-040
+type: WAIT_HUMAN
+persona: orchestrator
+priority: critical
+
+description: >
+  Gate 1: Human review of business intake summary before business analysis begins.
+  The flow pauses here. Review business-intake-summary.md for scope accuracy,
+  completeness, and alignment with stakeholders. Reply approved or rejected.
+
+# No skill_ref, persona_ref, or artifact_template_ref — WAIT_HUMAN does not enter persona mode.
+
+inputs:
+  required:
+    - "business-intake/business-intake-summary.md"
+  optional: []
+
+outputs:
+  primary: null
+
+gate_context:
+  gate_name: "Gate 1 — Business Intake Review"
+  gate_prompt: >
+    The business intake summary has been produced and AI-validated.
+    Before business analysis begins, please review business-intake/business-intake-summary.md for:
+      - Scope accuracy (in-scope and out-of-scope correctly bounded)
+      - All major objectives captured with measurable success criteria
+      - Requirements list complete and correctly sourced from the BRS
+      - No invented requirements
+      - Gaps section flags real open items
+    On approval the requirements catalog (requirements.md) will be produced first,
+    which then unblocks the full business-analysis phase.
+    Reply 'approved' to start business analysis, or 'rejected: <reason>' to stop.
+  artifacts_under_review:
+    - "business-intake/business-intake-summary.md"
+
+must_include: []
+validation_rules: {}
+blocked_by:
+  - "business-intake/business-intake-summary.md"
+
+on_success:
+  create_events:
+    - template: "EVT-TPL-043"
+      reason: "Business intake approved by human — trigger requirements catalog (spine entry point for all business-analysis events)"
+  update_state:
+    current_stage: "2b-business-analysis"
+    artifact_status:
+      "business-intake/business-intake-summary.md": "accepted"
+
+on_failure:
+  raise_decision:
+    question: >
+      Business intake review rejected by human. Review the rejection reason, correct
+      business-intake-summary.md, and re-run EVT-TPL-002 or override the gate manually.
+    owner: human
+    blocking: true

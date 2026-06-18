@@ -1,0 +1,140 @@
+overall: pass
+action_id: review-initial-architecture
+artifact_path: architecture/architecture-review.md
+checks:
+- name: file_exists
+  target: architecture/architecture-review.md
+  result: pass
+  detail: artifact exists
+- name: validation_dispatch
+  target: architecture-review.md
+  result: pass
+  detail: 'profile: architecture/architecture-review.md'
+- name: validation_dispatch
+  target: architecture-review.md
+  result: pass
+  detail: 'profile: structured-document'
+- name: non_empty_file
+  target: architecture-review.md
+  result: pass
+  detail: artifact has content
+- name: has_metadata
+  target: architecture-review.md
+  result: pass
+  detail: '## Metadata section present'
+- name: has_initiative-architecture_fit
+  target: architecture-review.md
+  result: pass
+  detail: '## Initiative-Architecture Fit section present'
+- name: has_architecture_constraints
+  target: architecture-review.md
+  result: pass
+  detail: '## Architecture Constraints section present'
+- name: has_brownfield_impact
+  target: architecture-review.md
+  result: pass
+  detail: '## Brownfield Impact section present'
+- name: has_quality_attribute_assessment
+  target: architecture-review.md
+  result: pass
+  detail: '## Quality Attribute Assessment section present'
+- name: has_open_decisions
+  target: architecture-review.md
+  result: pass
+  detail: '## Open Decisions section present'
+- name: has_active_assumptions
+  target: architecture-review.md
+  result: pass
+  detail: '## Active Assumptions section present'
+- name: has_known_unknowns
+  target: architecture-review.md
+  result: pass
+  detail: '## Known Unknowns section present'
+- name: has_minimum_headings
+  target: architecture-review.md
+  result: pass
+  detail: document contains multiple section headings
+- name: has_structured_content
+  target: architecture-review.md
+  result: pass
+  detail: document includes a table or enough content to be structured
+- name: placeholders_absent
+  target: architecture-review.md
+  result: pass
+  detail: document does not contain known placeholder markers
+- name: has_analysis_signals
+  target: architecture-review.md
+  result: pass
+  detail: review contains analytical vocabulary signals
+- name: has_metadata
+  target: architecture-review.md
+  result: pass
+  detail: '## Metadata section present'
+- name: has_initiative-architecture_fit
+  target: architecture-review.md
+  result: pass
+  detail: '## Initiative-Architecture Fit section present'
+- name: has_architecture_constraints
+  target: architecture-review.md
+  result: pass
+  detail: '## Architecture Constraints section present'
+- name: has_brownfield_impact
+  target: architecture-review.md
+  result: pass
+  detail: '## Brownfield Impact section present'
+- name: has_quality_attribute_assessment
+  target: architecture-review.md
+  result: pass
+  detail: '## Quality Attribute Assessment section present'
+- name: has_open_decisions
+  target: architecture-review.md
+  result: pass
+  detail: '## Open Decisions section present'
+- name: has_active_assumptions
+  target: architecture-review.md
+  result: pass
+  detail: '## Active Assumptions section present'
+- name: has_known_unknowns
+  target: architecture-review.md
+  result: pass
+  detail: '## Known Unknowns section present'
+- name: fit_section_populated
+  target: architecture-review.md
+  result: pass
+  detail: initiative-architecture fit contains at least one populated feature-area
+    row
+- name: constraints_have_rationale_and_consequence
+  target: architecture-review.md
+  result: pass
+  detail: architecture constraints include populated rationale and violation consequence
+- name: brownfield_impact_explicit
+  target: architecture-review.md
+  result: pass
+  detail: brownfield impact is explicitly assessed with regression surface and rollback
+    sensitivity
+- name: quality_attributes_populated
+  target: architecture-review.md
+  result: pass
+  detail: quality attribute rows are populated for performance, security, scalability,
+    and availability
+- name: open_decisions_present_when_upstream_gaps_exist
+  target: architecture-review.md
+  result: pass
+  detail: open decisions are populated when upstream gaps exist
+- name: assumptions_include_if_false_then
+  target: architecture-review.md
+  result: pass
+  detail: active assumptions include populated If False, Then consequences
+- name: known_unknowns_populated
+  target: architecture-review.md
+  result: pass
+  detail: known unknowns include populated impact and discovery path
+- name: not_summary_only
+  target: architecture-review.md
+  result: pass
+  detail: architecture review is not merely a short placeholder summary
+- name: validation_audit
+  target: architecture/architecture-review.md
+  result: pass
+  detail: validation coverage is acceptable (dispatch=profile, downstream_consumers=21)
+failures: []

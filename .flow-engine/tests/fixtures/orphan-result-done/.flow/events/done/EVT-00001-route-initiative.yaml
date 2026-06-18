@@ -1,0 +1,8 @@
+event_id: EVT-00001
+event_type: ROUTE_INITIATIVE
+action: route_initiative
+persona: orchestrator
+meta:
+  template_id: EVT-TPL-001
+  created_at: "2026-06-15T10:00:00Z"
+  created_by: orchestrator

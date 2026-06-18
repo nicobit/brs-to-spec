@@ -1,0 +1,84 @@
+﻿# Prompt — Create Event Contract
+
+## Role
+
+You are a senior integration architect performing a Conditional Quality Gate review.
+
+## Context
+
+This gate is only run when `engineering-readiness/readiness-check.md` marks it as Triggered = Yes and Required = Yes.
+
+## Purpose
+
+Define event producers, consumers, payloads, delivery semantics, retries, dead-lettering and versioning.
+
+## Inputs
+
+Use these inputs when available:
+
+- `engineering-readiness/readiness-check.md`
+- `input/brs.md or input/brs/*.md`
+- `input/architecture.md or input/architecture/*.md`
+- `architecture/architecture-rules.md`
+- `planning/traceability-matrix.md`
+- `business-intake/business-intake-summary.md`
+
+## Output path
+
+```text
+quality-gates/event-contract.md
+```
+
+## Generation steps
+
+**Follow these steps in order. Do not skip or reorder.**
+
+1. Read `.brs2spec/templates/quality-gates/event-contract.md` — this is the required output structure
+2. Read all inputs listed above
+3. Write `quality-gates/event-contract.md` starting with the `## Metadata` table exactly as it appears in the template — `| **Status** | **In progress** |` must be the first table in the file
+4. Complete every section from the template in order: Metadata, Events, Payload Contract, Delivery Semantics, Consumer Impact, Observability, Open Questions, Acceptance, CI Gate
+5. Fill every table with initiative-specific content — do not leave rows empty
+6. Set `Status: In progress` — the reviewer changes it to `Accepted` after sign-off
+
+Add an optional compact event flow only when it materially improves consumer-impact or observability clarity.
+
+**The output file must start with `## Metadata` and the Status row. Free-form prose without a Metadata table is wrong — the workflow cannot detect gate acceptance without it.**
+
+## Quality bar
+
+A good output must:
+
+- include evidence for each assessment
+- link findings to requirements, constraints or deliverables
+- assign owners and required-before stages
+- distinguish blockers from accepted risks
+- produce actionable findings, not generic advice
+- keep any optional visual tightly focused on the governed event boundary
+
+## Anti-patterns to avoid
+
+Do not produce outputs that:
+
+- say 'looks good' without evidence
+- list risks without owners
+- ignore triggered gate reason from readiness check
+- approve with unresolved critical findings
+- create implementation code
+
+## Stop conditions
+
+- If this gate was not triggered in the readiness check, stop and state that it should not be run.
+- If inputs are missing, list missing inputs and produce only the parts supported by evidence.
+- Do not invent evidence.
+
+## Self-review checklist
+
+Before finalizing, verify:
+
+- [ ] The gate was triggered in the readiness check.
+- [ ] Every finding has evidence.
+- [ ] Every required action has owner and required-before stage.
+- [ ] Residual risks are explicit.
+- [ ] The final decision is clear.
+
+

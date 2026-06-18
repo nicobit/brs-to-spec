@@ -7,16 +7,16 @@
 All prompts now live under `.brs2spec/` (not at the repository root or under `tools/`):
 
 ```text
-.brs2spec/0-input-preparation/
-.brs2spec/1-routing/
-.brs2spec/2-business-intake/
-.brs2spec/3-planning-and-modular-delivery/
-.brs2spec/4-engineering-readiness/
-.brs2spec/5-handoff/
-.brs2spec/6-business-copilot/
-.brs2spec/7-perspectives/
-.brs2spec/8-copilot-implementation/
-.brs2spec/9-reviewers/
+.brs2spec/skills/0-input-preparation/
+.brs2spec/skills/1-routing/
+.brs2spec/skills/2-business-intake/
+.brs2spec/skills/3-planning-and-modular-delivery/
+.brs2spec/skills/4-engineering-readiness/
+.brs2spec/skills/5-handoff/
+.brs2spec/skills/6-business-copilot/
+.brs2spec/skills/7-perspectives/
+.brs2spec/skills/8-copilot-implementation/
+.brs2spec/skills/9-reviewers/
 ```
 
 All templates now live under `.brs2spec/templates/` (not under `templates/` at the root):

@@ -1,0 +1,52 @@
+event_template_id: EVT-TPL-020
+type: CREATE_API_CONTRACT
+persona: engineering-lead
+priority: high
+description: "Conditional gate: define endpoint catalog, schemas, auth, error codes, versioning, and consumer impact for all new or changed APIs."
+
+skill_ref: ".brs2spec2/skills/engineering-lead/create-api-contract.md"
+persona_ref: ".brs2spec2/personas/engineering-lead.md"
+artifact_template_ref: ".brs2spec2/artifact-templates/api-contract.md"
+
+inputs:
+  required:
+    - "engineering-readiness/readiness-check.md"
+    - "input/brs.md"
+    - "input/brs/*.md"
+    - "architecture/architecture-review.md"
+    - "architecture/architecture-rules.md"
+  optional:
+    - "business-analysis/business-rules.md"
+  condition: "quality_gates_triggered contains API_CONTRACT"
+
+outputs:
+  primary: "quality-gates/api-contract.md"
+
+must_include:
+  - "## Metadata table with Status: In progress as first table in file"
+  - "## Endpoint Catalog table lists all EP-NNN entries"
+  - "Each EP-NNN has Method, Path, Purpose, Auth, and Consumer Impact"
+  - "Error Code Reference table is present"
+  - "## Versioning and Consumer Impact section is present"
+  - "## Decision field is present"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) every new or modified API endpoint has an EP-NNN entry,
+    (2) authentication and authorization are specified per endpoint,
+    (3) breaking changes have a versioning and migration plan,
+    (4) error codes are consistent and documented.
+  machine:
+    file_exists: "quality-gates/api-contract.md"
+  skip_if: "API_CONTRACT not in quality_gates_triggered"
+
+on_success:
+  update_state:
+    artifact_status:
+      "quality-gates/api-contract.md": "draft"
+
+on_failure:
+  raise_decision:
+    question: "API contract creation failed."
+    blocking: false
+    owner: "engineering-lead"

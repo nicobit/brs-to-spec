@@ -1,0 +1,56 @@
+overall: pass
+action_id: create-review-package
+artifacts:
+  review-package/:
+    status: pass
+    checks:
+      - name: package-structure
+        result: pass
+      - name: required-inputs-included
+        result: pass
+        notes: "Business intake, delivery structure, and architecture review present and included as copies/placeholders."
+overall: pass
+action_id: create-openspec-handoff
+artifact_path: specs/
+checks:
+- name: file_exists
+  target: specs/
+  result: pass
+  detail: artifact exists
+- name: validation_dispatch
+  target: specs
+  result: pass
+  detail: 'dedicated: specs/'
+- name: non_empty_directory
+  target: specs
+  result: pass
+  detail: directory contains generated artifacts
+- name: has_dependency_graph
+  target: dependency-graph.md
+  result: pass
+  detail: dependency graph exists
+- name: has_story_folders
+  target: specs
+  result: pass
+  detail: specs directory contains story folders
+- name: has_story_md
+  target: F-001.1-submit-application
+  result: pass
+  detail: story.md exists in sample story folder
+- name: has_design_md
+  target: F-001.1-submit-application
+  result: pass
+  detail: design.md exists in sample story folder
+- name: has_tasks_md
+  target: F-001.1-submit-application
+  result: pass
+  detail: tasks.md exists in sample story folder
+- name: has_coding-prompt_md
+  target: F-001.1-submit-application
+  result: pass
+  detail: coding-prompt.md exists in sample story folder
+- name: validation_audit
+  target: specs/
+  result: pass
+  detail: validation coverage is acceptable (dispatch=dedicated, downstream_consumers=4)
+failures: []

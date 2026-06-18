@@ -1,0 +1,13 @@
+overall: pass
+action_id: create-actors-and-personas
+artifact_path: business-analysis/actors-and-personas.md
+checks:
+- name: file_exists
+  target: business-analysis/actors-and-personas.md
+  result: pass
+  detail: artifact exists
+- name: non_empty_file
+  target: actors-and-personas.md
+  result: pass
+  detail: artifact has content
+failures: []

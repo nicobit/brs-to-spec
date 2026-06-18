@@ -1,0 +1,48 @@
+event_template_id: EVT-TPL-022
+type: CREATE_EVENT_CONTRACT
+persona: engineering-lead
+priority: medium
+description: "Conditional gate: define event catalog, schemas, producers, consumers, delivery guarantees, ordering, and schema evolution rules."
+
+skill_ref: ".brs2spec2/skills/engineering-lead/create-event-contract.md"
+persona_ref: ".brs2spec2/personas/engineering-lead.md"
+
+inputs:
+  required:
+    - "engineering-readiness/readiness-check.md"
+    - "input/brs.md"
+    - "input/brs/*.md"
+    - "architecture/architecture-review.md"
+    - "architecture/architecture-rules.md"
+  condition: "quality_gates_triggered contains EVENT_CONTRACT"
+
+outputs:
+  primary: "quality-gates/event-contract.md"
+
+must_include:
+  - "## Metadata table with Status: In progress as first table in file"
+  - "## Event Catalog lists at least one EVT-SCHEMA-NNN entry"
+  - "Every event has Producer, Consumers, Trigger, Delivery Guarantee"
+  - "## Schema Evolution Rules section is present"
+  - "Idempotency handling is documented"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) every new or modified event has an EVT-SCHEMA-NNN entry,
+    (2) delivery and ordering guarantees are specified,
+    (3) schema evolution rules are explicit,
+    (4) Status is In progress.
+  machine:
+    file_exists: "quality-gates/event-contract.md"
+  skip_if: "EVENT_CONTRACT not in quality_gates_triggered"
+
+on_success:
+  update_state:
+    artifact_status:
+      "quality-gates/event-contract.md": "draft"
+
+on_failure:
+  raise_decision:
+    question: "Event contract creation failed."
+    blocking: false
+    owner: "engineering-lead"

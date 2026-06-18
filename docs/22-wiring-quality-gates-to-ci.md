@@ -26,7 +26,7 @@ pass through a test runner exit code, not model interpretation.
 
 1. Generate test stubs from the accepted BDD scenarios file using:
    ```text
-   .brs2spec/8-copilot-implementation/03-generate-test-stubs-from-bdd.md
+   .brs2spec/skills/8-copilot-implementation/03-generate-test-stubs-from-bdd.md
    ```
 2. Place the stub files in the target test folder
 3. Add the test runner command to CI
@@ -180,4 +180,4 @@ it means the acceptance criterion exists on paper but is not enforced.
 
 - [Conditional Quality Gates](06-conditional-quality-gates.md)
 - [Artifact Durability](23-artifact-durability.md)
-- [Generate Test Stubs from BDD](.brs2spec/8-copilot-implementation/03-generate-test-stubs-from-bdd.md)
+- [Generate Test Stubs from BDD](.brs2spec/skills/8-copilot-implementation/03-generate-test-stubs-from-bdd.md)

@@ -1,0 +1,70 @@
+# Event Template — EVT-TPL-041: Gate — Architecture Review
+# Version: 1.0
+#
+# WAIT_HUMAN gate triggered after architecture-review.md is ai_validated.
+# Pauses dispatch-all. Human reviews architecture decisions before delivery structure begins.
+# This is Gate 2 of 3 in the standard flow.
+#
+# On approval: architecture-rules and delivery structure events are created.
+# On rejection: blocking decision raised — architect must revise the review.
+
+event_template_id: EVT-TPL-041
+type: WAIT_HUMAN
+persona: orchestrator
+priority: critical
+
+description: >
+  Gate 2: Human review of architecture review before delivery structure begins.
+  The flow pauses here. Review architecture/architecture-review.md for fit,
+  constraints, brownfield impact, and open decisions. Reply approved or rejected.
+
+# No skill_ref, persona_ref, or artifact_template_ref — WAIT_HUMAN does not enter persona mode.
+
+inputs:
+  required:
+    - "architecture/architecture-review.md"
+  optional:
+    - "business-intake/business-intake-summary.md"
+
+outputs:
+  primary: null
+
+gate_context:
+  gate_name: "Gate 2 — Architecture Review"
+  gate_prompt: >
+    The architecture review has been produced and AI-validated.
+    Before delivery structure and planning begin, please review
+    architecture/architecture-review.md for:
+      - Architecture fit assessment covers all major feature areas
+      - Constraints are realistic and correctly scoped
+      - Brownfield impact is correctly identified (or explicitly confirmed greenfield)
+      - Open decisions have owners and default assumptions
+      - No implementation-level decisions leaked into architectural constraints
+    Reply 'approved' to proceed to planning, or 'rejected: <reason>' to stop.
+  artifacts_under_review:
+    - "architecture/architecture-review.md"
+
+must_include: []
+validation_rules: {}
+blocked_by:
+  - "architecture/architecture-review.md"
+
+on_success:
+  create_events:
+    - template: "EVT-TPL-009"
+      reason: "Architecture review approved — create architecture rules"
+    - template: "EVT-TPL-010"
+      reason: "Architecture review approved — assess existing system impact if brownfield"
+      condition: "brownfield_impact_identified"
+  update_state:
+    current_stage: "3-planning"
+    artifact_status:
+      "architecture/architecture-review.md": "accepted"
+
+on_failure:
+  raise_decision:
+    question: >
+      Architecture review rejected by human. Review the rejection reason, correct
+      architecture/architecture-review.md, and re-run EVT-TPL-008 or override the gate manually.
+    owner: architect
+    blocking: true

@@ -1,0 +1,57 @@
+event_template_id: EVT-TPL-017
+type: CREATE_BDD_SCENARIOS
+persona: qa-analyst
+priority: high
+description: "Write executable BDD scenarios (SCN-NNN) per feature with full Gherkin blocks. Conditional gate — only when triggered by readiness check."
+
+skill_ref: ".brs2spec2/skills/qa-analyst/create-bdd-scenarios.md"
+persona_ref: ".brs2spec2/personas/qa-analyst.md"
+artifact_template_ref: ".brs2spec2/artifact-templates/bdd-scenarios.md"
+
+inputs:
+  required:
+    - "engineering-readiness/readiness-check.md"
+    - "planning/delivery-structure.md"
+    - "business-analysis/requirements.md"
+    - "business-analysis/use-cases/"
+    - "business-analysis/business-rules.md"
+  optional:
+    - "business-analysis/actors-and-personas.md"
+    - "input/brs.md"
+    - "input/brs/*.md"
+  condition: "quality_gates_triggered contains BDD_SCENARIOS"
+
+outputs:
+  primary: "quality-gates/bdd/"
+
+must_include:
+  - "One file per feature: quality-gates/bdd/F-NNN.md"
+  - "## Metadata table in each file with Status: In progress"
+  - "## Story-to-Scenario Mapping table in each file"
+  - "Every F-NNN.X story has at least one happy-path SCN-NNN with full Gherkin (Given/When/Then)"
+  - "Every F-NNN.X story has at least one failure/negative SCN-NNN with full Gherkin"
+  - "Every SCN-NNN metadata block has the specific AC-NNN it validates"
+  - "SCN-NNN IDs are globally sequential across all feature files"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) every F-NNN feature has a BDD file,
+    (2) every scenario has complete Gherkin blocks (not summary tables),
+    (3) When clauses have exactly one action per scenario,
+    (4) every SCN-NNN metadata references the specific AC-NNN it validates,
+    (5) high-risk stories have additional scenarios beyond the minimum,
+    (6) Status is In progress not Accepted.
+  machine:
+    file_exists: "quality-gates/bdd/"
+  skip_if: "BDD_SCENARIOS not in quality_gates_triggered"
+
+on_success:
+  update_state:
+    artifact_status:
+      "quality-gates/bdd/": "draft"
+
+on_failure:
+  raise_decision:
+    question: "BDD scenario creation failed. Verify delivery-structure.md has F-XXX.X story IDs and BRS has AC-NNN criteria."
+    blocking: false
+    owner: "qa-analyst"

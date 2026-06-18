@@ -1,0 +1,19 @@
+event_id: EVT-00001
+event_type: CREATE_ARTIFACT
+action: create_requirements
+persona: product-owner
+task:
+  title: Create Requirements Catalog
+  objective: Produce requirements from BRS
+read_from:
+  - "business-intake/business-intake-summary.md"
+  - "input/brs.md"
+required_inputs:
+  - "business-intake/business-intake-summary.md"
+  - "input/brs.md"
+write_to:
+  - "business-analysis/requirements.md"
+meta:
+  template_id: EVT-TPL-043
+  created_at: "2026-06-15T10:00:00Z"
+  created_by: orchestrator

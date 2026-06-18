@@ -1,0 +1,53 @@
+event_template_id: EVT-TPL-019
+type: CREATE_SECURITY_REVIEW
+persona: security-reviewer
+priority: high
+description: "Conditional gate: assess authentication, authorization, data handling, audit, and integration security. Triggered when any security condition applies."
+
+skill_ref: ".brs2spec2/skills/security-reviewer/create-security-review.md"
+persona_ref: ".brs2spec2/personas/security-reviewer.md"
+artifact_template_ref: ".brs2spec2/artifact-templates/security-review.md"
+
+inputs:
+  required:
+    - "engineering-readiness/readiness-check.md"
+    - "input/brs.md"
+    - "input/brs/*.md"
+    - "architecture/architecture-review.md"
+    - "architecture/architecture-rules.md"
+  optional:
+    - "business-analysis/actors-and-personas.md"
+    - "business-analysis/business-rules.md"
+  condition: "quality_gates_triggered contains SECURITY_REVIEW"
+
+outputs:
+  primary: "quality-gates/security-review.md"
+
+must_include:
+  - "## Metadata table with Status: In progress as first table in file"
+  - "## Security Findings table is present (may be empty if no findings)"
+  - "## Security Control Coverage table covers all 8 controls"
+  - "## Accepted Risks section is present"
+  - "## Decision field is present (Approved / Request Changes / Blocked)"
+  - "All 6 security domains assessed: Authorization, Authentication, Input Validation, Data Handling, Audit, Integration"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) all 6 security domains are explicitly assessed,
+    (2) every finding has evidence and risk,
+    (3) no generic advice without actionable recommendation,
+    (4) Status is In progress not Accepted.
+  machine:
+    file_exists: "quality-gates/security-review.md"
+  skip_if: "SECURITY_REVIEW not in quality_gates_triggered"
+
+on_success:
+  update_state:
+    artifact_status:
+      "quality-gates/security-review.md": "draft"
+
+on_failure:
+  raise_decision:
+    question: "Security review creation failed. Check input availability."
+    blocking: false
+    owner: "security-reviewer"

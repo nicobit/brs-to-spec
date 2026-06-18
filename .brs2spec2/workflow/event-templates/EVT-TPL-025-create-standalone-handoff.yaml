@@ -1,0 +1,71 @@
+event_template_id: EVT-TPL-025
+type: CREATE_STANDALONE_HANDOFF
+persona: engineering-lead
+priority: critical
+description: "Generate all 5 standalone delivery package files for Standalone execution mode. All triggered gates must be Accepted."
+
+skill_ref: ".brs2spec2/skills/engineering-lead/create-standalone-handoff.md"
+persona_ref: ".brs2spec2/personas/engineering-lead.md"
+
+inputs:
+  required:
+    - "engineering-readiness/readiness-check.md"
+    - "engineering-readiness/initiative-context.md"
+    - "planning/delivery-structure.md"
+    - "architecture/architecture-review.md"
+    - "architecture/architecture-rules.md"
+  optional:
+    - "business-analysis/requirements.md"
+    - "business-analysis/use-cases/"
+    - "business-analysis/use-cases.md"
+    - "quality-gates/*.md"
+    - "planning/traceability-matrix.md"
+    - "business-intake/business-intake-summary.md"
+  condition: "delivery_mode == Standalone AND readiness_check.decision == Ready AND all triggered gates Accepted"
+
+blocked_by:
+  - "engineering-readiness/readiness-check.md"
+  - "engineering-readiness/initiative-context.md"
+  - "planning/delivery-structure.md"
+  - "architecture/architecture-rules.md"
+
+outputs:
+  primary: "standalone-delivery/D1-{{deliverable-name}}/"
+
+must_include:
+  - "standalone-delivery/D1-*/delivery-spec.md exists"
+  - "standalone-delivery/D1-*/implementation-plan.md exists"
+  - "standalone-delivery/D1-*/tasks.md exists"
+  - "standalone-delivery/D1-*/validation-plan.md exists"
+  - "standalone-delivery/D1-*/review-checklist.md exists"
+  - "implementation-plan.md has one section per F-XXX.X story (not per epic)"
+  - "Every task in tasks.md has FR-NNN, F-XXX.X, AC-NNN, and Evidence expected — no blank fields"
+  - "validation-plan.md has one entry per AC-NNN"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) all 5 output files exist,
+    (2) implementation-plan.md sections are per F-XXX.X story not per epic,
+    (3) tasks.md has no blank required fields,
+    (4) every task is a concrete engineering action not a user story restatement,
+    (5) AR-NNN rule IDs cited in tasks and checklist.
+  machine:
+    file_exists: "standalone-delivery/"
+
+on_success:
+  create_events:
+    - template: "EVT-TPL-027"
+      reason: "Handoff complete — generate test stubs"
+      condition: "quality-gates/bdd/ exists"
+    - template: "EVT-TPL-028"
+      reason: "Handoff complete — create review package"
+  update_state:
+    current_stage: "5-handoff"
+    artifact_status:
+      "standalone-delivery/": "accepted"
+
+on_failure:
+  raise_decision:
+    question: "Standalone handoff generation failed. Check that all triggered gates are Accepted and delivery-structure.md has F-XXX.X story IDs."
+    blocking: true
+    owner: "engineering-lead"

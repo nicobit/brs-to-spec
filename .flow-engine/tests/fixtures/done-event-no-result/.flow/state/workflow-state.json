@@ -1,0 +1,17 @@
+{
+  "initiative_id": "TEST-done-no-result",
+  "current_stage": "2b-business-analysis",
+  "artifact_status": {
+    "routing/routing-decision.md": {
+      "status": "ai_validated",
+      "produced_by": "EVT-00001"
+    },
+    "business-analysis/requirements.md": {
+      "status": "ai_validated",
+      "produced_by": "EVT-00002"
+    }
+  },
+  "event_counter": 2,
+  "active_events": [],
+  "failed_events": []
+}

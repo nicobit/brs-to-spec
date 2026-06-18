@@ -252,3 +252,131 @@ def read_action_id_from_state_or_args(
     if state.get("next_action"):
         return state["next_action"]
     raise ValueError("No action ID was provided and workflow state has no active or next action.")
+
+
+def _load_execution_log(workspace_root: Path) -> list[dict[str, Any]]:
+    path = execution_log_path(workspace_root)
+    if not path.exists():
+        return []
+    entries: list[dict[str, Any]] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if stripped:
+            entries.append(json.loads(stripped))
+    return entries
+
+
+def _logged_commands_for_action(
+    log_entries: list[dict[str, Any]],
+    action_id: str,
+) -> set[str]:
+    return {
+        entry["command"]
+        for entry in log_entries
+        if entry.get("action_id") == action_id
+        and entry.get("overall") == "pass"
+    }
+
+
+_STATE_SETTING_COMMANDS = {
+    "update-state",
+    "approve-current-gate",
+    "repair-state",
+    "run-action",
+    "retry-action",
+    "rerun-last-action",
+}
+
+
+def check_state_integrity(
+    workspace_root: Path,
+    state: dict[str, Any],
+) -> list[dict[str, str]]:
+    """Detect action statuses that have no execution-log evidence or missing artifacts.
+
+    Returns a list of issues found. Each issue is a dict with keys:
+      action_id, status, issue, detail
+    """
+    log_entries = _load_execution_log(workspace_root)
+    _, actions_by_id = load_stage_actions(workspace_root)
+    action_status = state.get("action_status", {})
+    issues: list[dict[str, str]] = []
+
+    for action_id, status in list(action_status.items()):
+        if status not in ACTION_STATUSES_COMPLETE:
+            continue
+        if action_id not in actions_by_id:
+            continue
+
+        logged = _logged_commands_for_action(log_entries, action_id)
+        has_engine_evidence = bool(logged & _STATE_SETTING_COMMANDS)
+
+        action = actions_by_id[action_id]
+        outputs = action_output_paths(action)
+        missing_artifacts = [
+            ap for ap in outputs
+            if not artifact_exists(workspace_root, ap)
+        ]
+
+        if not has_engine_evidence and missing_artifacts:
+            issues.append({
+                "action_id": action_id,
+                "status": status,
+                "issue": "ghost",
+                "detail": (
+                    f"action '{action_id}' is '{status}' but has no engine log entry "
+                    f"and artifact(s) missing: {missing_artifacts}"
+                ),
+            })
+        elif not has_engine_evidence:
+            issues.append({
+                "action_id": action_id,
+                "status": status,
+                "issue": "unlogged",
+                "detail": (
+                    f"action '{action_id}' is '{status}' but has no engine log entry "
+                    f"(artifacts exist on disk — status may have been set outside the engine)"
+                ),
+            })
+        elif missing_artifacts:
+            issues.append({
+                "action_id": action_id,
+                "status": status,
+                "issue": "missing_artifact",
+                "detail": (
+                    f"action '{action_id}' is '{status}' with engine log, "
+                    f"but artifact(s) missing: {missing_artifacts}"
+                ),
+            })
+
+    return issues
+
+
+def repair_ghost_actions(
+    workspace_root: Path,
+    state: dict[str, Any],
+    issues: list[dict[str, str]],
+) -> list[str]:
+    """Remove state entries for ghost/missing-artifact actions. Returns repaired action IDs."""
+    repaired: list[str] = []
+    _, actions_by_id = load_stage_actions(workspace_root)
+
+    for issue in issues:
+        if issue["issue"] not in ("ghost", "missing_artifact"):
+            continue
+        action_id = issue["action_id"]
+        state.get("action_status", {}).pop(action_id, None)
+
+        action = actions_by_id.get(action_id, {})
+        for ap in action_output_paths(action):
+            state.get("artifact_status", {}).pop(ap, None)
+
+        human_gate = action.get("human_gate") or {}
+        gate_id = human_gate.get("gate_id")
+        if gate_id:
+            gate_action_id = f"gate-{gate_id}"
+            state.get("action_status", {}).pop(gate_action_id, None)
+
+        repaired.append(action_id)
+
+    return repaired

@@ -1,0 +1,44 @@
+event_template_id: EVT-TPL-035
+type: MAP_CAPABILITIES_TO_MODULES
+persona: delivery-lead
+priority: medium
+description: "Map each F-XXX.X story to its primary MOD-NNN module and identify cross-module dependencies. Enterprise/Enterprise+Modular only."
+
+skill_ref: ".brs2spec2/skills/delivery-lead/map-capabilities-to-modules.md"
+persona_ref: ".brs2spec2/personas/delivery-lead.md"
+
+inputs:
+  required:
+    - "planning/delivery-structure.md"
+    - "planning/software-modules.md"
+    - "architecture/architecture-review.md"
+  condition: "execution_mode in [Enterprise, Enterprise+Modular]"
+
+outputs:
+  primary: "planning/capability-module-map.md"
+
+must_include:
+  - "## Metadata table with Status: Draft"
+  - "## Story-to-Module Mapping table covers all F-XXX.X stories"
+  - "Every story has a Primary Module (MOD-NNN) assigned"
+  - "## Cross-Module Dependency table with risk assessments"
+  - "Summary counts for total and high-risk dependencies"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) every F-XXX.X story has a primary module assignment,
+    (2) cross-module dependencies have risk levels and mitigation notes.
+  machine:
+    file_exists: "planning/capability-module-map.md"
+  skip_if: "execution_mode == FastPath or execution_mode == Standard"
+
+on_success:
+  update_state:
+    artifact_status:
+      "planning/capability-module-map.md": "draft"
+
+on_failure:
+  raise_decision:
+    question: "Capability-module mapping failed. software-modules.md must exist."
+    blocking: false
+    owner: "delivery-lead"

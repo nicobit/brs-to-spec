@@ -1,0 +1,10 @@
+{
+  "overall": "pass",
+  "selected_action": "create-use-case-specs",
+  "selected_stage": "2b-business-analysis",
+  "reason": "all prerequisites satisfied and required inputs are present",
+  "blocking_reason": null,
+  "ready_actions": [
+    "create-use-case-specs"
+  ]
+}

@@ -1,0 +1,17 @@
+event_id: EVT-00002
+event_type: CREATE_ARTIFACT
+action: create_requirements
+persona: business-analyst
+stage: "2b-business-analysis"
+write_to:
+  - "business-analysis/requirements.md"
+meta:
+  template_id: EVT-TPL-003
+  created_at: "2026-06-15T10:02:00Z"
+  created_by: orchestrator
+result:
+  status: pass
+  artifacts_written:
+    - "business-analysis/requirements.md"
+  completed_at: "2026-06-15T10:03:00Z"
+  notes: "Requirements produced."

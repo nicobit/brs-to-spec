@@ -1,0 +1,27 @@
+@startuml
+left to right direction
+actor Applicant
+actor Underwriter
+actor Compliance
+rectangle "Loan Origination System" {
+  (UC-001: Submit Application) as submit
+  (UC-002: AI Pre-screening & Scoring) as ai
+  (UC-003: AML/KYC Screening) as aml
+  (UC-004: Underwriter Review) as review
+  (UC-005: Generate Offer) as offer
+  (UC-006: Disburse Funds) as disburse
+  (UC-007: Status Lookup) as lookup
+  (UC-008: E-sign Offer) as esign
+}
+Applicant --> submit
+submit --> ai
+ai --> aml
+aml --> review : if REFER_TO_UNDERWRITER
+ai --> offer : if AUTO_APPROVE
+review --> offer : if approved
+offer --> esign
+esign --> disburse
+lookup --> Applicant
+Underwriter --> review
+Compliance --> aml
+@enduml

@@ -1,0 +1,49 @@
+event_template_id: EVT-TPL-037
+type: SENIOR_CODE_REVIEW
+persona: reviewer
+priority: high
+description: "Post-implementation senior code review: review one task against approved initiative artifacts across 11 review areas."
+
+skill_ref: ".brs2spec2/skills/reviewer/senior-code-review.md"
+persona_ref: ".brs2spec2/personas/reviewer.md"
+
+inputs:
+  required:
+    - "engineering-readiness/initiative-context.md"
+    - "changed files and changed tests (from implementation)"
+    - "review target task ID"
+  optional:
+    - "specs/D1-*/design.md"
+    - "quality-gates/bdd/"
+    - "architecture/architecture-rules.md"
+
+outputs:
+  primary: "reviews/implementation/senior-code-review-{task-id}.md"
+
+must_include:
+  - "## Review Metadata table with Finding set ID, Task ID, Blocking status"
+  - "## Findings table (may be empty if no findings)"
+  - "## Coverage Summary section"
+  - "## Missing Tests section"
+  - "## Decision is explicit (approve / request changes)"
+  - "Every blocking finding includes evidence and risk"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) findings are scoped to the implemented task,
+    (2) blocking findings have evidence and risk,
+    (3) missing tests are explicitly listed,
+    (4) decision is clear.
+  machine:
+    file_exists: "reviews/implementation/"
+
+on_success:
+  update_state:
+    artifact_status:
+      "reviews/implementation/senior-code-review-{task-id}.md": "accepted"
+
+on_failure:
+  raise_decision:
+    question: "Code review could not be completed. Target task or changed files unclear."
+    blocking: false
+    owner: "reviewer"

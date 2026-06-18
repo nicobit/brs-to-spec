@@ -41,7 +41,7 @@ Business Copilot (intake and review)
 
 ## Prompts
 
-Three prompts are available in `.brs2spec/6-business-copilot/`, designed as a sequence:
+Three prompts are available in `.brs2spec/skills/6-business-copilot/`, designed as a sequence:
 
 | Prompt | Purpose | Required |
 |---|---|---|

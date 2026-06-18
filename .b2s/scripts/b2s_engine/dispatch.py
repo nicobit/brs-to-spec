@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import re
 from typing import Any
 
 from b2s_engine import inputs as inputs_module
@@ -26,16 +27,53 @@ from b2s_engine import next_step, workspace
 # --------------------------------------------------------------------------- #
 
 
-def _resolve_skill_prompt(action: dict[str, Any], workspace_root: Path) -> dict[str, Any]:
-    """Return skill prompt path and content snippet."""
+SUPPORTED_PROMPT_PLACEHOLDERS = {
+    "required_inputs",
+    "optional_inputs",
+    "resolved_required_inputs",
+    "resolved_optional_inputs",
+    "primary_output",
+    "secondary_outputs",
+}
+
+
+def _render_placeholder_value(value: Any) -> str:
+    if isinstance(value, list):
+        if not value:
+            return "[]"
+        return "\n".join(f"- {item}" for item in value)
+    return str(value)
+
+
+def _render_prompt_text(text: str, placeholders: dict[str, Any]) -> str:
+    pattern = re.compile(r"\{(" + "|".join(re.escape(name) for name in sorted(SUPPORTED_PROMPT_PLACEHOLDERS)) + r")\}")
+
+    def repl(match: re.Match[str]) -> str:
+        key = match.group(1)
+        if key not in placeholders:
+            raise ValueError(f"Missing prompt placeholder: {key}")
+        return _render_placeholder_value(placeholders[key])
+
+    return pattern.sub(repl, text)
+
+
+def _resolve_skill_prompt(action: dict[str, Any], workspace_root: Path, prompt_placeholders: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Return skill prompt path and rendered content when available."""
     skill_ref = action.get("skill_ref", "")
     # skill_ref is repo-root-relative (e.g. ".b2s/skills/..."), FRAMEWORK_ROOT is .b2s/
     repo_root = workspace.REPO_ROOT
     skill_path = (repo_root / skill_ref).resolve() if skill_ref else None
+    prompt_text = None
+    rendered_prompt = None
+    if skill_path and skill_path.exists():
+        prompt_text = skill_path.read_text(encoding="utf-8")
+        rendered_prompt = _render_prompt_text(prompt_text, prompt_placeholders or {})
     return {
         "skill_ref": skill_ref,
         "skill_path": str(skill_path) if skill_path else None,
         "skill_exists": skill_path.exists() if skill_path else False,
+        "skill_text": prompt_text,
+        "rendered_skill_text": rendered_prompt,
     }
 
 
@@ -56,17 +94,27 @@ def _collect_inputs(action: dict[str, Any], workspace_root: Path) -> dict[str, A
         exists, matches = workspace.resolve_input_pattern(workspace_root, pattern)
         optional_inputs.append({"path": pattern, "exists": exists, "matches": matches})
 
+    prompt_placeholders = {
+        "required_inputs": [entry["path"] for entry in required_inputs],
+        "optional_inputs": [entry["path"] for entry in optional_inputs],
+        "resolved_required_inputs": inputs_module._flatten_resolved_paths(required_inputs),
+        "resolved_optional_inputs": inputs_module._flatten_resolved_paths(optional_inputs),
+        "primary_output": action.get("outputs", {}).get("primary"),
+        "secondary_outputs": list(action.get("outputs", {}).get("secondary", [])),
+    }
+
     return {
         "required_inputs": required_inputs,
         "optional_inputs": optional_inputs,
         "missing_required_inputs": missing_required,
         "inputs_ready": not missing_required,
+        "prompt_placeholders": prompt_placeholders,
     }
 
 
 def _action_summary(action: dict[str, Any], workspace_root: Path) -> dict[str, Any]:
-    skill = _resolve_skill_prompt(action, workspace_root)
     collected = _collect_inputs(action, workspace_root)
+    skill = _resolve_skill_prompt(action, workspace_root, collected["prompt_placeholders"])
     output_paths = workspace.action_output_paths(action)
     return {
         "action_id": action["action_id"],
@@ -82,6 +130,8 @@ def _action_summary(action: dict[str, Any], workspace_root: Path) -> dict[str, A
         "optional_inputs": collected["optional_inputs"],
         "missing_required_inputs": collected["missing_required_inputs"],
         "inputs_ready": collected["inputs_ready"],
+        "prompt_placeholders": collected["prompt_placeholders"],
+        "rendered_skill_text": skill["rendered_skill_text"],
         "has_human_gate": bool((action.get("human_gate") or {}).get("required")),
         "gate_owner": (action.get("human_gate") or {}).get("owner"),
     }

@@ -1,0 +1,53 @@
+event_template_id: EVT-TPL-021
+type: CREATE_DATA_CONTRACT
+persona: security-reviewer
+priority: high
+description: "Conditional gate: define data asset catalog, schemas, PII mapping, retention, encryption, access control, and migration plan."
+
+skill_ref: ".brs2spec2/skills/security-reviewer/create-data-contract.md"
+persona_ref: ".brs2spec2/personas/security-reviewer.md"
+artifact_template_ref: ".brs2spec2/artifact-templates/data-contract.md"
+
+inputs:
+  required:
+    - "engineering-readiness/readiness-check.md"
+    - "business-analysis/entity-model.md"
+    - "architecture/architecture-review.md"
+  optional:
+    - "business-analysis/requirements.md"
+    - "business-analysis/business-rules.md"
+    - "input/brs.md"
+    - "input/brs/*.md"
+  condition: "quality_gates_triggered contains DATA_CONTRACT"
+
+outputs:
+  primary: "quality-gates/data-contract.md"
+
+must_include:
+  - "## Metadata table with Status: In progress as first table in file"
+  - "## Data Asset Catalog table lists at least one DA-NNN entry"
+  - "Every DA-NNN has Owner, Classification, PII Fields, Encryption, Retention"
+  - "## PII Mapping section is present"
+  - "## Migration Plan section is present (or explicit 'no schema changes' statement)"
+  - "## Decision field is present"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) every new or modified schema has a DA-NNN entry,
+    (2) PII fields are classified with encryption and retention specified,
+    (3) migration approach is documented for schema changes,
+    (4) Status is In progress.
+  machine:
+    file_exists: "quality-gates/data-contract.md"
+  skip_if: "DATA_CONTRACT not in quality_gates_triggered"
+
+on_success:
+  update_state:
+    artifact_status:
+      "quality-gates/data-contract.md": "draft"
+
+on_failure:
+  raise_decision:
+    question: "Data contract creation failed."
+    blocking: false
+    owner: "security-reviewer"

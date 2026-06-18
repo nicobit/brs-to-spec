@@ -1,0 +1,16 @@
+{
+  "overall": "pass",
+  "action_id": null,
+  "previous_state_summary": {
+    "current_stage": "0-routing",
+    "next_action": "route-initiative"
+  },
+  "applied_changes": {
+    "state_validated": true,
+    "current_stage": "0-routing",
+    "repaired_action_count": 0,
+    "repaired_artifact_count": 0
+  },
+  "next_action": "route-initiative",
+  "gate_state": null
+}

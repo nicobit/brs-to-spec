@@ -26,6 +26,10 @@
 
 ## Gate Trigger Decisions
 
+`Triggered` answers: **does this initiative need this quality gate?** Evaluate the initiative's
+characteristics (auth, PII, APIs, async flows, etc.) against the trigger rules in the skill prompt.
+Do NOT base `Triggered` on whether the artifact has been created yet — that is a downstream concern.
+
 | Gate | Triggered | Trigger Evidence / Justification for No | Required |
 |---|---|---|---|
 | BDD Scenarios | Yes / No | | Yes / No |
@@ -37,7 +41,9 @@
 | Observability Plan | Yes / No | | Yes / No |
 | API contract mode | {{product / internal / coordinated}} | product = expose to external consumers, freeze early; internal = derive from stories; coordinated = draft early, refine after stories | Required |
 
-**Rule:** Every "No" must have explicit written justification. A blank justification is a framework violation.
+**Rule:** Every "No" must have explicit written justification that explains why the initiative
+does not need this gate — not that the artifact has not been created yet. A blank or
+artifact-existence justification is a framework violation.
 
 ## Readiness Decision
 

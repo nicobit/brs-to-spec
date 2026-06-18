@@ -1,0 +1,54 @@
+event_template_id: EVT-TPL-033
+type: CREATE_BRS
+persona: product-owner
+priority: critical
+description: "Draft a BRS from scratch (greenfield intake) or normalize an existing informal document into the standard BRS format."
+
+skill_ref: ".brs2spec2/skills/product-owner/create-brs.md"
+persona_ref: ".brs2spec2/personas/product-owner.md"
+
+inputs:
+  required: []
+  optional:
+    - "Conversation context or user-provided notes"
+  condition: "input/brs.md does not exist OR user requests BRS creation"
+
+outputs:
+  primary: "input/brs.md"
+
+must_include:
+  - "Document header with Status: Draft"
+  - "## Executive Summary section"
+  - "## Objectives section with at least 3 objectives"
+  - "## Scope section with In Scope and Out of Scope"
+  - "## Actors section"
+  - "## Functional Requirements section with FR-NNN / AC-NNN numbering"
+  - "At least 3 FR-NNN entries each with at least one AC-NNN"
+  - "Every AC-NNN is testable and verifiable (not 'the feature works')"
+  - "## Non-Functional Requirements with measurable thresholds"
+  - "## Constraints section"
+  - "## Glossary section"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) every FR-NNN has at least one AC-NNN with a verifiable condition,
+    (2) scope explicitly lists out-of-scope items,
+    (3) NFRs have measurable thresholds not vague terms,
+    (4) no implementation details in FR descriptions,
+    (5) no content fabricated beyond what the user described.
+  machine:
+    file_exists: "input/brs.md"
+
+on_success:
+  create_events:
+    - template: "EVT-TPL-001"
+      reason: "BRS created — route initiative"
+  update_state:
+    artifact_status:
+      "input/brs.md": "draft"
+
+on_failure:
+  raise_decision:
+    question: "BRS creation failed. Insufficient source material — ask user to describe the initiative objective and primary user problems."
+    blocking: true
+    owner: "product-owner"

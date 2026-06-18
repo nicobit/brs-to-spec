@@ -1,0 +1,58 @@
+event_template_id: EVT-TPL-008
+type: REVIEW_INITIAL_ARCHITECTURE
+persona: architect
+priority: critical
+description: "Perform initiative-specific architecture review: fit assessment, constraints, brownfield impact, open decisions, and active assumptions."
+
+skill_ref: ".brs2spec2/skills/architect/review-initial-architecture.md"
+persona_ref: ".brs2spec2/personas/architect.md"
+artifact_template_ref: ".brs2spec2/artifact-templates/architecture-review.md"
+
+inputs:
+  required:
+    - "input/brs.md"
+    - "input/brs/*.md"
+    - "input/architecture.md or input/architecture/*.md"
+    - "business-intake/business-intake-summary.md"
+    - "business-analysis/requirements.md"
+    - "business-analysis/gaps-and-questions.md"
+    - "routing/routing-decision.md"
+  optional:
+    - "business-analysis/entity-model.md"
+    - "business-analysis/use-cases.puml"
+    - "business-analysis/business-rules.md"
+
+outputs:
+  primary: "architecture/architecture-review.md"
+
+must_include:
+  - "## Metadata table is present with Status: Draft"
+  - "## Initiative-Architecture Fit table covers major feature areas"
+  - "## Architecture Constraints section lists at least one constraint with rationale"
+  - "## Brownfield Impact section is present (or explicit 'Greenfield — no impact' statement)"
+  - "## Open Decisions table is present"
+  - "## Active Assumptions table is present"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) every major BRS feature area has been assessed for architecture fit,
+    (2) every constraint has rationale and violation consequence,
+    (3) brownfield impact is explicitly assessed (not silently skipped),
+    (4) open decisions have owners and default assumptions,
+    (5) no implementation-level decisions leaked into architectural constraints.
+  machine:
+    file_exists: "architecture/architecture-review.md"
+
+on_success:
+  create_events:
+    - template: "EVT-TPL-041"
+      reason: "Architecture review AI-validated — trigger human review gate before planning begins"
+  update_state:
+    artifact_status:
+      "architecture/architecture-review.md": "ai_validated"
+
+on_failure:
+  raise_decision:
+    question: "Architecture review could not be completed. Check input/architecture.md availability and BRS completeness."
+    blocking: true
+    owner: "architect"

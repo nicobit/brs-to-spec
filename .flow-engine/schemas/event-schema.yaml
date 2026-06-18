@@ -1,0 +1,502 @@
+# Flow Engine — Event Schema
+# Version: 1.0
+#
+# Every file placed in .flow/events/pending/ must conform to this schema.
+# The dispatcher reads this schema to validate events before execution.
+# Fields marked REQUIRED must be present. Fields marked OPTIONAL may be omitted.
+
+# ---------------------------------------------------------------------------
+# PATH CONVENTIONS
+# ---------------------------------------------------------------------------
+#
+# All paths in event files are RELATIVE TO THE INITIATIVE WORKSPACE ROOT
+# (e.g. initiatives/I001-my-initiative/).
+#
+# Canonical state paths (engine runtime state):
+#   .flow/state/workflow-state.json     — orchestrator-owned runtime state
+#   .flow/state/event-log.jsonl         — append-only event history
+#   .flow/state/open-decisions.md       — blocking and non-blocking decisions
+#
+# NEVER use bare state/* paths in event files. Always use .flow/state/*.
+# The .flow/state/ prefix is the canonical, machine-readable form.
+# bare state/ references (without .flow/ prefix) are not valid in event YAML.
+#
+# ---------------------------------------------------------------------------
+# IDENTITY
+# ---------------------------------------------------------------------------
+
+event_id: REQUIRED
+# Format: EVT-NNNNN (zero-padded, globally unique within the initiative)
+# Example: EVT-00023
+# Assigned by the orchestrator during template instantiation (see template-instantiation-rules.md).
+# Human-created events must also follow this format.
+
+event_type: REQUIRED
+# Generic engine type. Controls which dispatcher routing path is used.
+# The dispatcher routes on this field — it must be one of the generic types below.
+# Populated during instantiation from the template's domain-specific `type` field.
+#
+# Allowed values:
+#   CREATE_ARTIFACT      — persona produces a new artifact
+#   UPDATE_ARTIFACT      — persona updates an existing artifact
+#   VALIDATE_ARTIFACT    — persona reviews and accepts/rejects an artifact (no new file)
+#   REVIEW_ARTIFACT      — persona produces a review finding document
+#   RAISE_DECISION       — surfaces a blocking open decision
+#   RESOLVE_DECISION     — records resolution of an open decision
+#   GENERATE_HANDOFF     — produces the full handoff package
+#   ENRICH_ARTIFACT      — adds detail to an existing artifact without overwriting
+#   REPAIR_ARTIFACT      — corrects a malformed or incomplete artifact
+#   ROUTE_INITIATIVE     — orchestrator selects delivery mode and execution mode
+#   RETRY_FAILED_TASK    — re-runs a previously failed event with corrected inputs
+#   WAIT_HUMAN           — pauses dispatch-all and waits for human review/approval
+#                          When the dispatcher encounters a WAIT_HUMAN event:
+#                          - dispatch-next: executes the gate check and reports status, then stops
+#                          - dispatch-all: stops immediately and reports the gate prompt to the user
+#                          The human resumes by running dispatch-next or dispatch-all after reviewing
+#                          The gate_context field in the event lists artifacts under review
+#                          On human approval: downstream events are created via on_success.create_events
+#                          On human rejection: raise_decision is triggered via on_failure
+
+action: REQUIRED
+# Domain-specific action name. Set during template instantiation from the template `type` field.
+# Lowercase snake_case. Informational for Claude — execution is driven by skill_ref.
+# Example: create_business_rules
+# Full action→event_type mapping in template-instantiation-rules.md section 3.
+
+persona: REQUIRED
+# The persona responsible for executing this event.
+# Must match a file in .flow-engine/personas/<persona>.md
+# Allowed values:
+#   orchestrator
+#   product-owner
+#   architect
+#   delivery-lead
+#   qa-analyst
+#   security-reviewer
+#   engineering-lead
+#   reviewer
+# Example: product-owner
+
+stage: OPTIONAL
+# The workflow stage this event belongs to. Informational — used in logs and state.
+# Format: free string, e.g. "2b", "4-quality-gates", "5-handoff"
+
+priority: OPTIONAL
+# Execution priority when multiple events are pending and unblocked.
+# Values: critical | high | normal | low
+# Default if omitted: normal
+
+# ---------------------------------------------------------------------------
+# REFERENCES — what to load before executing
+# ---------------------------------------------------------------------------
+
+skill_ref: REQUIRED for executable event types
+# Path to the skill prompt file that defines HOW to perform this specific task.
+# Relative to the repository root.
+# The dispatcher reads this file and provides it to the persona before execution.
+# Example: .brs2spec2/skills/product-owner/create-business-rules.md
+#
+# Required for: CREATE_ARTIFACT, UPDATE_ARTIFACT, VALIDATE_ARTIFACT, REVIEW_ARTIFACT,
+#               GENERATE_HANDOFF, ENRICH_ARTIFACT, REPAIR_ARTIFACT
+# Optional for: ROUTE_INITIATIVE, RAISE_DECISION, RESOLVE_DECISION, RETRY_FAILED_TASK
+
+persona_ref: OPTIONAL
+# Path to the persona definition file for this event.
+# If omitted, defaults to .brs2spec2/personas/<persona>.md (derived from persona field).
+# Example: .brs2spec2/personas/product-owner.md
+
+artifact_template_ref: OPTIONAL
+# Path to the artifact template file defining expected output structure.
+# The persona uses this as the shape contract for the write_to artifact.
+# Example: .brs2spec2/artifact-templates/business-rules.md
+
+# ---------------------------------------------------------------------------
+# TASK DEFINITION
+# ---------------------------------------------------------------------------
+
+task:
+  title: REQUIRED
+  # Short imperative label. Used in logs, state file, and UI.
+  # Example: "Create business intake summary"
+
+  objective: REQUIRED
+  # One paragraph explaining WHAT must be produced and WHY it matters.
+  # This is the first thing the persona reads — make it self-contained.
+  # Example: "Extract and structure the business objectives, scope, requirements,
+  #   gaps, and assumptions from the BRS into a PO-reviewable intake artifact."
+
+  persona_role: OPTIONAL
+  # Override the persona's default role description for this specific task.
+  # Use only when the persona must adopt a narrower or different framing.
+  # If omitted, the persona's own role definition in personas/<persona>.md applies.
+
+  delivery_mode: OPTIONAL
+  # Restricts execution to a specific delivery mode context.
+  # Values: OpenSpec | Standalone | FastPath | BusinessCopilot | any
+  # Default if omitted: any
+
+# ---------------------------------------------------------------------------
+# INPUT CONTRACT
+# ---------------------------------------------------------------------------
+
+read_from: REQUIRED
+# Ordered list of ALL file paths the persona should read before producing output.
+# Paths are relative to the initiative workspace root (e.g. initiatives/<id>-<slug>/).
+# Do not use comments to mark optional entries — use required_inputs / optional_inputs instead.
+# The dispatcher reads required_inputs and optional_inputs to determine which to enforce.
+#
+# Example:
+#   read_from:
+#     - input/brs.md
+#     - business-intake/business-intake-summary.md
+#     - .flow/state/open-decisions.md
+#
+# Glob patterns are supported:
+#     - input/brs/*.md
+
+required_inputs: OPTIONAL
+# Subset of read_from that are hard prerequisites.
+# If any of these do not exist on disk, the event fails before persona mode starts.
+# If omitted, all read_from entries are treated as required.
+#
+# Example:
+#   required_inputs:
+#     - input/brs.md
+#     - business-intake/business-intake-summary.md
+
+optional_inputs: OPTIONAL
+# Subset of read_from that are loaded if present and silently skipped if absent.
+# The dispatcher notes skipped optional inputs in the result file.
+# Use this instead of # OPTIONAL comments in read_from — comments are not machine-readable.
+#
+# Example:
+#   optional_inputs:
+#     - .flow/state/open-decisions.md
+#     - architecture/architecture-rules.md
+
+# ---------------------------------------------------------------------------
+# OUTPUT CONTRACT
+# ---------------------------------------------------------------------------
+
+write_to: REQUIRED
+# Ordered list of artifact paths this event is expected to produce or update.
+# Paths are relative to the initiative workspace root.
+# These are the artifacts the dispatcher validates after execution.
+#
+# Example:
+#   - business-intake/business-intake-summary.md
+#
+# For events that produce multiple files (e.g. OpenSpec handoff):
+#   - specs/dependency-graph.md
+#   - specs/F-001.1-<slug>/story.md
+#   - specs/F-001.1-<slug>/design.md
+#   - specs/F-001.1-<slug>/tasks.md
+#   - specs/F-001.1-<slug>/coding-prompt.md
+
+owner: OPTIONAL
+# The persona that owns the write_to artifact(s) after this event completes.
+# Used to resolve conflicts if another event tries to update the same artifact.
+# Default: same as persona field above.
+
+gate_context: OPTIONAL
+# Used only for WAIT_HUMAN events. Describes the human review context.
+#
+# gate_name: short label for the gate, e.g. "Business Intake Review"
+# gate_prompt: what the human should review and decide
+# artifacts_under_review: list of artifact paths the human should read before approving
+# approve_to_continue: list of on_success.create_events that fire on approval
+#                      (same as on_success.create_events — duplicate for human clarity)
+# reject_action: what happens if the human rejects — raise_decision or specific instructions
+# governance_mode_override: OPTIONAL — if set, this gate only applies for the named mode
+#
+# Example:
+#   gate_context:
+#     gate_name: "Business Intake Review"
+#     gate_prompt: >
+#       Review business-intake-summary.md for scope accuracy, completeness, and
+#       alignment with your stakeholders before business analysis begins.
+#       Reply 'approved' to continue or 'rejected: <reason>' to stop and raise a decision.
+#     artifacts_under_review:
+#       - business-intake/business-intake-summary.md
+#     governance_mode_override: null  # applies to all governance modes
+
+# ---------------------------------------------------------------------------
+# MUST INCLUDE (output quality contract)
+# ---------------------------------------------------------------------------
+
+must_include: OPTIONAL
+# List of structural or content requirements for the output artifact.
+# The dispatcher checks these after execution to decide done vs failed.
+# Each entry is a plain-English assertion — not code.
+#
+# Example:
+#   - every requirement has a unique FR-NNN identifier
+#   - every gap has an owner
+#   - Status row is present in the Metadata table
+#   - no placeholder text (TBD / TODO / [fill in]) remains
+
+# ---------------------------------------------------------------------------
+# VALIDATION RULES
+# ---------------------------------------------------------------------------
+
+validation_rules: OPTIONAL
+# Two-layer validation. Both layers may be present. Claude evaluates natural_language;
+# a future deterministic dispatcher evaluates machine validators.
+#
+# natural_language: OPTIONAL
+#   Plain-English assertions evaluated by Claude after execution.
+#   Example:
+#     natural_language:
+#       - no BR-NNN row has an empty Description
+#       - every BR-NNN maps to at least one FR-NNN
+#       - Status in Metadata must be Draft, Accepted, or Rejected
+#       - no placeholder text (TBD / TODO / [fill in]) in output
+#
+# machine: OPTIONAL
+#   Named validators with optional args. Not executed in v2.0 (chat-operated).
+#   Designed for a future deterministic dispatcher (v2.1).
+#   Example:
+#     machine:
+#       - validator: no_placeholders
+#       - validator: id_pattern
+#         args:
+#           pattern: "BR-[0-9]{3}"
+#       - validator: traceability_links
+#         args:
+#           from: "BR-[0-9]{3}"
+#           to: "FR-[0-9]{3}"
+#       - validator: markdown_table_required
+#       - validator: status_field_required
+#         args:
+#           allowed: [Draft, Accepted, Rejected]
+
+# ---------------------------------------------------------------------------
+# DEPENDENCY CONTRACT
+# ---------------------------------------------------------------------------
+
+blocked_by: OPTIONAL
+# List of artifact paths that must exist and pass quality bar before this event can run.
+# The dispatcher checks these before moving the event from pending → processing.
+# If any are missing or fail quality, the event stays in pending with a BLOCKED status.
+#
+# Example:
+#   - business-intake/business-intake-summary.md
+#   - routing/routing-decision.md
+
+blocked_by_events: OPTIONAL
+# List of event identifiers that must be satisfied before this event can start.
+# Two forms are allowed:
+#   - Runtime EVT-ID: EVT-NNNNN
+#   - Template ID reference: EVT-TPL-NNN
+#
+# Runtime EVT-ID form is satisfied when a matching event file exists in done/.
+# Template ID form is satisfied when any event file in done/ has meta.template_id equal to
+# that template reference. This allows stage definitions to depend on the completion of
+# "the event instantiated from template X" without knowing its runtime EVT-NNNNN in advance.
+# Use when the dependency is on another event's completion, not just an artifact.
+#
+# Example:
+#   - EVT-00020
+#   - EVT-00021
+
+# ---------------------------------------------------------------------------
+# CHAINING CONTRACT
+# ---------------------------------------------------------------------------
+
+on_success: OPTIONAL
+# Actions to take when this event completes and validation passes.
+# The dispatcher executes these after moving the event to done/.
+
+  # create_events: OPTIONAL
+  # List of event template IDs to instantiate in pending/ after success.
+  # Templates are defined in .brs2spec2/workflow/event-templates/
+  #
+  # Example:
+  #   create_events:
+  #     - EVT-TPL-003-create-delivery-structure
+  #     - EVT-TPL-010-review-initial-architecture
+
+  # update_state: OPTIONAL
+  # Key-value pairs to write into .flow/state/workflow-state.json on success.
+  #
+  # Example:
+  #   update_state:
+  #     current_stage: "3-planning"
+  #     last_completed: "2-business-intake"
+
+  # append_log: OPTIONAL
+  # Whether to append a completion entry to .flow/state/event-log.jsonl.
+  # Values: true | false
+  # Default: true
+
+on_failure: OPTIONAL
+# Actions to take when this event completes but validation fails.
+#
+  # create_events: OPTIONAL
+  # Events to create in pending/ when this event fails validation.
+  # Use for retry or escalation events.
+
+  # raise_decision: OPTIONAL
+  # If set, the dispatcher records a blocking open decision in .flow/state/open-decisions.md.
+  #
+  # Example:
+  #   raise_decision:
+  #     id: DEC-AUTO-001
+  #     question: "Business intake validation failed — PO must review and resolve gaps before continuing."
+  #     owner: product-owner
+  #     blocking: true
+
+# ---------------------------------------------------------------------------
+# COMPLETION SIGNAL
+# ---------------------------------------------------------------------------
+
+completion_signal: OPTIONAL
+# How the persona signals that the task is done.
+# If omitted, the dispatcher infers completion from write_to artifact existence + must_include.
+#
+# write_status_to: OPTIONAL
+# Path to a result file the persona writes when done.
+# The dispatcher reads this file to get pass/fail status and notes.
+#
+# Example:
+#   write_status_to: .flow/personas/product-owner/outbox/EVT-00023-result.md
+
+# ---------------------------------------------------------------------------
+# METADATA
+# ---------------------------------------------------------------------------
+
+meta:
+  created_by: OPTIONAL
+  # Who created this event: orchestrator | human | event-template
+  # Default: orchestrator
+
+  created_at: OPTIONAL
+  # ISO-8601 datetime. Set when the event file is created.
+  # Example: 2026-06-13T10:00:00Z
+
+  template_id: OPTIONAL
+  # If this event was instantiated from a template, the template ID.
+  # Example: EVT-TPL-001-create-business-intake
+
+  notes: OPTIONAL
+  # Free-text notes from the creator. Not read by the dispatcher — for human audit only.
+
+# ---------------------------------------------------------------------------
+# EVENT TYPE REGISTRY (runtime events only)
+# ---------------------------------------------------------------------------
+#
+# `event_type` must be one of the generic engine types below.
+# Domain-specific action names (create_business_rules, etc.) go in the `action` field.
+# The full action→event_type mapping is in template-instantiation-rules.md section 3.
+#
+#   CREATE_ARTIFACT      — persona produces a new artifact that does not yet exist
+#   UPDATE_ARTIFACT      — persona updates an existing artifact (partial or full rewrite)
+#   VALIDATE_ARTIFACT    — persona reviews and accepts/rejects an existing artifact (no new file)
+#   REVIEW_ARTIFACT      — persona produces a review finding document from an existing artifact
+#   RAISE_DECISION       — persona surfaces a blocking open decision to .flow/state/open-decisions.md
+#   RESOLVE_DECISION     — persona records resolution of an open decision
+#   GENERATE_HANDOFF     — persona produces the full handoff package for the initiative
+#   ENRICH_ARTIFACT      — persona adds detail to an existing artifact (does not overwrite sections)
+#   REPAIR_ARTIFACT      — persona corrects a malformed or incomplete existing artifact
+#   ROUTE_INITIATIVE     — orchestrator selects delivery mode and execution mode
+#   RETRY_FAILED_TASK    — dispatcher re-runs a previously failed event with corrected inputs
+#   WAIT_HUMAN           — pauses dispatch-all for human review; no artifact written; gate resolved by human
+#
+# ---------------------------------------------------------------------------
+# TEMPLATE vs RUNTIME EVENT — key distinction
+# ---------------------------------------------------------------------------
+#
+# Template files (.brs2spec2/workflow/event-templates/EVT-TPL-NNN-*.yaml):
+#   - Have field `event_template_id`, not `event_id`
+#   - Have field `type` (domain-specific, e.g. CREATE_BUSINESS_RULES), not `event_type`
+#   - Have `inputs.required/optional` instead of `read_from/required_inputs/optional_inputs`
+#   - Have `outputs.primary` instead of `write_to`
+#   - Are NEVER dispatched directly
+#
+# Runtime events (.flow/events/pending/EVT-NNNNN-*.yaml):
+#   - Have field `event_id: EVT-NNNNN`
+#   - Have field `event_type` (generic) + `action` (domain)
+#   - Have `read_from`, `required_inputs`, `optional_inputs`, `write_to`
+#   - Are produced by template instantiation (see template-instantiation-rules.md)
+#   - Are the ONLY files the dispatcher executes
+#
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# COMPLETE EXAMPLE — runtime event (instantiated from EVT-TPL-003)
+# ---------------------------------------------------------------------------
+#
+# event_id: EVT-00003
+# event_type: CREATE_ARTIFACT
+# action: create_business_rules
+# persona: product-owner
+# stage: "2b-business-analysis"
+# priority: high
+#
+# skill_ref: .brs2spec2/skills/product-owner/create-business-rules.md
+# persona_ref: .brs2spec2/personas/product-owner.md
+# artifact_template_ref: .brs2spec2/artifact-templates/business-rules.md
+#
+# task:
+#   title: Create business rules
+#   objective: >
+#     Extract and formalize all business rules from the BRS into a numbered BR-NNN catalog.
+#     Produce business-analysis/business-rules.md with Category, Rule Statement, BRS Source,
+#     Affected Requirements, and Affected Actors for each rule.
+#
+# read_from:
+#   - input/brs.md
+#   - input/brs/*.md
+#   - business-intake/business-intake-summary.md
+#   - routing/routing-decision.md
+#
+# required_inputs:
+#   - input/brs.md
+#   - business-intake/business-intake-summary.md
+#
+# optional_inputs:
+#   - input/brs/*.md
+#   - routing/routing-decision.md
+#
+# write_to:
+#   - business-analysis/business-rules.md
+#
+# must_include:
+#   - "## Metadata table is present with Status: Draft"
+#   - "## Business Rules Catalog table is present"
+#   - At least one BR-NNN entry exists
+#   - Every BR-NNN has a Category, Rule Statement, and BRS Source
+#
+# validation_rules:
+#   natural_language:
+#     - no BR-NNN row has an empty Description
+#     - every BR-NNN maps to at least one FR-NNN
+#     - no placeholder text (TBD / TODO / [fill in]) in output
+#     - Status is Draft
+#   machine:
+#     - validator: no_placeholders
+#     - validator: id_pattern
+#       args:
+#         pattern: "BR-[0-9]{3}"
+#
+# blocked_by:
+#   - business-intake/business-intake-summary.md
+#
+# status: pending
+#
+# on_success:
+#   update_state:
+#     artifact_status:
+#       "business-analysis/business-rules.md": "draft"
+#
+# on_failure:
+#   raise_decision:
+#     question: "Business rules extraction failed. Check BRS for identifiable constraints."
+#     owner: product-owner
+#     blocking: false
+#
+# meta:
+#   template_id: EVT-TPL-003
+#   created_by: orchestrator
+#   created_at: 2026-06-13T10:00:00Z
+#   notes: "Business intake complete — trigger business rules extraction"

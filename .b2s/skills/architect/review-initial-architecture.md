@@ -60,6 +60,18 @@ Assess:
 
 Write `architecture/architecture-review.md` using `.b2s/artifact-templates/architecture-review.md`.
 
+### Column contract — use the template columns exactly
+
+The artifact template defines the column structure for each section. Use the exact column names from the template. Key sections:
+
+- **Initiative-Architecture Fit**: `Feature Area | Existing Components Touched | New Components / Boundaries | Contract Changes | Blast Radius`
+- **Architecture Constraints**: `ID | Constraint | Rationale | Violation Consequence | Source`
+- **Brownfield Impact**: `Component | Change Type | Consumers | Backward Compatible? | Migration Required | Rollback Possible` — must include `**Regression surface:**` and `**Rollback sensitivity:**` lines below the table (not template placeholder text)
+- **Quality Attribute Assessment**: one flat table with columns `Attribute | Requirement (from BRS) | Assessment | Risk` — rows for Performance, Security, Scalability, Availability. Do NOT split into sub-headings per attribute.
+- **Open Decisions**: `DEC-NNN | Question | Owner | Default Assumption | Required Before`
+- **Active Assumptions**: `Assumption | Source | If False, Then`
+- **Known Unknowns**: `Unknown | Impact | Discovery Path`
+
 ## Done criteria
 
 - [ ] Every major feature area is assessed for architecture fit

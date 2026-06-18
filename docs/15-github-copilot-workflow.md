@@ -47,17 +47,17 @@ Key entry points:
 
 ```text
 .brs2spec/brs-to-spec-run-workflow.md       — workflow orchestrator (start here)
-.brs2spec/0-intake/00-create-brs.md         — create or convert a BRS
-.brs2spec/8-copilot-implementation/         — implementation prompts
-.brs2spec/9-reviewers/                      — review prompts
+.brs2spec/skills/0-intake/00-create-brs.md         — create or convert a BRS
+.brs2spec/skills/8-copilot-implementation/         — implementation prompts
+.brs2spec/skills/9-reviewers/                      — review prompts
 .brs2spec/tools/prompts/describe-repository.md  — repo descriptor utility (run inside a target repo)
 ```
 
 The repository also includes implementation and review prompt groups:
 
 ```text
-.brs2spec/8-copilot-implementation/
-.brs2spec/9-reviewers/
+.brs2spec/skills/8-copilot-implementation/
+.brs2spec/skills/9-reviewers/
 ```
 
 Additional guidance:
@@ -177,13 +177,13 @@ If the change is narrow, also ask whether the small-change path is appropriate a
 After handoff artifacts exist, use:
 
 ```text
-.brs2spec/8-copilot-implementation/01-implement-one-task.md
+.brs2spec/skills/8-copilot-implementation/01-implement-one-task.md
 ```
 
 If review findings come back, use:
 
 ```text
-.brs2spec/8-copilot-implementation/02-fix-review-comments.md
+.brs2spec/skills/8-copilot-implementation/02-fix-review-comments.md
 ```
 
 Optional pre-implementation gate:
@@ -208,10 +208,10 @@ If those upstream artifacts are weak, ask Copilot to improve them before handoff
 Use:
 
 ```text
-.brs2spec/9-reviewers/01-senior-code-review.md
-.brs2spec/9-reviewers/02-qa-review.md
-.brs2spec/9-reviewers/03-architecture-review.md
-.brs2spec/9-reviewers/04-security-review.md
+.brs2spec/skills/9-reviewers/01-senior-code-review.md
+.brs2spec/skills/9-reviewers/02-qa-review.md
+.brs2spec/skills/9-reviewers/03-architecture-review.md
+.brs2spec/skills/9-reviewers/04-security-review.md
 ```
 
 ### 8. Use GitLab Planning View only as projection
@@ -276,7 +276,7 @@ Ask instead:
 Create the readiness check for initiatives/I001-onboarding-request using the framework instructions.
 Create the security review because it is triggered by readiness-check.md.
 Create the OpenSpec handoff using the completed quality gates.
-Implement Task 001 from openspec/changes/F-XXX.X-<story-slug>/tasks.md using .brs2spec/8-copilot-implementation/01-implement-one-task.md.
-Review the implementation using .brs2spec/9-reviewers/01-senior-code-review.md.
+Implement Task 001 from openspec/changes/F-XXX.X-<story-slug>/tasks.md using .brs2spec/skills/8-copilot-implementation/01-implement-one-task.md.
+Review the implementation using .brs2spec/skills/9-reviewers/01-senior-code-review.md.
 Create the GitLab Planning View as a projection from the source artifacts.
 ```

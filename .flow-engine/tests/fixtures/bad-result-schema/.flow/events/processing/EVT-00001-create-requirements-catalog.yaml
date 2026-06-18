@@ -1,0 +1,20 @@
+event_id: EVT-00001
+event_type: CREATE_ARTIFACT
+action: create_requirements
+persona: product-owner
+task:
+  title: Create Requirements Catalog
+  objective: Produce requirements from BRS
+read_from:
+  - "input/brs.md"
+required_inputs:
+  - "input/brs.md"
+write_to:
+  - "business-analysis/requirements.md"
+must_include:
+  - "FR count matches BRS"
+  - "NFR count matches BRS"
+meta:
+  template_id: EVT-TPL-043
+  created_at: "2026-06-15T10:00:00Z"
+  created_by: orchestrator

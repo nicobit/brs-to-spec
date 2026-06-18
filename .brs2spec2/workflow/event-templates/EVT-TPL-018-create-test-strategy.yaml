@@ -1,0 +1,53 @@
+event_template_id: EVT-TPL-018
+type: CREATE_TEST_STRATEGY
+persona: qa-analyst
+priority: high
+description: "Define test levels, frameworks, coverage targets, CI integration, and quality gate to test mapping. Conditional gate."
+
+skill_ref: ".brs2spec2/skills/qa-analyst/create-test-strategy.md"
+persona_ref: ".brs2spec2/personas/qa-analyst.md"
+artifact_template_ref: ".brs2spec2/artifact-templates/test-strategy.md"
+
+inputs:
+  required:
+    - "engineering-readiness/readiness-check.md"
+    - "input/brs.md"
+    - "input/brs/*.md"
+    - "architecture/architecture-review.md"
+    - "planning/delivery-structure.md"
+  condition: "quality_gates_triggered contains TEST_STRATEGY"
+
+outputs:
+  primary: "quality-gates/test-strategy.md"
+
+must_include:
+  - "## Metadata table with Status: In progress as first table in file"
+  - "## Test Levels table lists all applicable levels with Required/Recommended/N/A"
+  - "## Technology Stack table is populated from architecture evidence"
+  - "## Coverage Targets section is present"
+  - "## Quality Gate to Test Mapping table is present"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) technology stack is from architecture evidence not guessed,
+    (2) every triggered gate is mapped to a test execution,
+    (3) PII handling in test data is addressed,
+    (4) Status is In progress.
+  machine:
+    file_exists: "quality-gates/test-strategy.md"
+  skip_if: "TEST_STRATEGY not in quality_gates_triggered"
+
+on_success:
+  create_events:
+    - template: "EVT-TPL-036"
+      reason: "Test strategy complete — create per-story test plans"
+      condition: "quality-gates/bdd/ exists"
+  update_state:
+    artifact_status:
+      "quality-gates/test-strategy.md": "draft"
+
+on_failure:
+  raise_decision:
+    question: "Test strategy creation failed."
+    blocking: false
+    owner: "qa-analyst"

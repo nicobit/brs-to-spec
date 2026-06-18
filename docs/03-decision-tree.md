@@ -12,19 +12,19 @@ For automated routing, run `.brs2spec/00-start.md` — it asks five questions an
 Do you have a formal BRS document?
 │
 ├── Yes → Entry mode: BRS-first
-│         First prompt: .brs2spec/0-input-preparation/01-convert-brs-word-to-markdown.md
+│         First prompt: .brs2spec/skills/0-input-preparation/01-convert-brs-word-to-markdown.md
 │
 ├── No, but you are changing an existing system
 │         → Entry mode: Existing-system enhancement
-│         First prompt: .brs2spec/2-business-intake/01-create-business-intake-summary.md
+│         First prompt: .brs2spec/skills/2-business-intake/01-create-business-intake-summary.md
 │
 ├── No, scope is narrow (single story or bug fix)
 │         → Entry mode: Small change / bug fix
-│         First prompt: .brs2spec/1-routing/01-select-delivery-and-execution-mode.md
+│         First prompt: .brs2spec/skills/1-routing/01-select-delivery-and-execution-mode.md
 │
 └── No, scope spans multiple capabilities or teams
           → Entry mode: Large modular initiative
-          First prompt: .brs2spec/0-input-preparation/03-normalize-input-package.md
+          First prompt: .brs2spec/skills/0-input-preparation/03-normalize-input-package.md
 ```
 
 ---

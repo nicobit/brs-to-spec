@@ -1,0 +1,34 @@
+@startuml
+left to right direction
+actor Applicant as ACT_APPLICANT
+actor Underwriter as ACT_UNDERWRITER
+actor Compliance as ACT_COMPLIANCE
+rectangle System as ACT_SYSTEM {
+}
+
+ACT_APPLICANT -> ACT_SYSTEM : Submit Application (UC-001)
+ACT_SYSTEM -> ACT_SYSTEM : AI Pre-screening (UC-003)
+ACT_UNDERWRITER -> ACT_SYSTEM : Underwrite (UC-004)
+ACT_SYSTEM -> ACT_SYSTEM : Disburse Funds (UC-005)
+ACT_APPLICANT -> ACT_SYSTEM : View Status (UC-002)
+
+ACT_SYSTEM -> ACT_SYSTEM : Manage Documents (UC-006)
+ACT_SYSTEM -> ACT_COMPLIANCE : Perform AML/KYC Checks (UC-007)
+ACT_SYSTEM -> ACT_SYSTEM : Generate Offer (UC-008)
+ACT_APPLICANT -> ACT_SYSTEM : Accept Offer (UC-009)
+ACT_SYSTEM -> ACT_APPLICANT : Send Notifications (UC-010)
+
+note bottom
+UC-001: Submit Application
+UC-002: View Application Status
+UC-003: AI Pre-screening
+UC-004: Underwrite Application
+UC-005: Disburse Funds
+UC-006: Manage Documents
+UC-007: Perform AML/KYC Checks
+UC-008: Generate Offer
+UC-009: Accept Offer
+UC-010: Send Notifications
+end note
+
+@enduml

@@ -1,0 +1,76 @@
+event_template_id: EVT-TPL-024
+type: CREATE_OPENSPEC_HANDOFF
+persona: engineering-lead
+priority: critical
+description: "Generate one self-contained folder per user story for OpenSpec execution mode. All triggered gates must be Accepted before this runs."
+
+skill_ref: ".brs2spec2/skills/engineering-lead/create-openspec-handoff.md"
+persona_ref: ".brs2spec2/personas/engineering-lead.md"
+
+inputs:
+  required:
+    - "engineering-readiness/readiness-check.md"
+    - "engineering-readiness/initiative-context.md"
+    - "planning/delivery-structure.md"
+    - "input/brs.md"
+    - "input/brs/*.md"
+    - "architecture/architecture-rules.md"
+    - "architecture/architecture-review.md"
+  optional:
+    - "business-analysis/requirements.md"
+    - "business-analysis/use-cases/"
+    - "business-analysis/use-cases.md"
+    - "business-analysis/business-rules.md"
+    - "input/repositories/*.md"
+    - "quality-gates/security-review.md"
+    - "quality-gates/api-contract.md"
+    - "quality-gates/data-contract.md"
+    - "quality-gates/observability-plan.md"
+    - "quality-gates/bdd/"
+  condition: "delivery_mode == OpenSpec AND readiness_check.decision == Ready AND all triggered gates Accepted"
+
+blocked_by:
+  - "engineering-readiness/readiness-check.md"
+  - "engineering-readiness/initiative-context.md"
+  - "planning/delivery-structure.md"
+  - "architecture/architecture-rules.md"
+
+outputs:
+  primary: "specs/"
+
+must_include:
+  - "specs/dependency-graph.md exists with Mermaid diagram and wave groupings"
+  - "One folder per F-XXX.X story ID from delivery-structure.md"
+  - "Story count assertion was performed and passed"
+  - "Every story folder contains story.md, design.md, tasks.md, coding-prompt.md"
+  - "Every story.md has full Gherkin BDD blocks (not summary tables)"
+  - "Every coding-prompt.md has Repository execution guard as first section after frontmatter"
+  - "No folder is named after an epic or the full initiative"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) folder count equals story count in delivery-structure.md,
+    (2) every story.md has user story verbatim and AC-NNN verbatim from BRS,
+    (3) every design.md has structured tables not prose-only,
+    (4) every coding-prompt.md has Repository execution guard,
+    (5) Case A/B applied consistently across all stories.
+  machine:
+    file_exists: "specs/"
+
+on_success:
+  create_events:
+    - template: "EVT-TPL-027"
+      reason: "Handoff complete — generate test stubs"
+      condition: "quality-gates/bdd/ exists"
+    - template: "EVT-TPL-028"
+      reason: "Handoff complete — create review package"
+  update_state:
+    current_stage: "5-handoff"
+    artifact_status:
+      "specs/": "accepted"
+
+on_failure:
+  raise_decision:
+    question: "OpenSpec handoff generation failed. Check that all triggered gates are Accepted and delivery-structure.md has F-XXX.X story IDs."
+    blocking: true
+    owner: "engineering-lead"

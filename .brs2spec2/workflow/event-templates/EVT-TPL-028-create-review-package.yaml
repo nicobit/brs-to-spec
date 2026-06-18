@@ -1,0 +1,57 @@
+event_template_id: EVT-TPL-028
+type: CREATE_REVIEW_PACKAGE
+persona: delivery-lead
+priority: medium
+description: "Assemble the human-readable review package from all available initiative artifacts for stakeholder review."
+
+skill_ref: ".brs2spec2/skills/delivery-lead/create-review-package.md"
+persona_ref: ".brs2spec2/personas/delivery-lead.md"
+
+inputs:
+  required:
+    - "business-intake/business-intake-summary.md"
+    - "planning/delivery-structure.md"
+    - "architecture/architecture-review.md"
+  optional:
+    - "business-analysis/requirements.md"
+    - "business-analysis/use-cases/"
+    - "business-analysis/use-cases.md"
+    - "business-analysis/entity-model.md"
+    - "business-analysis/business-rules.md"
+    - "business-analysis/actors-and-personas.md"
+    - "business-analysis/process-flows.md"
+    - "quality-gates/*.md"
+    - "planning/traceability-matrix.md"
+    - "specs/"
+
+outputs:
+  primary: "review-package/"
+
+must_include:
+  - "review-package/status.md exists"
+  - "review-package/00-intake/source-summary.md exists"
+  - "review-package/03-delivery-structure/story-map.md exists"
+  - "status.md accurately reflects Complete/Partial/Stub for each section"
+  - "Copied artifacts have header comments but are otherwise verbatim"
+  - "No content invented beyond source artifacts"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) status.md exists and accurately reflects actual completeness,
+    (2) copied artifacts are verbatim with header comments,
+    (3) story-map.md derives exactly from delivery-structure.md,
+    (4) no content invented beyond source artifacts.
+  machine:
+    file_exists: "review-package/status.md"
+
+on_success:
+  update_state:
+    current_stage: "6-review-package"
+    artifact_status:
+      "review-package/": "accepted"
+
+on_failure:
+  raise_decision:
+    question: "Review package creation failed. business-intake-summary.md and delivery-structure.md must both exist."
+    blocking: false
+    owner: "delivery-lead"

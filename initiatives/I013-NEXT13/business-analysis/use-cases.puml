@@ -1,0 +1,33 @@
+@startuml
+left to right direction
+actor Applicant
+actor Underwriter
+actor Compliance
+actor Admin
+actor System
+
+usecase "UC-001: Submit Application" as UC_001
+usecase "UC-002: Validate & Assign ARN" as UC_002
+usecase "UC-003: Confirmation Email" as UC_003
+usecase "UC-004: AI Pre-screening & Scoring" as UC_004
+usecase "UC-005: Credit Bureau Lookup (Experian)" as UC_005
+usecase "UC-006: AML/KYC Screening" as UC_006
+usecase "UC-007: Underwriter Review" as UC_007
+usecase "UC-008: Generate Offer" as UC_008
+usecase "UC-009: Disburse Funds" as UC_009
+
+Applicant --> UC_001
+UC_001 --> UC_002
+UC_002 --> UC_003
+UC_001 --> UC_004
+UC_004 --> UC_005
+UC_004 --> UC_006
+UC_005 --> UC_007 : issues?\n(Experian fallback)
+UC_006 --> UC_007 : compliance hold
+Underwriter --> UC_007
+UC_007 --> UC_008 : approve
+UC_008 --> UC_009
+Compliance --> UC_007
+Admin --> UC_009
+
+@enduml

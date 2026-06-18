@@ -33,22 +33,22 @@
 
 | Step | Prompt | Required? | Reason |
 |---|---|---|---|
-| Readiness check | `.brs2spec/4-engineering-readiness/01-check-engineering-readiness.md` | Yes | Confirm no gates triggered despite narrow scope |
-| Generate context | `.brs2spec/4-engineering-readiness/02-generate-initiative-context.md` | Yes | Needed before implementation |
-| Handoff | `.brs2spec/5-handoff/02-create-standalone-delivery-package.md` | Yes | Produces delivery spec and tasks |
-| Implement | `.brs2spec/8-copilot-implementation/01-implement-one-task.md` | Yes | One task |
-| Code review | `.brs2spec/9-reviewers/01-senior-code-review.md` | Yes | Standard post-implementation check |
+| Readiness check | `.brs2spec/skills/4-engineering-readiness/01-check-engineering-readiness.md` | Yes | Confirm no gates triggered despite narrow scope |
+| Generate context | `.brs2spec/skills/4-engineering-readiness/02-generate-initiative-context.md` | Yes | Needed before implementation |
+| Handoff | `.brs2spec/skills/5-handoff/02-create-standalone-delivery-package.md` | Yes | Produces delivery spec and tasks |
+| Implement | `.brs2spec/skills/8-copilot-implementation/01-implement-one-task.md` | Yes | One task |
+| Code review | `.brs2spec/skills/9-reviewers/01-senior-code-review.md` | Yes | Standard post-implementation check |
 
 ## Prompts Not Needed
 
 | Prompt | Reason not needed |
 |---|---|
-| `0-input-preparation/01-convert-brs-word-to-markdown.md` | No BRS document |
-| `2-business-intake/01-create-business-intake-summary.md` | No PO review required |
-| `3-planning-and-modular-delivery/*` | No delivery slicing |
-| `4-engineering-readiness/quality-gates/*` | No gates expected to trigger |
-| `6-business-copilot/*` | No M365 path |
-| `7-perspectives/*` | No sprint projection |
+| `skills/0-input-preparation/01-convert-brs-word-to-markdown.md` | No BRS document |
+| `skills/2-business-intake/01-create-business-intake-summary.md` | No PO review required |
+| `skills/3-planning-and-modular-delivery/*` | No delivery slicing |
+| `skills/4-engineering-readiness/quality-gates/*` | No gates expected to trigger |
+| `skills/6-business-copilot/*` | No M365 path |
+| `skills/7-perspectives/*` | No sprint projection |
 
 ## Risks of Under-Processing
 

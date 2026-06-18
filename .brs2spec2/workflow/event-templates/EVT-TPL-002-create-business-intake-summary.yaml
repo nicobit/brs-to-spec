@@ -1,0 +1,104 @@
+event_template_id: EVT-TPL-002
+type: CREATE_BUSINESS_INTAKE_SUMMARY
+persona: product-owner
+priority: high
+description: "Extract and consolidate all business objectives, scope, requirements, and capability information from BRS into the business intake summary."
+
+skill_ref: ".brs2spec2/skills/product-owner/create-business-intake-summary.md"
+persona_ref: ".brs2spec2/personas/product-owner.md"
+artifact_template_ref: ".brs2spec2/artifact-templates/business-intake-summary.md"
+
+inputs:
+  required:
+    - "input/brs.md"
+    - "input/brs/*.md"
+    - "routing/routing-decision.md"
+  optional:
+    - "input/architecture.md or input/architecture/*.md"
+    - "input/input-package.md"
+
+outputs:
+  primary: "business-intake/business-intake-summary.md"
+
+must_include:
+  - "## Metadata table is present and Status field is set to Draft"
+  - "## Executive Summary table has all 5 fields populated: Initiative, Business objective, Why now, Main outcome expected, Primary risk or constraint"
+  - "## Objectives section has one row per business objective stated in the BRS — objectives may use any ID convention (OBJ-NNN, numbered list, named goals); every row has a Success measure that is specific and observable (not blank, not TBD)"
+  - "## Scope section has explicit in-scope and out-of-scope entries in a table — not a single bullet list"
+  - "## Requirements section — FR count: enumerate every functional requirement ID (FR-NNN, REQ-NNN, numbered item, or prose statement) found in input/brs.md; then enumerate every functional requirement row in the artifact; state both counts; confirm they match; list any IDs or items present in the BRS but absent from the artifact"
+  - "## Requirements section — NFR count: enumerate every non-functional requirement (NFR-NNN, Quality, Performance, Security, Constraint — any label) found in input/brs.md; then enumerate every NFR row in the artifact; state both counts; confirm they match; list any missing"
+  - "Every requirement row has Business value and Source reference populated — spot-check 3 rows and quote the Business value and Source cell for each; if any is blank or TBD, fail"
+  - "## Capabilities section is present as a table with at least one grouped capability row — not a bullet list"
+  - "## Existing-System Context section is present as a table — if the BRS mentions any pre-existing systems, integrations, or platforms the initiative must connect to or change, they must appear here"
+  - "## Gaps and Questions section has one row per open question or ambiguity found in the BRS — open questions may be labelled OQ-NNN, listed in a table, or embedded in prose; each must become its own GAP-NNN row; a one-line summary of all questions is not acceptable"
+  - "Answered BRS question rows are not emitted as unresolved GAP-NNN items"
+  - "## Risks and Assumptions section is present as a table with at least one RSK-NNN row"
+  - "## Consolidation Notes section is present as a table (empty table acceptable if single BRS source with no conflicts)"
+  - "## PO Review Checklist is present with all items checked"
+  - "No placeholder text (TBD / TODO / [fill in]) except where explicitly flagged as a named open gap"
+  - "Notes field does NOT contain phrases like 'generated to satisfy must_include' or 'further human review required' — if content cannot be produced, fail the event instead"
+
+validation_rules:
+  natural_language: >
+    Read input/brs.md (and any other input/brs/*.md files) in full first.
+    Then read business-intake/business-intake-summary.md.
+    The BRS may use any naming convention for requirements (FR-NNN, REQ-NNN, numbered lists,
+    module sub-items, prose paragraphs). Identify the convention used and apply the checks below
+    accordingly — do not assume FR-NNN exists; discover what the BRS actually contains.
+
+    Verify all of the following by cross-referencing the two files — do NOT evaluate the summary alone:
+
+    (1) OBJECTIVES: Identify every business objective stated in the BRS (may be OBJ-NNN, numbered,
+        named goals, or bullet points). Every one must appear in the Objectives table with a success
+        measure that is specific and observable. If any objective is missing or has a blank/TBD
+        success measure, fail: list the missing objectives by name or ID.
+
+    (2) FUNCTIONAL REQUIREMENTS: Identify the convention used in the BRS (FR-NNN, REQ-NNN, numbered
+        items, module sub-sections, prose statements — whatever is present). List every distinct
+        atomic requirement. Every one must have its own row in the Requirements table. Bundling
+        multiple requirements into one row fails this check. List every missing or bundled requirement.
+
+    (3) NON-FUNCTIONAL REQUIREMENTS: Identify non-functional requirements in the BRS regardless of
+        label (NFR-NNN, Quality, Constraints, Performance, Security sections, etc.). Every one must
+        have its own row in the Requirements table. Missing NFRs must be listed explicitly.
+
+    (4) OPEN QUESTIONS / GAPS: Identify every open question, ambiguity, or unresolved item in the
+        BRS regardless of format (OQ-NNN table, inline questions, "TBD" markers, unanswered fields).
+        Every one must appear as its own GAP-NNN row in Gaps and Questions with impact-if-unresolved
+        and owner. A one-line summary of all questions fails. If an open-question row in the BRS
+        already has an Answer or other explicit resolution, it must NOT be emitted as an unresolved gap.
+
+    (5) EXISTING SYSTEMS: If the BRS mentions any pre-existing systems, integrations, APIs, or
+        platforms the initiative must connect to or change, the Existing-System Context section must
+        have at least one row for each, and the section must remain a table. A silently empty section
+        or a bullet-list replacement when integrations exist fails.
+
+    (6) SCOPE: Confirm that every area listed as in-scope in the BRS has a row in the Scope table,
+        and every area listed as out-of-scope has a row. Missing items must be listed explicitly.
+
+    (7) STRUCTURE: Requirements, Capabilities, Existing-System Context, Gaps and Questions,
+        Risks and Assumptions, and Consolidation Notes must be expressed as tables compatible with
+        the artifact template. Replacing required tables with bullets or prose fails.
+
+    (8) Status is Draft — not Accepted.
+
+    (9) No row may have a blank, TBD, or TODO value in Business value or Success measure fields
+        unless that specific gap is named and tracked in the Gaps and Questions table.
+  machine:
+    file_exists: "business-intake/business-intake-summary.md"
+    status_field_not: "Accepted"
+
+on_success:
+  create_events:
+    - template: "EVT-TPL-040"
+      reason: "Business intake AI-validated — trigger human review gate before analysis begins"
+  update_state:
+    current_stage: "2-business-intake"
+    artifact_status:
+      "business-intake/business-intake-summary.md": "ai_validated"
+
+on_failure:
+  raise_decision:
+    question: "Business intake summary could not be produced. Review BRS completeness and re-run."
+    blocking: true
+    owner: "product-owner"

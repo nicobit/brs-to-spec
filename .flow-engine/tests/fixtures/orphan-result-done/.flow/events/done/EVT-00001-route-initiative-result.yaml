@@ -1,0 +1,5 @@
+event_id: EVT-00001
+status: pass
+completed_at: "2026-06-15T10:05:00Z"
+artifacts_written:
+  - routing/routing-decision.md

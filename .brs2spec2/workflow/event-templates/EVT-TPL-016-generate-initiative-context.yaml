@@ -1,0 +1,61 @@
+event_template_id: EVT-TPL-016
+type: GENERATE_INITIATIVE_CONTEXT
+persona: engineering-lead
+priority: high
+description: "Distill approved readiness decision into a compact initiative-context.md for all downstream agents."
+
+skill_ref: ".brs2spec2/skills/engineering-lead/generate-initiative-context.md"
+persona_ref: ".brs2spec2/personas/engineering-lead.md"
+artifact_template_ref: ".brs2spec2/artifact-templates/initiative-context.md"
+
+inputs:
+  required:
+    - "engineering-readiness/readiness-check.md"
+    - "architecture/architecture-rules.md"
+    - "architecture/architecture-review.md"
+    - "routing/routing-decision.md"
+  optional:
+    - "input/architecture.md or input/architecture/*.md"
+    - "input/repositories/*.md"
+    - "business-intake/business-intake-summary.md"
+
+outputs:
+  primary: "engineering-readiness/initiative-context.md"
+
+must_include:
+  - "## Metadata table is present with AI model version populated"
+  - "## Technology Constraints table is present and populated (not empty rows)"
+  - "## Architecture Rules in Force table lists AR-NNN rules verbatim"
+  - "## Governed Boundaries section is present"
+  - "## Active Quality Gates section is present"
+  - "## Carried-Forward Context section is present with all three sub-sections"
+  - "Each Carried-Forward sub-section either has content or explicitly states '> None identified'"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) AR-NNN rules are verbatim copies not paraphrases,
+    (2) technology constraints reflect actual stack not generic defaults,
+    (3) Carried-Forward Context is populated or explicitly marked None identified,
+    (4) AI model version field is populated,
+    (5) file is compact enough to serve as agent context without overwhelming.
+  machine:
+    file_exists: "engineering-readiness/initiative-context.md"
+
+on_success:
+  create_events:
+    - template: "EVT-TPL-024"
+      reason: "Initiative context ready — generate OpenSpec handoff"
+      condition: "delivery_mode == OpenSpec"
+    - template: "EVT-TPL-025"
+      reason: "Initiative context ready — generate Standalone handoff"
+      condition: "delivery_mode == Standalone"
+  update_state:
+    current_stage: "4b-quality-gates"
+    artifact_status:
+      "engineering-readiness/initiative-context.md": "accepted"
+
+on_failure:
+  raise_decision:
+    question: "Initiative context generation failed. Readiness check must exist and be approved."
+    blocking: true
+    owner: "engineering-lead"

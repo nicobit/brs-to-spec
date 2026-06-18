@@ -41,7 +41,8 @@ If the BRS is missing or empty, stop and report the blocker. If optional inputs 
 
 ## Instructions
 
-Read all available input files from `{workspace_root}/input/` plus `{workspace_root}/routing/routing-decision.md`.
+Read every path listed in `{resolved_required_inputs}` fully before writing anything.
+If `{resolved_optional_inputs}` is not empty, read those paths fully as well before writing.
 
 ### Source document inventory
 
@@ -70,14 +71,14 @@ Resolved vs unresolved:
 
 ### Delivery mode influence
 
-Use `routing/routing-decision.md` to shape the output:
+Use the resolved routing material to shape the output:
 - `FastPath`: keep the artifact deliberately small and focused on the minimum business review content
 - `BusinessCopilot`: write for non-technical business stakeholders
 - `OpenSpec` or `Standalone`: produce the full artifact
 
 ## Output requirements
 
-Write `business-intake/business-intake-summary.md` using `.b2s/artifact-templates/business-intake-summary.md`.
+Write the artifact to `{primary_output}` using `.b2s/artifact-templates/business-intake-summary.md`.
 
 All sections must be present:
 - Metadata

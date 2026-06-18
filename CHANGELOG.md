@@ -12,7 +12,7 @@
 ## v1.0.4-planning-view
 
 - Added Agile / GitLab Planning View as a read-only projection.
-- Added `.brs2spec/7-perspectives/agile-planning/`.
+- Added `.brs2spec/skills/7-perspectives/agile-planning/`.
 - Added `.brs2spec/templates/perspectives/agile-planning/`.
 - Added `docs/14-agile-planning-view.md`.
 - Added an example GitLab planning view.

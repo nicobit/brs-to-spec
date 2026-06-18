@@ -44,6 +44,33 @@ Read these files in full before writing anything. Do not start writing until all
 - `{workspace_root}/quality-gates/bdd-scenarios.md` or per-feature BDD files — BDD scenarios to embed
 - `{workspace_root}/quality-gates/api-contract.md` — API impact per story
 - `{workspace_root}/quality-gates/data-contract.md` — data model impact per story
+- `{resolved_optional_inputs}` — technical-specification artifacts when workflow type is `technical-spec-modular`
+
+## Step 1b — Apply technical specifications when present
+
+Check for these paths after reading the optional inputs above. When they exist, treat them as **authoritative**. Do not regenerate equivalent detail from scratch; read the spec and copy it into the story.
+
+**If `{workspace_root}/technical-specifications/api/exposed/` exists and contains files:**
+- Read each exposed API spec file.
+- For each story, find the endpoint(s) that story implements.
+- Populate **Section 6 — Implementation Context → API Impact** with the exact endpoint path, method, request fields, response fields, auth mechanism, and error codes from the spec. Do not invent values.
+- Populate **Section 7 — Constraints** with the auth mechanism and SLA values from the spec.
+
+**If `{workspace_root}/technical-specifications/api/consumed/` exists and contains files:**
+- Read each consumed API spec for external systems this story calls.
+- Populate **Section 6 — Impacted Components** with the external system's endpoint path, auth mechanism, and timeout from the consumed spec.
+- Populate **Section 7 — Constraints** with PII minimisation rules from the consumed spec.
+
+**If `{workspace_root}/technical-specifications/data/` exists and contains files:**
+- Read the data schema spec for the domain this story writes to.
+- Populate **Section 6 — Data Impact** with the exact entity name, field names, types, and constraints from the schema spec. Do not invent column names.
+- Note any PII fields and their retention period.
+
+**If `{workspace_root}/technical-specifications/integrations/` exists and contains files:**
+- Read the integration spec for each external system this story calls.
+- Populate **Section 8 — Dependencies** with the integration's timeout, retry policy, and fallback behaviour from the integration spec.
+
+**When technical-spec artifacts are present, do not re-derive fields they already define. Use the spec value verbatim.**
 
 ## Step 2 — Enumerate stories
 

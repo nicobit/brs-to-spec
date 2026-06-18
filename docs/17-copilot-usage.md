@@ -52,7 +52,7 @@ Use `.brs2spec/brs-to-spec-run-workflow.md` to identify the active initiative wo
 ### Artifact generation
 
 ```text
-Create engineering-readiness/readiness-check.md for the active initiative workspace using .brs2spec/4-engineering-readiness/01-check-engineering-readiness.md and the matching template.
+Create engineering-readiness/readiness-check.md for the active initiative workspace using .brs2spec/skills/4-engineering-readiness/01-check-engineering-readiness.md and the matching template.
 ```
 
 ### Task implementation
@@ -72,7 +72,7 @@ Then implement only Task 001, update tests, and summarize files changed, coverag
 ### Review
 
 ```text
-Review the implementation for Task 001 using .brs2spec/9-reviewers/01-senior-code-review.md and the active initiative workspace artifacts.
+Review the implementation for Task 001 using .brs2spec/skills/9-reviewers/01-senior-code-review.md and the active initiative workspace artifacts.
 ```
 
 ## Good Operating Pattern

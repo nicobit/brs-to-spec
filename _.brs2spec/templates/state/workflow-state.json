@@ -1,0 +1,95 @@
+{
+  "_schema": "brs2spec-workflow-state/1.0",
+  "_note": "Machine-readable workflow state. Read first to avoid scanning all artifacts. state_validated must be set by the maintain-workflow-state skill, never inline. If state_validated is false, run repair-workspace-state.md before advancing.",
+  "_validation_errors": [],
+  "initiative": "",
+  "last_updated": "",
+  "updated_by": "",
+  "state_validated": false,
+
+  "delivery_mode": "",
+  "execution_mode": "",
+  "current_stage": "",
+  "readiness_decision": "",
+
+  "artifacts": {
+    "input/brs.md":                                        { "status": "missing",    "note": "" },
+    "input/input-package.md":                              { "status": "missing",    "note": "" },
+    "input/architecture.md":                               { "status": "missing",    "note": "" },
+    "state/routing-decision.md":                            { "status": "missing",    "note": "" },
+    "business-intake/business-intake-summary.md":          { "status": "missing",    "note": "" },
+    "business-intake/business-rules.md":                   { "status": "missing",    "note": "" },
+    "business-analysis/actors-and-personas.md":            { "status": "missing",    "note": "" },
+    "business-analysis/process-flows.md":                  { "status": "missing",    "note": "" },
+    "business-analysis/use-case-spec.md":                  { "status": "missing",    "note": "" },
+    "business-analysis/entity-model.md":                   { "status": "missing",    "note": "" },
+    "architecture/architecture-review.md":                 { "status": "missing",    "note": "" },
+    "architecture/architecture-rules.md":                  { "status": "missing",    "note": "" },
+    "state/open-decisions.md":                             { "status": "missing",    "note": "" },
+    "planning/delivery-structure/":                         { "status": "missing",    "note": "" },
+    "planning/software-modules.md":                         { "status": "not-triggered", "note": "Required only for Enterprise + Modular delivery mode" },
+    "planning/capability-to-module-map.md":                 { "status": "not-triggered", "note": "Required only for Enterprise + Modular delivery mode" },
+    "planning/delivery-increments.md":                      { "status": "not-triggered", "note": "Required only for Enterprise + Modular delivery mode" },
+    "engineering-readiness/readiness-check.md":            { "status": "missing",    "note": "" },
+    "engineering-readiness/initiative-context.md":         { "status": "missing",    "note": "" },
+    "quality-gates/bdd/":                                   { "status": "not-triggered", "note": "" },
+    "quality-gates/test-plans/":                            { "status": "not-triggered", "note": "" },
+    "quality-gates/test-strategy.md":                      { "status": "not-triggered", "note": "" },
+    "quality-gates/security-review.md":                    { "status": "not-triggered", "note": "" },
+    "quality-gates/api-contract.md":                       { "status": "not-triggered", "note": "" },
+    "quality-gates/data-contract.md":                      { "status": "not-triggered", "note": "" },
+    "quality-gates/observability-plan.md":                 { "status": "not-triggered", "note": "" },
+    "specs/handoff":                                        { "status": "missing",    "note": "" },
+    "quality-gates/test-stubs":                            { "status": "not-triggered", "note": "" },
+    "review-package/status.md":                            { "status": "missing",    "note": "" }
+  },
+
+  "stale_artifacts": [],
+
+  "artifact_timestamps": {
+    "_note": "ISO-8601 UTC timestamps of last meaningful edit per artifact. Updated by maintain-workflow-state after each stage. Used by drift detection (Step 2) to determine freshness objectively.",
+    "input/brs.md":                                        "",
+    "input/architecture.md":                               "",
+    "state/routing-decision.md":                            "",
+    "business-intake/business-intake-summary.md":          "",
+    "business-intake/business-rules.md":                   "",
+    "architecture/architecture-review.md":                 "",
+    "architecture/architecture-rules.md":                  "",
+    "state/open-decisions.md":                             "",
+    "planning/delivery-structure/":                         "",
+    "engineering-readiness/readiness-check.md":            "",
+    "engineering-readiness/initiative-context.md":         ""
+  },
+
+  "handoff_drift": {
+    "detected": false,
+    "upstream_changes": [],
+    "affected_story_folders": [],
+    "note": ""
+  },
+
+  "open_decisions": {
+    "blocking_count": 0,
+    "non_blocking_count": 0,
+    "resolved_count": 0
+  },
+
+  "quality_gates_triggered": [],
+  "quality_gates_complete": [],
+
+  "blocking_issues": [],
+
+  "next_action": {
+    "stage": "",
+    "prompt": "",
+    "reason": ""
+  },
+
+  "next_skill": {
+    "persona": "",
+    "skill": "",
+    "prompt": "",
+    "reason": "",
+    "expected_output": ""
+  }
+}

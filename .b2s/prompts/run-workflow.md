@@ -64,15 +64,26 @@ Use this sequence exactly:
 7. Run `collect-inputs --workspace-root WORKSPACE_ROOT` (use `--action-id` if recovering a specific action).
 8. Read `WORKSPACE_ROOT/.b2s/tmp/current-inputs.json` in full.
 9. If `overall != pass`, stop and surface the missing required inputs.
-9b. For every entry in `required_inputs` and `optional_inputs` where `exists == true`,
-    read the file at `WORKSPACE_ROOT/{match}` in full before proceeding.
-    Do not start generating until every input file has been read.
+9b. Use the prompt-facing placeholder contract from `current-inputs.json`.
+    Read every path listed in `{resolved_required_inputs}` in full before proceeding.
+    If `{resolved_optional_inputs}` is not empty, read those paths in full as well.
+    Do not start generating until every resolved required input has been read.
 10. Load only the selected skill prompt from the `skill_ref` path in `stage-actions.yaml`.
-11. Load the referenced artifact template only as the output shape contract.
-12. Generate or update the target artifact(s), writing to `WORKSPACE_ROOT/{output_path}`.
+11. If `{artifact_template_ref}` in `current-inputs.json` is non-null, read that file in full.
+    This is the output shape contract — every generated artifact must follow its exact structure,
+    section headings, table columns, and field names. Do not invent a different layout.
+    When an action produces multiple files from the same template, re-read the template before
+    each file to prevent drift.
+12. Generate or update the target artifact(s), writing to `{primary_output}` and
+    any paths listed in `{secondary_outputs}`.
 13. Run `validate-artifact --workspace-root WORKSPACE_ROOT`.
 14. Read `WORKSPACE_ROOT/.b2s/tmp/current-validation.yaml` in full.
-15. If validation fails, stop and surface the failures — do not run `update-state`.
+15. If validation fails:
+    a. Fix the specific failures listed in the validation output.
+    b. Re-run `validate-artifact` (go back to step 13).
+    c. **Retry cap**: after 3 consecutive validation failures for the same action,
+       stop. Report the remaining failures to the user and do not run `update-state`.
+       The user can fix manually and rerun, or adjust the artifact and retry.
 16. Run `update-state --workspace-root WORKSPACE_ROOT`.
 17. Read `WORKSPACE_ROOT/.b2s/tmp/current-state-update.json` in full.
 18. If a human gate was opened (`awaiting_human: true` in `current-state-update.json`):

@@ -1,0 +1,51 @@
+event_template_id: EVT-TPL-026
+type: CREATE_COMPACT_HANDOFF
+persona: engineering-lead
+priority: low
+description: "Optional: create a compact summary of an already-generated handoff package for stakeholder briefings."
+
+skill_ref: ".brs2spec2/skills/engineering-lead/create-compact-handoff.md"
+persona_ref: ".brs2spec2/personas/engineering-lead.md"
+
+inputs:
+  required:
+    - "engineering-readiness/readiness-check.md"
+    - "engineering-readiness/initiative-context.md"
+  optional:
+    - "specs/ or standalone-delivery/"
+    - "quality-gates/*.md"
+    - "routing/routing-decision.md"
+  condition: "specs/ exists OR standalone-delivery/ exists"
+
+blocked_by:
+  - "engineering-readiness/initiative-context.md"
+
+outputs:
+  primary: "handoff/compact-handoff-summary.md"
+
+must_include:
+  - "Metadata section with initiative, mode, and date"
+  - "Architecture constraints summary with AR-NNN verbatim"
+  - "Quality gates table with status and file paths"
+  - "Story summary table with priority breakdown"
+  - "Artifact index with paths to implementation files"
+  - "File explicitly states it is a summary projection not source of truth"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) real handoff artifacts are referenced not duplicated,
+    (2) no content invented beyond source artifacts,
+    (3) the file states it is a projection.
+  machine:
+    file_exists: "handoff/compact-handoff-summary.md"
+
+on_success:
+  update_state:
+    artifact_status:
+      "handoff/compact-handoff-summary.md": "accepted"
+
+on_failure:
+  raise_decision:
+    question: "Compact handoff creation failed. The real handoff (specs/ or standalone-delivery/) must exist first."
+    blocking: false
+    owner: "engineering-lead"

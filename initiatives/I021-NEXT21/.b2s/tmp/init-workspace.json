@@ -1,0 +1,21 @@
+{
+  "overall": "pass",
+  "initiative_id": "I021-NEXT21",
+  "workspace_root": "C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I021-NEXT21",
+  "workflow_type": "enterprise-modular",
+  "workflow_files": [
+    ".b2s/workflow/stage-actions.yaml",
+    ".b2s/workflow/workflow-definition.yaml",
+    ".b2s/workflow/workflow-type.json"
+  ],
+  "created": [
+    "input\\brs.md",
+    ".b2s/state/workflow-state.json",
+    ".b2s/state/open-decisions.md",
+    ".b2s/workflow/stage-actions.yaml",
+    ".b2s/workflow/workflow-definition.yaml",
+    ".b2s/workflow/workflow-type.json"
+  ],
+  "next_action": "route-initiative",
+  "message": "Initiative I021-NEXT21 workspace created with workflow type 'enterprise-modular'. Fill in input\\brs.md then run the workflow."
+}

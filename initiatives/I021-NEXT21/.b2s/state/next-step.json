@@ -1,0 +1,10 @@
+{
+  "overall": "pass",
+  "selected_action": "create-bdd-scenarios",
+  "selected_stage": "4b-quality-gates",
+  "reason": "all prerequisites satisfied and required inputs are present",
+  "blocking_reason": null,
+  "ready_actions": [
+    "create-bdd-scenarios"
+  ]
+}

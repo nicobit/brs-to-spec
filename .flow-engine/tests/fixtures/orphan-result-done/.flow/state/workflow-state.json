@@ -1,0 +1,16 @@
+{
+  "initiative_id": "I-FIXTURE-ORPHAN-DONE",
+  "current_stage": "0-routing",
+  "event_counter": 2,
+  "active_events": [],
+  "failed_events": [],
+  "last_completed_event": "EVT-00001",
+  "artifact_status": {
+    "business-analysis/requirements.md": {
+      "status": "ai_validated",
+      "produced_by": "EVT-00002",
+      "last_updated": "2026-06-15T10:00:00Z"
+    }
+  },
+  "last_updated": "2026-06-15T10:00:00Z"
+}

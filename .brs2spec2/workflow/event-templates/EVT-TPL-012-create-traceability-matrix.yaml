@@ -1,0 +1,52 @@
+event_template_id: EVT-TPL-012
+type: CREATE_TRACEABILITY_MATRIX
+persona: delivery-lead
+priority: high
+description: "Build end-to-end traceability from FR-NNN through BR-NNN through F-XXX.X stories through AC-NNN, with gap identification."
+
+skill_ref: ".brs2spec2/skills/delivery-lead/create-traceability-matrix.md"
+persona_ref: ".brs2spec2/personas/delivery-lead.md"
+artifact_template_ref: ".brs2spec2/artifact-templates/traceability-matrix.md"
+
+inputs:
+  required:
+    - "business-analysis/requirements.md"
+    - "planning/delivery-structure.md"
+  optional:
+    - "business-analysis/use-cases/"
+    - "business-analysis/business-rules.md"
+    - "business-analysis/actors-and-personas.md"
+    - "input/brs.md"
+    - "input/brs/*.md"
+
+outputs:
+  primary: "planning/traceability-matrix.md"
+
+must_include:
+  - "## Metadata table is present with Status: Draft"
+  - "## FR → Story Matrix covers all FR-NNN from BRS"
+  - "## Story → Requirements Matrix covers all F-XXX.X stories"
+  - "## Coverage Summary includes total counts and gap count"
+  - "## Gaps section lists any unmapped FR-NNN or stories with explanation"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) every FR-NNN from the BRS appears in the FR→Story matrix (mapped or explicitly excluded),
+    (2) every F-XXX.X story appears in the Story→Requirements matrix,
+    (3) coverage gaps are listed and explained, not silently omitted.
+  machine:
+    file_exists: "planning/traceability-matrix.md"
+
+on_success:
+  create_events:
+    - template: "EVT-TPL-015"
+      reason: "Traceability matrix complete — trigger engineering readiness check"
+  update_state:
+    artifact_status:
+      "planning/traceability-matrix.md": "ai_validated"
+
+on_failure:
+  raise_decision:
+    question: "Traceability matrix creation failed. Delivery structure must have F-XXX.X story IDs."
+    blocking: false
+    owner: "delivery-lead"

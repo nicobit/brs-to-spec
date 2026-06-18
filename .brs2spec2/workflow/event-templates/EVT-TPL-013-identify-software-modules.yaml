@@ -1,0 +1,48 @@
+event_template_id: EVT-TPL-013
+type: IDENTIFY_SOFTWARE_MODULES
+persona: delivery-lead
+priority: medium
+description: "Identify MOD-NNN software modules, their boundaries, contracts, and team ownership. Enterprise/Enterprise+Modular only."
+
+skill_ref: ".brs2spec2/skills/delivery-lead/identify-software-modules.md"
+persona_ref: ".brs2spec2/personas/delivery-lead.md"
+
+inputs:
+  required:
+    - "planning/delivery-structure.md"
+    - "architecture/architecture-review.md"
+    - "input/architecture.md or input/architecture/*.md"
+  condition: "execution_mode in [Enterprise, Enterprise+Modular]"
+
+outputs:
+  primary: "planning/software-modules.md"
+
+must_include:
+  - "## Metadata table is present with Status: Draft"
+  - "## Module Catalog lists at least one MOD-NNN entry"
+  - "Every MOD-NNN has Name, Type (new/existing), Responsibility, Technology, Team"
+  - "## Module Boundary Table is present"
+  - "## Functional Area to Module Mapping is present"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) every component from the architecture review has a MOD-NNN entry,
+    (2) module boundaries have explicit contract types and owners,
+    (3) functional areas map to at least one module.
+  machine:
+    file_exists: "planning/software-modules.md"
+  skip_if: "execution_mode == FastPath or execution_mode == Standard"
+
+on_success:
+  create_events:
+    - template: "EVT-TPL-035"
+      reason: "Modules identified — map capabilities to modules"
+  update_state:
+    artifact_status:
+      "planning/software-modules.md": "ai_validated"
+
+on_failure:
+  raise_decision:
+    question: "Software module identification failed."
+    blocking: false
+    owner: "delivery-lead"

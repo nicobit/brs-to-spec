@@ -109,7 +109,7 @@ required-before stage
 
 ## Execution artifact guidelines
 
-Prompts fed to LLMs (`.github/prompts/`, `.brs2spec/8-copilot-implementation/`) are
+Prompts fed to LLMs (`.github/prompts/`, `.brs2spec/skills/8-copilot-implementation/`) are
 execution artifacts — they are sensitive to model upgrades. A new model version is a
 change of interpreter. Apply these rules to keep execution artifacts durable:
 

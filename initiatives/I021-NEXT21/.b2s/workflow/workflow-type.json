@@ -1,0 +1,9 @@
+{
+  "workflow_type": "enterprise-modular",
+  "source_path": "C:\\Users\\nicol\\source\\brs-to-spec\\.b2s\\workflow-types\\enterprise-modular",
+  "copied_at": "2026-06-17T15:55:14.240095+00:00",
+  "files_copied": [
+    "stage-actions.yaml",
+    "workflow-definition.yaml"
+  ]
+}

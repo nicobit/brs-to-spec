@@ -1,0 +1,27 @@
+{
+  "overall": "pass",
+  "initiative_id": "I111-NEXT11",
+  "workspace_root": "C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I111-NEXT11",
+  "workflow_type": "enterprise-modular",
+  "workflow_files": [
+    ".b2s/workflow/stage-actions.yaml",
+    ".b2s/workflow/workflow-definition.yaml",
+    ".b2s/workflow/workflow-type.json"
+  ],
+  "created": [
+    "input\\brs.md",
+    ".b2s/state/workflow-state.json",
+    ".b2s/state/open-decisions.md",
+    ".b2s/workflow/stage-actions.yaml",
+    ".b2s/workflow/workflow-definition.yaml",
+    ".b2s/workflow/workflow-type.json",
+    "technical-specifications/README.md",
+    "technical-specifications/api/exposed/.gitkeep",
+    "technical-specifications/api/consumed/.gitkeep",
+    "technical-specifications/data/.gitkeep",
+    "technical-specifications/events/.gitkeep",
+    "technical-specifications/integrations/.gitkeep"
+  ],
+  "next_action": "route-initiative",
+  "message": "Initiative I111-NEXT11 workspace created with workflow type 'enterprise-modular'. Fill in input\\brs.md then run the workflow."
+}

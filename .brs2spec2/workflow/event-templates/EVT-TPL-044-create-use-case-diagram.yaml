@@ -1,0 +1,76 @@
+event_template_id: EVT-TPL-044
+type: CREATE_USE_CASE_DIAGRAM
+persona: product-owner
+priority: high
+description: "Produce the use case diagram as both a PlantUML file (use-cases.puml) and a Mermaid-in-markdown file (use-cases.md). Assigns stable UC-NNN IDs used by all downstream artifacts. Both outputs are co-produced in one pass and must carry identical UC-NNN IDs."
+
+skill_ref: ".brs2spec2/skills/product-owner/create-use-case-diagram.md"
+persona_ref: ".brs2spec2/personas/product-owner.md"
+artifact_template_ref: ".brs2spec2/artifact-templates/use-cases.md"
+
+inputs:
+  required:
+    - "business-analysis/requirements.md"
+  optional:
+    - "business-intake/business-intake-summary.md"
+    - "business-analysis/gaps-and-questions.md"
+    - "input/brs.md"
+    - "input/brs/*.md"
+
+outputs:
+  primary: "business-analysis/use-cases.puml"
+  secondary: "business-analysis/use-cases.md"
+
+must_include:
+  - "use-cases.puml contains @startuml and @enduml"
+  - "use-cases.puml contains 'left to right direction'"
+  - "use-cases.puml contains at least one UC-NNN usecase declaration"
+  - "use-cases.puml contains at least one actor declaration"
+  - "use-cases.md contains a Metadata table with Status: Draft"
+  - "use-cases.md contains a ```mermaid graph LR block"
+  - "use-cases.md actor nodes use person-shape syntax: ACTOR_ID([Actor Name]) — parentheses inside square brackets, not plain [Actor Name] or 'Actor Name'"
+  - "use-cases.md contains a UC Catalog table with UC-NNN, Title, Primary Actor(s), FR Sources columns"
+  - "UC Catalog table contains no placeholder text: {{, }}, Actor Name, Do Something, FR-NNN"
+  - "UC-NNN IDs in use-cases.puml match UC-NNN IDs in use-cases.md exactly"
+  - "Every UC-NNN in the catalog table traces to at least one FR-NNN"
+  - "use-cases.md contains either a Coverage Notes section or equivalent note showing that major FR clusters were checked for representation"
+  - "use-cases.md Mermaid actors use person-shape syntax ACTOR_ID([Actor Name]) and use cases use rounded-rectangle syntax UC001(UC-001 Title)"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) both files exist; (2) use-cases.puml is valid PlantUML with left-to-right
+    direction, a system boundary rectangle, actor declarations outside the boundary, and usecase
+    declarations inside the boundary; (3) use-cases.md has a valid Mermaid graph LR block with
+    person-shape actors and rounded-rectangle UC nodes; (4) every UC-NNN ID in use-cases.puml has
+    an exact match in use-cases.md and vice versa — no UC may appear in one file but not the other;
+    (5) every UC-NNN in the catalog table traces to at least one FR-NNN from requirements.md;
+    (6) no UC was invented without a traceable FR-NNN; (7) Status is Draft in use-cases.md metadata;
+    (8) the number of UCs is proportionate to the number of distinct user goals in requirements.md —
+    a diagram with 2 UCs when the BRS implies 8+ distinct user goals is a stub and must fail;
+    (9) the UC set covers the major requirement clusters or epics in the initiative rather than only
+    the first intake flow; if requirements clearly span intake, scoring, compliance, review, offer,
+    disbursement, and administration, the UC set must represent that breadth or fail with a specific
+    coverage explanation; (10) no actor or use case is domain-mismatched — actors/UCs inconsistent with the initiative
+    domain described in requirements.md and the BRS must fail; (11) if the Mermaid syntax uses the wrong
+    shapes from a stale template example, fail rather than passing a malformed markdown artifact.
+  machine:
+    file_exists: "business-analysis/use-cases.puml"
+    file_exists: "business-analysis/use-cases.md"
+
+on_success:
+  create_events:
+    - template: "EVT-TPL-007"
+      reason: "Use case diagram complete — trigger use case specs"
+    - template: "EVT-TPL-004"
+      reason: "Use case diagram complete — trigger actors and personas"
+  update_state:
+    current_stage: "2b-business-analysis"
+    artifact_status:
+      "business-analysis/use-cases.puml": "ai_validated"
+      "business-analysis/use-cases.md": "ai_validated"
+
+on_failure:
+  raise_decision:
+    question: "Use case diagram creation failed. Verify requirements.md exists and contains FR-NNN rows."
+    blocking: false
+    owner: "product-owner"

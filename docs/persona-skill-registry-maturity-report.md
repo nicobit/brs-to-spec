@@ -71,7 +71,7 @@ The exact sentence "Personas do not own the process. Artifacts own the process. 
 | Risk | Severity | Mitigation |
 |---|---|---|
 | `check_registry.py` requires PyYAML for YAML validation | Low | Script degrades gracefully; prints skip message instead of failing |
-| `docs/00-5-minute-quickstart.md` references the `0-intake/00-create-brs.md` prompt; verify this path exists | Medium | Run `python .brs2spec/tools/scripts/check_registry.py` to confirm |
+| `docs/00-5-minute-quickstart.md` references the `skills/0-intake/00-create-brs.md` prompt; verify this path exists | Medium | Run `python .brs2spec/tools/scripts/check_registry.py` to confirm |
 | README content checks in `check_program.py` do not yet verify links to the new quickstart and what-do-i-run docs | Low | Add these checks in a future pass if content drift becomes a concern |
 | BMAD is a moving target; the comparison page may need updating as BMAD evolves | Low | Keep the page factual and non-promotional to reduce maintenance burden |
 

@@ -1,0 +1,85 @@
+event_template_id: EVT-TPL-043
+type: CREATE_REQUIREMENTS_CATALOG
+persona: product-owner
+priority: high
+description: "Produce the canonical requirements catalog (FR-NNN, NFR-NNN, C-NNN) from the business intake summary and BRS source. First event of stage 2b — all other business-analysis events depend on this."
+
+skill_ref: ".brs2spec2/skills/product-owner/create-requirements.md"
+persona_ref: ".brs2spec2/personas/product-owner.md"
+artifact_template_ref: ".brs2spec2/artifact-templates/requirements.md"
+
+inputs:
+  required:
+    - "business-intake/business-intake-summary.md"
+    - "input/brs.md"
+  optional:
+    - "input/brs/*.md"
+    - "routing/routing-decision.md"
+
+outputs:
+  primary: "business-analysis/requirements.md"
+
+must_include:
+  - "FR count: enumerate every FR-NNN (or equivalent) ID found in input/brs.md; enumerate every FR row in business-analysis/requirements.md; state both counts; confirm they match; list every ID present in BRS but absent from the artifact"
+  - "NFR count: enumerate every NFR-NNN (or equivalent) ID found in input/brs.md; enumerate every NFR row in business-analysis/requirements.md; state both counts; confirm they match; list every missing NFR"
+  - "Every FR row has a unique ID matching the BRS convention, a one-sentence statement, a priority (High/Medium/Low), and a source reference — spot-check 3 rows and quote each field"
+  - "No placeholder text (TBD / TODO / [fill in]) anywhere in the artifact — quote any line containing a placeholder, or state explicitly that none were found"
+  - "Notes field does NOT contain phrases like 'generated to satisfy must_include' or 'further human review required' — if content cannot be produced, fail the event instead"
+
+validation_rules:
+  natural_language: >
+    Read input/brs.md and business-intake/business-intake-summary.md in full first.
+    Then read business-analysis/requirements.md.
+
+    Verify all of the following by cross-referencing the source files — do NOT evaluate
+    the requirements catalog alone:
+
+    (1) FR COMPLETENESS: Identify every functional requirement in input/brs.md (FR-NNN,
+        REQ-NNN, numbered items, module sub-sections, prose statements — whatever is present).
+        Count them. Count the FR rows in the requirements catalog. If counts differ, list
+        every ID or item present in the BRS but absent from the catalog. Even one missing
+        requirement fails this check.
+
+    (2) NFR COMPLETENESS: Identify every non-functional requirement in input/brs.md
+        (NFR-NNN, Quality, Performance, Security, Availability, Constraints — any section).
+        Count them. Count the NFR rows in the catalog. List every missing NFR explicitly.
+
+    (3) ID CONVENTION: Requirements in the catalog must use the same ID convention as the
+        BRS (FR-NNN if BRS uses FR-NNN; REQ-NNN if BRS uses REQ-NNN). Do not invent a new
+        convention. If the BRS uses prose, assign sequential IDs and note the mapping.
+
+    (4) DOMAIN CORRECTNESS: Read 5 random FR rows. For each, confirm the statement matches
+        content actually present in the BRS — not a generic paraphrase, not enterprise-platform
+        boilerplate. Quote the BRS source line and the catalog row side by side. If any row
+        does not trace to actual BRS content, fail and identify the fabricated rows.
+
+    (5) NO PLACEHOLDERS: Scan the full artifact for TBD, TODO, [fill in], PLACEHOLDER.
+        Quote any line containing a placeholder. A single unflagged placeholder fails.
+
+    (6) SOURCE REFERENCES: Every FR and NFR row must have a source reference pointing to a
+        specific section or ID in input/brs.md. A reference of "input/brs.md" alone without
+        a section is not acceptable for more than 20% of rows.
+
+  machine:
+    file_exists: "business-analysis/requirements.md"
+
+on_success:
+  create_events:
+    - template: "EVT-TPL-044"
+      reason: "Requirements catalog complete — trigger use-case diagram"
+    - template: "EVT-TPL-030"
+      reason: "Requirements catalog complete — trigger entity model"
+    - template: "EVT-TPL-003"
+      reason: "Requirements catalog complete — trigger business rules"
+    - template: "EVT-TPL-005"
+      reason: "Requirements catalog complete — trigger gaps and questions"
+  update_state:
+    current_stage: "2b-business-analysis"
+    artifact_status:
+      "business-analysis/requirements.md": "ai_validated"
+
+on_failure:
+  raise_decision:
+    question: "Requirements catalog creation failed. Verify business-intake-summary.md is complete and BRS source files are readable."
+    blocking: true
+    owner: "product-owner"

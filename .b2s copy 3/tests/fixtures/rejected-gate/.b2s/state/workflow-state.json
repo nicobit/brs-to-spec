@@ -1,0 +1,29 @@
+{
+  "initiative_id": null,
+  "current_stage": "2-business-intake",
+  "delivery_mode": "OpenSpec",
+  "execution_mode": "Standard",
+  "project_type": null,
+  "last_completed_action": "gate-business-intake-review",
+  "next_action": null,
+  "active_action": null,
+  "action_status": {
+    "route-initiative": "accepted",
+    "create-business-intake-summary": "failed",
+    "gate-business-intake-review": "failed"
+  },
+  "artifact_status": {
+    "routing/routing-decision.md": "accepted",
+    "business-intake/business-intake-summary.md": "failed"
+  },
+  "readiness_score": null,
+  "quality_gates_triggered": [],
+  "optional_artifacts_requested": [],
+  "open_decisions": 0,
+  "blocking_decisions": 0,
+  "awaiting_human": false,
+  "current_gate": null,
+  "blocked_reason": "needs revision",
+  "state_validated": true,
+  "last_updated": null
+}

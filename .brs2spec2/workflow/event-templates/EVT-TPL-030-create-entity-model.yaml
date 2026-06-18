@@ -1,0 +1,65 @@
+event_template_id: EVT-TPL-030
+type: CREATE_ENTITY_MODEL
+persona: product-owner
+priority: medium
+description: "Create business-level entity model (ENT-NNN catalog) with ER diagram and attribute tables. Derives from requirements.md — first-class artifact for data-relevant initiatives. Blocks data-contract generation."
+
+skill_ref: ".brs2spec2/skills/product-owner/create-entity-model.md"
+persona_ref: ".brs2spec2/personas/product-owner.md"
+artifact_template_ref: ".brs2spec2/artifact-templates/entity-model.md"
+
+inputs:
+  required:
+    - "business-analysis/requirements.md"
+  optional:
+    - "business-analysis/business-rules.md"
+    - "architecture/architecture-review.md"
+    - "business-intake/business-intake-summary.md"
+    - "input/brs.md"
+    - "input/brs/*.md"
+
+outputs:
+  primary: "business-analysis/entity-model.md"
+
+# Conditional blocking note:
+# entity-model.md blocks CREATE_DATA_CONTRACT for data-relevant initiatives.
+# It does NOT block REVIEW_INITIAL_ARCHITECTURE — architecture can start before entity model is done.
+# It does NOT block planning events — delivery structure reads entity model as optional input.
+
+must_include:
+  - "## Metadata table with Status: Draft"
+  - "## Entity Catalog table lists at least one ENT-NNN"
+  - "Every ENT-NNN has Name, Owner, PII flag, and FR Source reference"
+  - "Every ENT-NNN has a ### section with a one-sentence description and an attribute table"
+  - "Attribute table has exactly 5 columns: Attribute, Description, Data Type, Length/Precision, Validation Rules"
+  - "Relationship definitions with cardinality and optionality"
+  - "Mermaid erDiagram is present, uses valid ER syntax, and contains no inline attribute blocks"
+  - "## Feature Coverage table maps ENT-NNN to FR-NNN sources"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) every persistent business object implied by requirements.md has an ENT-NNN —
+    count the distinct domain objects in requirements.md and verify the entity catalog has a
+    comparable count (a catalog with only 1–2 entities when the BRS implies 8+ domain objects is
+    a stub and must fail); (2) every ENT-NNN has owner, PII flag, and at least one FR-NNN source;
+    (3) every ENT-NNN has an attribute table with exactly 5 columns;
+    (4) relationships have cardinality and optionality;
+    (5) no database implementation details (no FK names, no indexes);
+    (6) Mermaid erDiagram uses valid syntax and does not contain inline attribute definitions inside entities;
+    (7) Status is Draft;
+    (8) no entity name is domain-mismatched — if requirements.md describes a Loan Origination
+    Platform and the entity catalog contains "Order", "Cart", or "Product" with no BRS source,
+    that is a domain mismatch and must fail.
+  machine:
+    file_exists: "business-analysis/entity-model.md"
+
+on_success:
+  update_state:
+    artifact_status:
+      "business-analysis/entity-model.md": "ai_validated"
+
+on_failure:
+  raise_decision:
+    question: "Entity model creation failed. Verify requirements.md exists and has FR-NNN rows identifying persistent business objects."
+    blocking: false
+    owner: "product-owner"

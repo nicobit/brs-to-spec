@@ -1,0 +1,51 @@
+event_template_id: EVT-TPL-003
+type: CREATE_BUSINESS_RULES
+persona: product-owner
+priority: high
+description: "Derive and formalize all business rules from requirements.md into a numbered BR-NNN catalog."
+
+skill_ref: ".brs2spec2/skills/product-owner/create-business-rules.md"
+persona_ref: ".brs2spec2/personas/product-owner.md"
+artifact_template_ref: ".brs2spec2/artifact-templates/business-rules.md"
+
+inputs:
+  required:
+    - "business-analysis/requirements.md"
+  optional:
+    - "input/brs.md"
+    - "input/brs/*.md"
+    - "business-intake/business-intake-summary.md"
+    - "routing/routing-decision.md"
+
+outputs:
+  primary: "business-analysis/business-rules.md"
+
+must_include:
+  - "## Metadata table is present with Status: Draft"
+  - "## Business Rules Catalog table is present with multiple BR-NNN entries (not a single stub row)"
+  - "Every BR-NNN has a Category, Rule Statement, and BRS Source"
+  - "## Coverage Note table maps FR-NNN to BR-NNN"
+  - "No row contains placeholder text: TBD, TODO, [fill in], {{, }}, BR-NNN in the Rule Statement cell"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) every FR-NNN in requirements.md that contains a constraint, authorization rule,
+    or validation has at least one BR-NNN — count constraint-bearing FRs and verify the catalog
+    has a proportionate number of rules (a catalog with 5 generic rules when the BRS has 20+
+    constraint-bearing requirements is a stub and must fail); (2) no rules are invented beyond
+    requirements.md content; (3) every rule statement is unambiguous and testable;
+    (4) Status is Draft; (5) no rule is domain-mismatched — rules about "Orders", "Carts",
+    or "Products" with no BRS source when the domain is clearly different must fail.
+  machine:
+    file_exists: "business-analysis/business-rules.md"
+
+on_success:
+  update_state:
+    artifact_status:
+      "business-analysis/business-rules.md": "ai_validated"
+
+on_failure:
+  raise_decision:
+    question: "Business rules extraction failed. Check BRS for identifiable constraints."
+    blocking: false
+    owner: "product-owner"

@@ -31,6 +31,23 @@ The first implementation supports exactly one active action at a time.
 
 Do not load unrelated prompts or personas during execution.
 
+## Prompt placeholder rule
+
+When a skill prompt uses workflow-driven placeholders, prefer the engine-resolved
+prompt placeholder contract over hardcoded path text.
+
+Supported prompt-facing placeholders include:
+
+- `{required_inputs}`
+- `{optional_inputs}`
+- `{resolved_required_inputs}`
+- `{resolved_optional_inputs}`
+- `{primary_output}`
+- `{secondary_outputs}`
+
+Use resolved placeholders for actual read and write instructions. Do not expose
+engine-internal terms like `matches` in prompt-facing placeholder names.
+
 ## State rule
 
 `workflow-state.json` is the source of staged orchestration truth, but only

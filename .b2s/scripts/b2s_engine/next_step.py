@@ -125,7 +125,7 @@ def _blocked_by_stage_satisfied(
     required_stages = action.get("blocked_by_stage", [])
     if not required_stages:
         return True
-    workflow = workspace.load_workflow_definition()
+    workflow = workspace.load_workflow_definition(workspace_root)
     stages_by_id = {stage["id"]: stage for stage in workflow["stages"]}
     for stage_id in required_stages:
         stage = stages_by_id.get(stage_id)
@@ -192,8 +192,8 @@ def select_next_action(
     workspace_root: Any,
     state: dict[str, Any],
 ) -> dict[str, Any]:
-    workflow = workspace.load_workflow_definition()
-    _, actions_by_id = workspace.load_stage_actions()
+    workflow = workspace.load_workflow_definition(workspace_root)
+    _, actions_by_id = workspace.load_stage_actions(workspace_root)
     stages = workflow["stages"]
     stage_ids = [stage["id"] for stage in stages]
     current_stage = state.get("current_stage") or stage_ids[0]
@@ -264,6 +264,23 @@ def select_next_action(
 def run(args: object) -> None:
     workspace_root = workspace.resolve_workspace_root(args.workspace_root)
     state = workspace.load_state(workspace_root)
+
+    issues = workspace.check_state_integrity(workspace_root, state)
+    repairable = [i for i in issues if i["issue"] in ("ghost", "missing_artifact")]
+    if repairable:
+        repaired = workspace.repair_ghost_actions(workspace_root, state, repairable)
+        workspace.save_state(workspace_root, state)
+        workspace.append_execution_log(
+            workspace_root,
+            command="next-step",
+            overall="pass",
+            details={
+                "integrity_check": "auto-repaired",
+                "repaired_actions": repaired,
+                "issues": [i["detail"] for i in repairable],
+            },
+        )
+
     result = select_next_action(workspace_root, state)
 
     state["current_stage"] = result["selected_stage"]

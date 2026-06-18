@@ -1,0 +1,80 @@
+event_template_id: EVT-TPL-011
+type: CREATE_DELIVERY_STRUCTURE
+persona: delivery-lead
+priority: critical
+description: "Decompose the initiative into the canonical epic → feature → user story (F-XXX.X) hierarchy with stable IDs, AC-NNN, and increment assignments."
+
+skill_ref: ".brs2spec2/skills/delivery-lead/create-delivery-structure.md"
+persona_ref: ".brs2spec2/personas/delivery-lead.md"
+artifact_template_ref: ".brs2spec2/artifact-templates/delivery-structure.md"
+
+inputs:
+  required:
+    - "business-analysis/requirements.md"
+    - "architecture/architecture-review.md"
+    - "routing/routing-decision.md"
+  optional:
+    - "business-analysis/use-cases/"
+    - "business-analysis/gaps-and-questions.md"
+    - "business-analysis/business-rules.md"
+    - "business-analysis/actors-and-personas.md"
+    - "input/brs.md"
+    - "input/brs/*.md"
+    - "business-intake/business-intake-summary.md"
+
+outputs:
+  primary: "planning/delivery-structure.md"
+
+must_include:
+  - "## Metadata table is present with delivery mode and execution mode"
+  - "## Story Count Assertion is present with total story count as an explicit number (not a range or TBD)"
+  - "Every Epic section in the BRS input has a corresponding E-NNN entry — count of epics in delivery-structure.md equals count of major epic/section headings in input/brs.md"
+  - "At least one Feature (F-NNN) within each Epic"
+  - "At least one User Story (F-NNN.X) within each Feature with user story text in As a / I want / so that format"
+  - "Every F-NNN.X story has at least one AC-NNN and a Priority (Must / Should / Could)"
+  - "## FR Coverage table is present with one row per FR-NNN from input/brs.md — no FR-NNN may be omitted or bundled as a range (e.g. FR-001..FR-023 is not acceptable; each FR must have its own row)"
+  - "Every FR-NNN row in the FR Coverage table has at least one specific F-NNN.X story ID listed — 'Covered' without a story ID is not acceptable"
+  - "Story Count Assertion total equals the actual count of F-NNN.X rows in the artifact"
+
+validation_rules:
+  natural_language: >
+    Read input/brs.md first. Then read planning/delivery-structure.md. Verify all of the following
+    by cross-referencing the two files — do NOT evaluate against the delivery-structure alone:
+    (1) Count the epic/major-section headings in input/brs.md. Count the E-NNN entries in
+        delivery-structure.md. They must be equal. If delivery-structure has fewer epics than
+        the BRS has major sections, fail: list the missing BRS sections by name.
+    (2) List every FR-NNN ID found in input/brs.md. For each one, check the FR Coverage table
+        in delivery-structure.md has a row with that exact ID and at least one F-NNN.X story
+        listed. If any FR-NNN is missing from the table or has no story mapped, fail: list
+        every missing or unmapped FR-NNN explicitly.
+    (3) All stories have user story format (As a [actor] / I want [action] / so that [outcome]).
+        Fail if any story row is missing any of the three parts.
+    (4) Stories are appropriately sized — not epic-level ("implement the loan module") and not
+        sub-task-level ("add a button"). Each story names one specific user-facing capability.
+    (5) No invented stories beyond BRS scope — every story traces to at least one FR-NNN.
+    (6) Story Count Assertion number matches the actual count of F-NNN.X rows in the file.
+        Count them. If the number does not match, fail: state declared count vs actual count.
+  machine:
+    file_exists: "planning/delivery-structure.md"
+    contains_pattern: "F-\\d{3}\\.\\d+"
+
+on_success:
+  create_events:
+    - template: "EVT-TPL-012"
+      reason: "Delivery structure confirmed — create traceability matrix"
+    - template: "EVT-TPL-013"
+      reason: "Delivery structure confirmed — identify software modules"
+      condition: "execution_mode in [Enterprise, Enterprise+Modular]"
+    - template: "EVT-TPL-014"
+      reason: "Delivery structure confirmed — define delivery increments"
+      condition: "execution_mode == Enterprise+Modular"
+  update_state:
+    current_stage: "3-planning"
+    artifact_status:
+      "planning/delivery-structure.md": "ai_validated"
+
+on_failure:
+  raise_decision:
+    question: "Delivery structure creation failed. Verify architecture review is complete and all blocking gaps from gaps-and-questions.md are resolved."
+    blocking: true
+    owner: "delivery-lead"

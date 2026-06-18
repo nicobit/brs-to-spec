@@ -1,0 +1,53 @@
+event_template_id: EVT-TPL-005
+type: FIND_GAPS_AND_QUESTIONS
+persona: product-owner
+priority: high
+description: "Perform structured gap analysis on the BRS, identifying ambiguities, missing specs, conflicts, and unanswered questions."
+
+skill_ref: ".brs2spec2/skills/product-owner/find-gaps-and-questions.md"
+persona_ref: ".brs2spec2/personas/product-owner.md"
+artifact_template_ref: ".brs2spec2/artifact-templates/gaps-and-questions.md"
+
+inputs:
+  required:
+    - "business-intake/business-intake-summary.md"
+    - "business-analysis/requirements.md"
+  optional:
+    - "business-analysis/entity-model.md"
+    - "business-analysis/use-cases/"
+    - "business-analysis/business-rules.md"
+    - "architecture/architecture-review.md"
+    - "routing/routing-decision.md"
+
+outputs:
+  primary: "business-analysis/gaps-and-questions.md"
+
+must_include:
+  - "## Metadata table is present with Status: Draft"
+  - "## Gap Catalog table is present with columns: GAP-NNN, Category, Description, Impact, Severity, Suggested Resolution, Owner, BRS Source"
+  - "## Critical Path section is present with at least one subsection (Blocking, High, or Low)"
+  - "## Coverage Summary is present with numeric counts for Blocking, High, Low, and Total gaps"
+  - "Every GAP-NNN row has Category, Description, Severity, Owner, and BRS Source all populated"
+  - "No cell contains placeholder text: {{, }}, GAP-NNN as a value, TBD, TODO"
+  - "If the BRS contains explicit open questions, the gap catalog reflects them as GAP-NNN rows or explains why they were already resolved"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) all sections of the BRS were reviewed for each gap category,
+    (2) blocking gaps are listed in the critical path section,
+    (3) non-blocking gaps have stated assumptions, (4) if the BRS has explicit open questions,
+    they appear as gaps or are clearly shown as already resolved, (5) no gaps invented.
+  machine:
+    file_exists: "business-analysis/gaps-and-questions.md"
+
+on_success:
+  open_decisions_raised: true
+  update_state:
+    artifact_status:
+      "business-analysis/gaps-and-questions.md": "ai_validated"
+
+on_failure:
+  raise_decision:
+    question: "Gap analysis failed. Review BRS completeness."
+    blocking: false
+    owner: "product-owner"

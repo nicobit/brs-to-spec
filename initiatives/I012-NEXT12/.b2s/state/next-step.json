@@ -1,0 +1,8 @@
+{
+  "overall": "fail",
+  "selected_action": null,
+  "selected_stage": "4-engineering-readiness",
+  "reason": null,
+  "blocking_reason": "stage `4-engineering-readiness` is incomplete but no executable action is currently ready",
+  "ready_actions": []
+}

@@ -28,7 +28,7 @@ Fed into LLMs or CI to drive automated action. These are sensitive to model upgr
 a long prose instruction fed to a new model version may produce structurally different output.
 The longer and more narrative the artifact, the more interpretation variance accumulates.
 
-Examples: `.github/prompts/*.prompt.md`, `.brs2spec/8-copilot-implementation/*.md`,
+Examples: `.github/prompts/*.prompt.md`, `.brs2spec/skills/8-copilot-implementation/*.md`,
 BDD scenarios wired to a test runner, CI gate configs.
 
 **Durability strategy:**
@@ -58,7 +58,7 @@ BDD scenarios wired to a test runner, CI gate configs.
 | Event contract | Human → Execution | Structured tables reviewed by human; wire to schema registry check for CI |
 | BDD scenarios (wired to CI) | Execution | Machine-verifiable, model-agnostic, survives model upgrades |
 | `.github/prompts/*.prompt.md` | Execution | Keep short and constraint-based; smoke test after model upgrade |
-| `.brs2spec/8-copilot-implementation/*.md` | Execution | Keep short and constraint-based; smoke test after model upgrade |
+| `.brs2spec/skills/8-copilot-implementation/*.md` | Execution | Keep short and constraint-based; smoke test after model upgrade |
 | CI gate configs | Execution | Machine-verifiable, model-agnostic |
 
 ## The boundary in practice

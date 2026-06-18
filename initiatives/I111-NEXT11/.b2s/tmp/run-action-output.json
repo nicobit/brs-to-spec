@@ -1,0 +1,19 @@
+{
+  "overall": "pass",
+  "action_id": "create-architecture-rules",
+  "previous_state_summary": {
+    "current_stage": "3-planning",
+    "next_action": "create-architecture-rules",
+    "action_status": "not_run"
+  },
+  "applied_changes": {
+    "action_reopened": "create-architecture-rules",
+    "gate_cleared": null,
+    "artifacts_cleared": [
+      "architecture/architecture-rules.md"
+    ],
+    "next_action": "create-architecture-rules"
+  },
+  "next_action": "create-architecture-rules",
+  "gate_state": null
+}

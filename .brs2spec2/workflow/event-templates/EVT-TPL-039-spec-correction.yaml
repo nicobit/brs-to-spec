@@ -1,0 +1,44 @@
+event_template_id: EVT-TPL-039
+type: SPEC_CORRECTION
+persona: reviewer
+priority: high
+description: "Apply a targeted, minimal correction to a specific framework artifact based on a review finding or human feedback."
+
+skill_ref: ".brs2spec2/skills/reviewer/spec-correction.md"
+persona_ref: ".brs2spec2/personas/reviewer.md"
+
+inputs:
+  required:
+    - "Target artifact path (specified in event)"
+    - "Error description (specified in event)"
+    - "Correct content source (BRS or upstream artifact)"
+  optional:
+    - "Dependent artifacts list"
+
+outputs:
+  primary: "{{target-artifact-path}} (corrected in place)"
+
+must_include:
+  - "Target artifact is corrected at its original path"
+  - "Correction note documents what changed, source of truth, and impact chain"
+  - "Artifact Status remains unchanged from before correction (no self-acceptance)"
+  - "Impact chain explicitly listed even if no cascading changes needed"
+
+validation_rules:
+  natural_language: >
+    Verify that: (1) only the specific identified error was corrected,
+    (2) no scope expansion occurred,
+    (3) impact chain is explicitly listed,
+    (4) the corrected artifact was not self-accepted.
+  machine:
+    condition_required: "target artifact path and error description specified in event"
+
+on_success:
+  update_state:
+    note: "Corrected artifact retains its previous status — human sign-off still required"
+
+on_failure:
+  raise_decision:
+    question: "Spec correction failed — correction would require cascading changes to accepted gate artifacts. Human review required."
+    blocking: true
+    owner: "human"

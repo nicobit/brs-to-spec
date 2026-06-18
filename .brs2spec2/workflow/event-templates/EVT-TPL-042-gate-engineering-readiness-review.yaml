@@ -1,0 +1,91 @@
+# Event Template — EVT-TPL-042: Gate — Engineering Readiness Review
+# Version: 1.0
+#
+# WAIT_HUMAN gate triggered after readiness-check.md is ai_validated.
+# Pauses dispatch-all. Human reviews engineering readiness before handoff generation begins.
+# This is Gate 3 of 3 in the standard flow.
+#
+# On approval: initiative context and quality gate events are created, then handoff.
+# On rejection: blocking decision raised — engineering lead must revise readiness check.
+
+event_template_id: EVT-TPL-042
+type: WAIT_HUMAN
+persona: orchestrator
+priority: critical
+
+description: >
+  Gate 3: Human review of engineering readiness check before handoff generation begins.
+  The flow pauses here. Review engineering-readiness/readiness-check.md for score,
+  gate triggers, and blockers. Reply approved or rejected.
+
+# No skill_ref, persona_ref, or artifact_template_ref — WAIT_HUMAN does not enter persona mode.
+
+inputs:
+  required:
+    - "engineering-readiness/readiness-check.md"
+  optional:
+    - "planning/delivery-structure.md"
+    - "architecture/architecture-rules.md"
+
+outputs:
+  primary: null
+
+gate_context:
+  gate_name: "Gate 3 — Engineering Readiness Review"
+  gate_prompt: >
+    The engineering readiness check has been produced and AI-validated.
+    Before handoff generation begins, please review
+    engineering-readiness/readiness-check.md for:
+      - Readiness score is calculated and acceptable
+      - All 7 gate triggers are explicitly decided with justification
+      - No blocking items remain unresolved
+      - Quality gates triggered match your expectations (BDD, security, API contracts, etc.)
+      - The initiative is genuinely ready for engineering handoff
+    Reply 'approved' to generate the handoff package, or 'rejected: <reason>' to stop.
+  artifacts_under_review:
+    - "engineering-readiness/readiness-check.md"
+    - "planning/delivery-structure.md"
+
+must_include: []
+validation_rules: {}
+blocked_by:
+  - "engineering-readiness/readiness-check.md"
+
+on_success:
+  create_events:
+    - template: "EVT-TPL-016"
+      reason: "Readiness approved — generate initiative context"
+    - template: "EVT-TPL-017"
+      reason: "BDD gate triggered — create BDD scenarios"
+      condition: "quality_gates_triggered contains BDD_SCENARIOS"
+    - template: "EVT-TPL-018"
+      reason: "Test strategy gate triggered"
+      condition: "quality_gates_triggered contains TEST_STRATEGY"
+    - template: "EVT-TPL-019"
+      reason: "Security review gate triggered"
+      condition: "quality_gates_triggered contains SECURITY_REVIEW"
+    - template: "EVT-TPL-020"
+      reason: "API contract gate triggered"
+      condition: "quality_gates_triggered contains API_CONTRACT"
+    - template: "EVT-TPL-021"
+      reason: "Data contract gate triggered"
+      condition: "quality_gates_triggered contains DATA_CONTRACT"
+    - template: "EVT-TPL-022"
+      reason: "Event contract gate triggered"
+      condition: "quality_gates_triggered contains EVENT_CONTRACT"
+    - template: "EVT-TPL-023"
+      reason: "Observability plan gate triggered"
+      condition: "quality_gates_triggered contains OBSERVABILITY_PLAN"
+  update_state:
+    current_stage: "4-engineering-readiness"
+    artifact_status:
+      "engineering-readiness/readiness-check.md": "accepted"
+
+on_failure:
+  raise_decision:
+    question: >
+      Engineering readiness review rejected by human. Review the rejection reason,
+      resolve blocking items, correct readiness-check.md, and re-run EVT-TPL-015
+      or override the gate manually.
+    owner: engineering-lead
+    blocking: true

@@ -1,0 +1,71 @@
+{
+  "_schema": "brs2spec-workflow-state/1.0",
+  "initiative": "I004-it-portal",
+  "last_updated": "2026-06-11T00:00:00Z",
+  "updated_by": "orchestrator",
+  "state_validated": false,
+
+  "delivery_mode": "",
+  "execution_mode": "",
+  "current_stage": "engineering-readiness",
+  "readiness_decision": "Not ready",
+
+  "artifacts": {
+    "input/brs.md":                                        { "status": "present",    "note": "exists" },
+    "input/input-package.md":                              { "status": "present",    "note": "exists" },
+    "input/architecture.md":                               { "status": "present",    "note": "exists" },
+    "state/routing-decision.md":                         { "status": "present",    "note": "created" },
+    "business-intake/business-intake-summary.md":          { "status": "present",    "note": "exists" },
+    "architecture/architecture-review.md":                 { "status": "present",    "note": "created" },
+    "architecture/architecture-rules.md":                  { "status": "present",    "note": "created" },
+    "state/open-decisions.md":                          { "status": "present",    "note": "created" },
+    "planning/delivery-structure.md":                      { "status": "present",    "note": "draft exists" },
+    "engineering-readiness/readiness-check.md":            { "status": "present",    "note": "created" },
+    "input/contracts/servicenow-integration.md":          { "status": "present",    "note": "scaffold created" },
+    "input/constraints/audit-retention.md":               { "status": "present",    "note": "scaffold created" },
+    "engineering-readiness/initiative-context.md":         { "status": "missing",    "note": "not started" },
+    "quality-gates/bdd-scenarios.md":                      { "status": "not-triggered", "note": "" },
+    "quality-gates/test-strategy.md":                      { "status": "not-triggered", "note": "" },
+    "quality-gates/security-review.md":                    { "status": "not-triggered", "note": "" },
+    "quality-gates/api-contract.md":                       { "status": "not-triggered", "note": "" },
+    "quality-gates/data-contract.md":                      { "status": "not-triggered", "note": "" },
+    "quality-gates/observability-plan.md":                 { "status": "not-triggered", "note": "" },
+    "openspec/handoff":                                    { "status": "missing",    "note": "not started" }
+  },
+
+  "stale_artifacts": [],
+
+  "open_decisions": {
+    "blocking_count": 2,
+    "non_blocking_count": 2,
+    "resolved_count": 0
+  },
+
+  "quality_gates_triggered": [
+    "security-review",
+    "data-contract",
+    "api-contract",
+    "observability-plan",
+    "bdd-scenarios"
+  ],
+  "quality_gates_complete": [],
+
+  "blocking_issues": [
+    { "id": "D-002", "summary": "CMDB ownership decision required", "owner": "Product Owner / Platform" },
+    { "id": "D-003", "summary": "Audit retention policy and storage choice", "owner": "Security / Compliance" }
+  ],
+
+  "next_action": {
+    "stage": "awaiting-human-input",
+    "prompt": "",
+    "reason": "Two blocking decisions (D-002, D-003) require human input. Stubs created: `input/contracts/servicenow-integration.md`, `input/constraints/audit-retention.md`. Provide answers in those files to continue."
+  },
+
+  "next_skill": {
+    "persona": "orchestrator",
+    "skill": "orchestrator.await_human_input",
+    "prompt": "",
+    "reason": "Waiting for Product Owner / Platform and Security to resolve blocking decisions",
+    "expected_output": "planning/open-decisions.md updates and readiness-check re-run"
+  }
+}

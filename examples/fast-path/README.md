@@ -56,21 +56,21 @@ examples/fast-path/
 
 ```text
 .brs2spec/00-start.md
-.brs2spec/1-routing/01-select-delivery-and-execution-mode.md
-.brs2spec/4-engineering-readiness/01-check-engineering-readiness.md
-.brs2spec/4-engineering-readiness/02-generate-initiative-context.md
-.brs2spec/5-handoff/02-create-standalone-delivery-package.md
-.brs2spec/8-copilot-implementation/01-implement-one-task.md
-.brs2spec/9-reviewers/01-senior-code-review.md
+.brs2spec/skills/1-routing/01-select-delivery-and-execution-mode.md
+.brs2spec/skills/4-engineering-readiness/01-check-engineering-readiness.md
+.brs2spec/skills/4-engineering-readiness/02-generate-initiative-context.md
+.brs2spec/skills/5-handoff/02-create-standalone-delivery-package.md
+.brs2spec/skills/8-copilot-implementation/01-implement-one-task.md
+.brs2spec/skills/9-reviewers/01-senior-code-review.md
 ```
 
 ## Prompts skipped and why
 
 | Prompt | Reason skipped |
 |---|---|
-| `0-input-preparation/01-convert-brs-word-to-markdown.md` | No Word document — problem is stated directly |
-| `2-business-intake/01-create-business-intake-summary.md` | No PO review needed |
-| `3-planning-and-modular-delivery/*` | No delivery slicing, no modular planning |
-| `4-engineering-readiness/quality-gates/*` | No gates triggered |
-| `6-business-copilot/*` | No M365 review path |
-| `7-perspectives/*` | No sprint board needed |
+| `skills/0-input-preparation/01-convert-brs-word-to-markdown.md` | No Word document — problem is stated directly |
+| `skills/2-business-intake/01-create-business-intake-summary.md` | No PO review needed |
+| `skills/3-planning-and-modular-delivery/*` | No delivery slicing, no modular planning |
+| `skills/4-engineering-readiness/quality-gates/*` | No gates triggered |
+| `skills/6-business-copilot/*` | No M365 review path |
+| `skills/7-perspectives/*` | No sprint board needed |
