@@ -1,5 +1,0 @@
-# Architecture Review
-
-## Summary
-
-Placeholder.

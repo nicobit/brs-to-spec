@@ -1,0 +1,28 @@
+{
+  "initiative_id": "I998",
+  "current_stage": "2b-business-analysis",
+  "delivery_mode": "OpenSpec",
+  "execution_mode": "Standard",
+  "project_type": null,
+  "last_completed_action": "create-business-intake-summary",
+  "next_action": "create-requirements",
+  "active_action": "create-requirements",
+  "action_status": {
+    "route-initiative": "accepted",
+    "create-business-intake-summary": "accepted"
+  },
+  "artifact_status": {
+    "routing/routing-decision.md": "accepted",
+    "business-intake/business-intake-summary.md": "accepted"
+  },
+  "readiness_score": null,
+  "quality_gates_triggered": [],
+  "optional_artifacts_requested": [],
+  "open_decisions": 0,
+  "blocking_decisions": 0,
+  "awaiting_human": false,
+  "current_gate": null,
+  "blocked_reason": null,
+  "state_validated": true,
+  "last_updated": "2026-06-20T08:27:58.276923+00:00"
+}

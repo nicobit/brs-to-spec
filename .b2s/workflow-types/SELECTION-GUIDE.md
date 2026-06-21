@@ -7,6 +7,7 @@
 | `enterprise-modular` | Full staged delivery with quality gates and story packages | OpenSpec, Standalone, FastPath |
 | `technical-spec-modular` | Same as enterprise-modular + canonical technical specifications produced before story handoff | OpenSpec, Standalone, FastPath |
 | `fast-path` | Simple, internal, or low-risk initiatives where full analysis and quality gates are not needed | FastPath only |
+| `agile-delivery-flow` | Progressive decomposition with governance, capability mapping, per-story quality gates, and dispatch routing | OpenSpec, Standalone |
 
 ## Decision guide
 
@@ -22,6 +23,10 @@ Start here:
 with explicit auth/SLA/retry requirements, or need shared schema specs for
 multi-team coordination?**
 → Use `technical-spec-modular`
+
+**Does the initiative need architecture impact mapped per requirement, capability
+mapping, per-story quality gates, or explicit dispatch routing?**
+→ Use `agile-delivery-flow`
 
 **Otherwise:**
 → Use `enterprise-modular`
@@ -44,6 +49,13 @@ multi-team coordination?**
 `fast-path`:
 ```
 0-routing → 2-business-intake → 3-planning → 5-handoff → 6-review-package
+```
+
+`agile-delivery-flow`:
+```
+0-governance → 1-requirements → 2-domain-analysis → 3-architecture-context
+  → 4-architecture-impact → 5-delivery-planning → 6-story-quality-gate
+  → 7-bdd-and-testing → 8-handoff → 9-readiness-review → 10-dispatch
 ```
 
 ## Artifact ownership: technical-spec-modular vs enterprise-modular

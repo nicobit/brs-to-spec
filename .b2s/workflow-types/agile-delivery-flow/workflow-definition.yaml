@@ -1,0 +1,145 @@
+version: 1
+framework: b2s
+description: >
+  Agile delivery flow: progressive decomposition with architecture-awareness
+  at every phase. Transforms BRS into architecture-aware, testable, AI-ready
+  delivery artifacts with explicit governance, capability mapping, per-story
+  quality gates, and dispatch routing.
+
+constraints:
+  single_active_action: true
+  max_active_actions: 1
+  state_files_orchestrator_only: true
+
+stages:
+  - id: "0-governance"
+    name: "Governance"
+    description: "Create the delivery constitution that governs all later phases."
+    execution_mode: serial
+    actions:
+      - create-delivery-constitution
+    next_stages:
+      - id: "1-requirements"
+        condition: always
+
+  - id: "1-requirements"
+    name: "Requirements extraction"
+    description: "Extract atomic requirements, open questions, and assumptions from the BRS."
+    execution_mode: serial
+    actions:
+      - create-atomic-requirements
+      - extract-open-questions
+      - extract-assumptions
+      - gate-requirements-review
+    next_stages:
+      - id: "2-domain-analysis"
+        condition: gate-requirements-review accepted
+
+  - id: "2-domain-analysis"
+    name: "Domain analysis"
+    description: "Build capability map, domain model, business rules, and domain traceability."
+    execution_mode: serial
+    actions:
+      - create-capability-map
+      - create-domain-model
+      - create-domain-business-rules
+      - create-domain-traceability
+    next_stages:
+      - id: "3-architecture-context"
+        condition: always
+
+  - id: "3-architecture-context"
+    name: "Architecture context"
+    description: "Draft, review, and codify architecture context and rules."
+    execution_mode: serial
+    actions:
+      - draft-architecture-from-brs
+      - review-initial-architecture
+      - create-architecture-rules
+    next_stages:
+      - id: "4-architecture-impact"
+        condition: always
+
+  - id: "4-architecture-impact"
+    name: "Architecture impact"
+    description: "Map requirements to architecture impact, identify required ADRs, and surface risks."
+    execution_mode: serial
+    actions:
+      - create-architecture-impact-map
+      - identify-required-adrs
+      - identify-architecture-risks
+    next_stages:
+      - id: "5-delivery-planning"
+        condition: always
+
+  - id: "5-delivery-planning"
+    name: "Delivery planning"
+    description: "Progressive delivery decomposition: skeleton, elaboration plan, epics, per-feature stories, and coverage validation."
+    execution_mode: serial
+    actions:
+      - create-delivery-skeleton
+      - create-elaboration-plan
+      - gate-elaboration-plan-review
+      - create-epic-packages
+      - create-feature-stories
+      - validate-fr-coverage
+    next_stages:
+      - id: "6-story-quality-gate"
+        condition: always
+
+  - id: "6-story-quality-gate"
+    name: "Story quality gate"
+    description: "Validate every story against 11 quality checks before BDD generation."
+    execution_mode: serial
+    actions:
+      - validate-story-quality
+      - gate-story-quality-review
+    next_stages:
+      - id: "7-bdd-and-testing"
+        condition: gate-story-quality-review accepted
+
+  - id: "7-bdd-and-testing"
+    name: "BDD and testing"
+    description: "Generate BDD scenarios, test strategy, and test data for approved stories."
+    execution_mode: serial
+    actions:
+      - create-bdd-scenarios
+      - create-test-strategy
+      - create-test-data
+    next_stages:
+      - id: "8-handoff"
+        condition: always
+
+  - id: "8-handoff"
+    name: "Handoff"
+    description: "Generate implementation handoff packages for AI coding agents."
+    execution_mode: serial
+    actions:
+      - create-openspec-handoff
+      - create-standalone-handoff
+    next_stages:
+      - id: "9-readiness-review"
+        condition: always
+
+  - id: "9-readiness-review"
+    name: "Readiness review"
+    description: "Final readiness review across all artifacts before AI implementation."
+    execution_mode: serial
+    actions:
+      - create-readiness-report
+      - gate-readiness-review
+    next_stages:
+      - id: "10-dispatch"
+        condition: gate-readiness-review accepted
+
+  - id: "10-dispatch"
+    name: "Dispatch"
+    description: "Route the next best action based on readiness outcomes."
+    execution_mode: serial
+    actions:
+      - dispatch-next-action
+    next_stages: []
+
+human_triggered_actions:
+  - create-brs
+  - spec-correction

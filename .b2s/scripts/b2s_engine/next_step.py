@@ -88,8 +88,19 @@ def evaluate_condition(
     return False
 
 
-def action_is_complete(action_id: str, state: dict[str, Any]) -> bool:
-    return state.get("action_status", {}).get(action_id) in workspace.ACTION_STATUSES_COMPLETE
+def action_is_complete(
+    action_id: str,
+    state: dict[str, Any],
+    actions_by_id: dict[str, dict[str, Any]] | None = None,
+) -> bool:
+    status = state.get("action_status", {}).get(action_id)
+    if status in workspace.ACTION_STATUSES_COMPLETE:
+        return True
+    if status == workspace.ACTION_STATUS_IN_PROGRESS and actions_by_id:
+        action = actions_by_id.get(action_id, {})
+        if action.get("iteration_mode") == "per_item":
+            return False
+    return False
 
 
 def _required_inputs_present(action: dict[str, Any], workspace_root: Any) -> bool:
@@ -158,7 +169,7 @@ def stage_is_complete(
     # stage can be complete even when conditional actions were never run.
     for action_id in stage.get("actions", []):
         action = actions_by_id[action_id]
-        if action_is_complete(action_id, state):
+        if action_is_complete(action_id, state, actions_by_id):
             continue
         if not _conditions_pass(action, state, workspace_root, actions_by_id):
             continue
@@ -175,7 +186,7 @@ def _eligible_action(
     action_id = action["action_id"]
     if action_id.startswith("gate-"):
         return False
-    if action_is_complete(action_id, state):
+    if action_is_complete(action_id, state, actions_by_id):
         return False
     if not _blocked_by_actions_satisfied(action, state):
         return False
@@ -215,7 +226,7 @@ def select_next_action(
         for action_id in stage.get("actions", []):
             action = actions_by_id[action_id]
             if _eligible_action(action, state, workspace_root, actions_by_id):
-                return {
+                result = {
                     "overall": "pass",
                     "selected_action": action_id,
                     "selected_stage": stage["id"],
@@ -223,6 +234,21 @@ def select_next_action(
                     "blocking_reason": None,
                     "ready_actions": [action_id],
                 }
+                if action.get("iteration_mode") == "per_item":
+                    items = workspace.extract_items_from_source(
+                        workspace_root,
+                        action["item_source"],
+                        action["item_pattern"],
+                    )
+                    item_statuses = state.get("action_item_status", {})
+                    pending = [
+                        item for item in items
+                        if item_statuses.get(f"{action_id}#{item}") not in workspace.ACTION_STATUSES_COMPLETE
+                    ]
+                    result["current_item"] = pending[0] if pending else None
+                    result["pending_items"] = pending
+                    result["total_items"] = len(items)
+                return result
 
         if not stage_is_complete(stage, state, workspace_root, actions_by_id):
             return {
@@ -286,6 +312,7 @@ def run(args: object) -> None:
     state["current_stage"] = result["selected_stage"]
     state["active_action"] = result["selected_action"]
     state["next_action"] = result["selected_action"]
+    state["current_item"] = result.get("current_item")
     state["state_validated"] = result["overall"] == "pass"
     state["last_updated"] = _timestamp()
     if result["overall"] == "fail":

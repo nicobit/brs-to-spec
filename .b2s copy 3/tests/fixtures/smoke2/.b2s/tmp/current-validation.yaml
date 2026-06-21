@@ -1,9 +1,0 @@
-overall: pass
-action_id: create-business-intake-summary
-artifact_path: business-intake/business-intake-summary.md
-checks:
-- name: file_exists
-  target: business-intake/business-intake-summary.md
-  result: pass
-  detail: artifact exists
-failures: []

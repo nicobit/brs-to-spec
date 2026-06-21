@@ -22,6 +22,7 @@ SCRIPT_ROOT = REPO_ROOT / ".b2s" / "scripts"
 if str(SCRIPT_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPT_ROOT))
 
+from b2s_engine import inputs as inputs_module  # noqa: E402
 from b2s_engine import validation as validation_module  # noqa: E402
 from b2s_engine import dispatch as dispatch_module  # noqa: E402
 
@@ -107,6 +108,10 @@ class EngineRuntimeTests(unittest.TestCase):
             [],
         )
         self.assertEqual(
+            current_inputs["prompt_placeholders"]["resolved_policy_inputs"],
+            [],
+        )
+        self.assertEqual(
             current_inputs["prompt_placeholders"]["primary_output"],
             "routing/routing-decision.md",
         )
@@ -114,6 +119,8 @@ class EngineRuntimeTests(unittest.TestCase):
             current_inputs["prompt_placeholders"]["secondary_outputs"],
             [],
         )
+        self.assertEqual(current_inputs["prompt_placeholders"]["prompt_family"], "b2s")
+        self.assertEqual(current_inputs["prompt_placeholders"]["template_mode"], "strict")
 
         (self.workspace_root / "routing").mkdir()
         (self.workspace_root / "routing" / "routing-decision.md").write_text(
@@ -219,9 +226,12 @@ class EngineRuntimeTests(unittest.TestCase):
 
     def test_dispatch_renderer_substitutes_supported_placeholders(self) -> None:
         rendered = dispatch_module._render_prompt_text(
-            "Read {resolved_required_inputs}\nWrite {primary_output}\nKeep {workspace_root}",
+            "Read {resolved_required_inputs}\nPolicy {resolved_policy_inputs}\nFamily {prompt_family}\nMode {template_mode}\nWrite {primary_output}\nKeep {workspace_root}",
             {
                 "resolved_required_inputs": ["input/brs.md", "routing/routing-decision.md"],
+                "resolved_policy_inputs": [".b2s/policies/requirements/requirement-writing-standard.md"],
+                "prompt_family": "speckit",
+                "template_mode": "strict",
                 "primary_output": "routing/routing-decision.md",
                 "required_inputs": [],
                 "optional_inputs": [],
@@ -231,6 +241,9 @@ class EngineRuntimeTests(unittest.TestCase):
         )
         self.assertIn("- input/brs.md", rendered)
         self.assertIn("- routing/routing-decision.md", rendered)
+        self.assertIn("- .b2s/policies/requirements/requirement-writing-standard.md", rendered)
+        self.assertIn("Family speckit", rendered)
+        self.assertIn("Mode strict", rendered)
         self.assertIn("Write routing/routing-decision.md", rendered)
         self.assertIn("{workspace_root}", rendered)
 
@@ -243,9 +256,75 @@ class EngineRuntimeTests(unittest.TestCase):
                     "optional_inputs": [],
                     "resolved_required_inputs": [],
                     "resolved_optional_inputs": [],
+                    "resolved_policy_inputs": [],
                     "secondary_outputs": [],
+                    "prompt_family": "b2s",
+                    "template_mode": "strict",
                 },
             )
+
+    def test_collect_action_inputs_reports_policy_paths_for_migrated_action(self) -> None:
+        (self.workspace_root / "business-intake").mkdir()
+        (self.workspace_root / "business-intake" / "business-intake-summary.md").write_text(
+            "# Business Intake Summary\n",
+            encoding="utf-8",
+        )
+        action = self.load_action("create-requirements")
+        collected = inputs_module.collect_action_inputs(action, self.workspace_root)
+        self.assertEqual(collected["overall"], "pass")
+        self.assertEqual(
+            collected["prompt_placeholders"]["resolved_policy_inputs"],
+            [
+                ".b2s/policies/requirements/definition-of-ready.md",
+                ".b2s/policies/requirements/requirement-writing-standard.md",
+            ],
+        )
+        self.assertEqual(collected["prompt_placeholders"]["prompt_family"], "speckit")
+        self.assertEqual(collected["prompt_placeholders"]["template_mode"], "strict")
+
+    def test_collect_action_inputs_defaults_prompt_family_and_template_mode_for_old_action(self) -> None:
+        legacy_action = {
+            "action_id": "legacy",
+            "title": "Legacy",
+            "persona": "orchestrator",
+            "skill_ref": ".b2s/skills/orchestrator/route-initiative.md",
+            "artifact_template_ref": ".b2s/artifact-templates/routing-decision.md",
+            "inputs": {"required": ["input/brs.md"]},
+            "outputs": {"primary": "routing/routing-decision.md"},
+            "human_gate": {"required": False},
+            "artifact_criticality": "high",
+        }
+        from b2s_engine import action_contract as action_contract_module
+        normalized = action_contract_module.normalize_action(legacy_action)
+        collected = inputs_module.collect_action_inputs(normalized, self.workspace_root)
+        self.assertEqual(collected["overall"], "pass")
+        self.assertEqual(collected["prompt_placeholders"]["prompt_family"], "b2s")
+        self.assertEqual(collected["prompt_placeholders"]["template_mode"], "strict")
+
+    def test_resolve_skill_prompt_uses_fallback_for_non_b2s_family(self) -> None:
+        action = {
+            "prompt_family": "hve",
+            "skill_ref": ".b2s/skills/nonexistent/missing-skill.md",
+            "compatibility": {
+                "fallback_skill_ref": ".b2s/skills/engineering-lead/create-compact-handoff.md",
+            },
+        }
+        resolved = dispatch_module._resolve_skill_prompt(action, self.workspace_root, {})
+        self.assertTrue(resolved["fallback_used"])
+        self.assertEqual(
+            resolved["skill_ref"],
+            ".b2s/skills/engineering-lead/create-compact-handoff.md",
+        )
+        self.assertEqual(resolved["prompt_family"], "hve")
+
+    def test_resolve_skill_prompt_fails_clearly_when_non_b2s_family_has_no_fallback(self) -> None:
+        action = {
+            "prompt_family": "bmad",
+            "skill_ref": ".b2s/skills/nonexistent/missing-skill.md",
+            "compatibility": {},
+        }
+        with self.assertRaisesRegex(FileNotFoundError, "family 'bmad'"):
+            dispatch_module._resolve_skill_prompt(action, self.workspace_root, {})
 
     def test_action_summary_renders_business_intake_prompt_with_resolved_placeholders(self) -> None:
         (self.workspace_root / "routing").mkdir()
@@ -333,6 +412,31 @@ class EngineRuntimeTests(unittest.TestCase):
         self.assertNotIn("{primary_output}", rendered)
         self.assertNotIn("{secondary_outputs}", rendered)
 
+    def test_action_summary_exposes_prompt_family_for_seeded_handoff_action(self) -> None:
+        (self.workspace_root / "engineering-readiness").mkdir()
+        (self.workspace_root / "engineering-readiness" / "initiative-context.md").write_text(
+            "# Initiative Context\n",
+            encoding="utf-8",
+        )
+        (self.workspace_root / "engineering-readiness" / "readiness-check.md").write_text(
+            "# Readiness Check\n",
+            encoding="utf-8",
+        )
+        (self.workspace_root / "planning").mkdir()
+        (self.workspace_root / "planning" / "delivery-structure.md").write_text(
+            "# Delivery Structure\n",
+            encoding="utf-8",
+        )
+        (self.workspace_root / "architecture").mkdir()
+        (self.workspace_root / "architecture" / "architecture-rules.md").write_text(
+            "# Architecture Rules\n",
+            encoding="utf-8",
+        )
+        action = self.load_action("create-openspec-handoff")
+        summary = dispatch_module._action_summary(action, self.workspace_root)
+        self.assertEqual(summary["prompt_family"], "hve")
+        self.assertFalse(summary["fallback_used"])
+
     def test_routing_validation_fails_when_decision_values_missing(self) -> None:
         (self.workspace_root / "routing").mkdir()
         (self.workspace_root / "routing" / "routing-decision.md").write_text(
@@ -349,6 +453,38 @@ class EngineRuntimeTests(unittest.TestCase):
         validation = self.read_yaml(".b2s/tmp/current-validation.yaml")
         self.assertEqual(validation["overall"], "fail")
         self.assertTrue(any("delivery_mode_present failed" in item for item in validation["failures"]))
+
+    def test_current_validation_yaml_reports_named_rules_stably(self) -> None:
+        (self.workspace_root / "business-intake").mkdir()
+        (self.workspace_root / "business-intake" / "business-intake-summary.md").write_text(
+            "# Business Intake Summary\n",
+            encoding="utf-8",
+        )
+        (self.workspace_root / "business-analysis").mkdir()
+        (self.workspace_root / "business-analysis" / "requirements.md").write_text(
+            "# Requirements\n\n## Functional Requirements\n\n| Requirement ID | Summary |\n|---|---|\n| FR-001 | TBD |\n",
+            encoding="utf-8",
+        )
+        run_cli(
+            "validate-artifact",
+            "--workspace-root",
+            str(self.workspace_root),
+            "--action-id",
+            "create-requirements",
+        )
+        validation = self.read_yaml(".b2s/tmp/current-validation.yaml")
+        self.assertIn("named_rule_results", validation)
+        self.assertIsInstance(validation["named_rule_results"], list)
+        self.assertTrue(validation["named_rule_results"])
+        first = validation["named_rule_results"][0]
+        self.assertEqual(first["name"], "named_validation_rule")
+        self.assertIn("rule_name", first)
+        self.assertIn("severity", first)
+        self.assertIn("target", first)
+        self.assertIn("result", first)
+        self.assertIn("detail", first)
+        self.assertIn(first["severity"], {"required", "optional"})
+        self.assertTrue(any(item["rule_name"] == "requirement_is_testable" for item in validation["named_rule_results"]))
 
     def test_blocked_by_stage_prevents_action_until_stage_complete(self) -> None:
         # create-requirements has blocked_by_stage: ["2-business-intake"]
@@ -1208,6 +1344,7 @@ class TechnicalSpecWorkflowTests(unittest.TestCase):
         """create-openspec-handoff skill must mention technical-specifications/ paths after imp/08."""
         skill_path = REPO_ROOT / ".b2s" / "skills" / "engineering-lead" / "create-openspec-handoff.md"
         skill_text = skill_path.read_text(encoding="utf-8")
+        self.assertIn("quality-gates/nfr-assessment.md", skill_text)
         self.assertIn("technical-specifications/api/exposed/", skill_text)
         self.assertIn("technical-specifications/api/consumed/", skill_text)
         self.assertIn("technical-specifications/data/", skill_text)
@@ -1217,6 +1354,7 @@ class TechnicalSpecWorkflowTests(unittest.TestCase):
         """create-standalone-handoff skill must mention technical-specifications/ paths after imp/08."""
         skill_path = REPO_ROOT / ".b2s" / "skills" / "engineering-lead" / "create-standalone-handoff.md"
         skill_text = skill_path.read_text(encoding="utf-8")
+        self.assertIn("quality-gates/nfr-assessment.md", skill_text)
         self.assertIn("technical-specifications/api/exposed/", skill_text)
         self.assertIn("technical-specifications/integrations/", skill_text)
 
@@ -1312,6 +1450,122 @@ class ValidationProfileUnitTests(unittest.TestCase):
                 any(c["result"] == "fail" for c in audit_checks),
                 "audit must flag human-gated artifact using basic-file validation",
             )
+
+    def test_named_required_rule_failure_is_reported(self) -> None:
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            artifact = Path(tmp) / "requirements.md"
+            artifact.write_text(
+                "# Requirements\n\n## Functional Requirements\n\n| Requirement ID | Summary |\n|---|---|\n| FR-001 | TBD |\n",
+                encoding="utf-8",
+            )
+            action = self._make_action(
+                action_id="create-requirements",
+                outputs={"primary": "business-analysis/requirements.md", "secondary": []},
+                validation_rules={"required": ["requirement_has_id", "requirement_is_testable"], "optional": []},
+            )
+            base_checks = [
+                {"name": "fr_not_template_only", "target": artifact.name, "result": "fail", "detail": "placeholder text"},
+                {"name": "nfr_section_not_empty", "target": artifact.name, "result": "fail", "detail": "missing"},
+                {"name": "constraints_section_not_empty", "target": artifact.name, "result": "fail", "detail": "missing"},
+            ]
+            results = validation_module._run_named_validation_rules(
+                action,
+                artifact,
+                Path(tmp),
+                "business-analysis/requirements.md",
+                base_checks,
+            )
+            self.assertTrue(any(r["rule_name"] == "requirement_is_testable" and r["result"] == "fail" for r in results))
+
+    def test_named_rule_unknown_is_reported(self) -> None:
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            artifact = Path(tmp) / "result.md"
+            artifact.write_text("content", encoding="utf-8")
+            action = self._make_action(
+                validation_rules={"required": ["unknown_rule_name"], "optional": []},
+            )
+            results = validation_module._run_named_validation_rules(
+                action,
+                artifact,
+                Path(tmp),
+                "test-output/result.md",
+                [],
+            )
+            self.assertEqual(results[0]["rule_name"], "unknown_rule_name")
+            self.assertEqual(results[0]["result"], "fail")
+
+    def test_nfr_named_rules_pass_for_complete_assessment(self) -> None:
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            artifact = Path(tmp) / "nfr-assessment.md"
+            artifact.write_text(
+                textwrap.dedent(
+                    """\
+                    # NFR Assessment
+
+                    ## NFR Catalog
+
+                    | NFR ID | Domain | Requirement | Measure / Target | Source | Blocking |
+                    |---|---|---|---|---|---|
+                    | NFR-001 | Security | Encrypt audit events at rest | AES-256 | architecture-review.md | Yes |
+
+                    ## Security
+
+                    Security controls are defined and mapped to the auth boundary.
+
+                    ## Availability
+
+                    Availability target is defined for the core submission path.
+
+                    ## Resiliency
+
+                    Retry and fallback behavior are explicitly defined.
+
+                    ## Observability
+
+                    Logs, metrics, traces, and alert expectations are defined.
+
+                    ## Supportability
+
+                    Diagnostics and ownership are explicit.
+
+                    ## Scalability
+
+                    Capacity and throughput expectations are documented.
+
+                    ## Compliance
+
+                    Regulatory obligations and controls are listed.
+
+                    ## Decision
+
+                    Ready for handoff with monitored operational follow-ups.
+                    """
+                ),
+                encoding="utf-8",
+            )
+            action = self._make_action(
+                action_id="create-nfr-assessment",
+                outputs={"primary": "quality-gates/nfr-assessment.md", "secondary": []},
+                validation_rules={
+                    "required": [
+                        "nfr_assessment_has_ids",
+                        "nfr_assessment_covers_core_domains",
+                        "nfr_assessment_has_decision",
+                    ],
+                    "optional": [],
+                },
+            )
+            results = validation_module._run_named_validation_rules(
+                action,
+                artifact,
+                Path(tmp),
+                "quality-gates/nfr-assessment.md",
+                [],
+            )
+            self.assertTrue(all(result["result"] == "pass" for result in results))
 
 
 if __name__ == "__main__":

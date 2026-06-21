@@ -1,8 +1,0 @@
-{
-  "initiative_id": "I998-CENTRAL-WF",
-  "workflow_type": null,
-  "active_action": "route-initiative",
-  "next_action": "route-initiative",
-  "action_status": {},
-  "artifact_status": {}
-}

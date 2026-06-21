@@ -11,17 +11,31 @@ Format: `I<number>-<short-slug>` — e.g. `I012-MY-APP`, `I013-PORTAL`.
 
 Do not proceed until you have a confirmed ID.
 
-### Step 2 — Run the CLI initializer
+### Step 2 — Choose the workflow type
+
+Run this command to retrieve the available workflow types:
+
+```
+python .b2s/scripts/b2s_cli.py list-workflow-types
+```
+
+Present each workflow type to the user as a selectable option (use radio-button style selection when possible). Show the **id**, **description**, and **suitable_for** hints for each type.
+
+**Default:** `agile-delivery-light-flow` — recommend this as the default choice unless the user's initiative clearly needs one of the other workflow types. Mark it as "(Recommended)" in the selection list.
+
+Wait for the user to pick one before proceeding.
+
+### Step 3 — Run the CLI initializer
 
 Run this exact command from the repository root:
 
 ```
-python .b2s/scripts/b2s_cli.py init-workspace --initiative-id <ID>
+python .b2s/scripts/b2s_cli.py init-workspace --initiative-id <ID> --workflow-type <CHOSEN_TYPE>
 ```
 
 Do not create any files or folders manually. The CLI owns the workspace structure.
 
-### Step 3 — Confirm what was created
+### Step 4 — Confirm what was created
 
 Read the output. A successful init produces exactly:
 
@@ -33,13 +47,17 @@ initiatives/<ID>/
     state/
       workflow-state.json
       open-decisions.md
+    workflow/
+      stage-actions.yaml
+      workflow-definition.yaml
+      workflow-type.json
     tmp/
       init-workspace.json
 ```
 
 If the CLI reports `FileExistsError`, the workspace already exists. Do not reinitialize. Tell the user and stop.
 
-### Step 4 — Tell the user what to do next
+### Step 5 — Tell the user what to do next
 
 Report the workspace path and say:
 

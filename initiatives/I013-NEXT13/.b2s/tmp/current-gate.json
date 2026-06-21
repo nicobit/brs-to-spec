@@ -1,8 +1,0 @@
-{
-  "overall": "pass",
-  "gate_id": "engineering-readiness-review",
-  "artifact_path": "engineering-readiness/readiness-check.md",
-  "decision": "approved",
-  "blocking_reason": null,
-  "note": "Approved by user"
-}

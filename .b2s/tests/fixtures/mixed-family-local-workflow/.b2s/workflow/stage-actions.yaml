@@ -1,0 +1,192 @@
+version: 1
+framework: b2s
+description: >
+  Compact mixed-family action set for orchestration compatibility tests.
+
+actions:
+  - action_id: route-initiative
+    stage_id: "0-routing"
+    title: "Route initiative"
+    persona: orchestrator
+    skill_ref: ".b2s/skills/orchestrator/route-initiative.md"
+    artifact_template_ref: ".b2s/artifact-templates/routing-decision.md"
+    inputs:
+      required:
+        - "input/brs.md"
+      optional: []
+    outputs:
+      primary: "routing/routing-decision.md"
+      secondary: []
+    validation_profile: structured-document
+    artifact_criticality: high
+    blocked_by_stage: []
+    blocked_by_action: []
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: accepted
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "0-routing"
+
+  - action_id: create-business-intake-summary
+    stage_id: "2-business-intake"
+    title: "Create business intake summary"
+    persona: product-owner
+    prompt_family: b2s
+    skill_ref: ".b2s/skills/product-owner/create-business-intake-summary.md"
+    artifact_template_ref: ".b2s/artifact-templates/business-intake-summary.md"
+    policy_refs:
+      - ".b2s/policies/business/business-glossary-guidance.md"
+    inputs:
+      required:
+        - "input/brs.md"
+        - "routing/routing-decision.md"
+      optional: []
+    outputs:
+      primary: "business-intake/business-intake-summary.md"
+      secondary: []
+    validation_profile: structured-document
+    artifact_criticality: high
+    blocked_by_stage:
+      - "0-routing"
+    blocked_by_action:
+      - "route-initiative"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: accepted
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "2-business-intake"
+
+  - action_id: create-requirements
+    stage_id: "2b-business-analysis"
+    title: "Create requirements catalog"
+    persona: product-owner
+    prompt_family: speckit
+    skill_ref: ".b2s/skills/product-owner/create-requirements.md"
+    artifact_template_ref: ".b2s/artifact-templates/requirements.md"
+    policy_refs:
+      - ".b2s/policies/requirements/definition-of-ready.md"
+      - ".b2s/policies/requirements/requirement-writing-standard.md"
+    inputs:
+      required:
+        - "business-intake/business-intake-summary.md"
+        - "input/brs.md"
+      optional:
+        - "routing/routing-decision.md"
+    outputs:
+      primary: "business-analysis/requirements.md"
+      secondary: []
+    validation_rules:
+      required:
+        - "requirement_has_id"
+      optional: []
+    validation_profile: catalog
+    artifact_criticality: high
+    blocked_by_stage:
+      - "2-business-intake"
+    blocked_by_action:
+      - "create-business-intake-summary"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: accepted
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "2b-business-analysis"
+
+  - action_id: review-initial-architecture
+    stage_id: "3-planning"
+    title: "Review initial architecture"
+    persona: architect
+    prompt_family: b2s
+    skill_ref: ".b2s/skills/architect/review-initial-architecture.md"
+    artifact_template_ref: ".b2s/artifact-templates/architecture-review.md"
+    policy_refs:
+      - ".b2s/policies/architecture/architecture-principles.md"
+    inputs:
+      required:
+        - "business-analysis/requirements.md"
+        - "business-intake/business-intake-summary.md"
+        - "input/brs.md"
+      optional:
+        - "routing/routing-decision.md"
+    outputs:
+      primary: "architecture/architecture-review.md"
+      secondary: []
+    validation_rules:
+      required:
+        - "architecture_lists_constraints"
+      optional: []
+    validation_profile: analytical-review
+    artifact_criticality: high
+    blocked_by_stage:
+      - "2b-business-analysis"
+    blocked_by_action:
+      - "create-requirements"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: accepted
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "3-planning"
+
+  - action_id: create-openspec-handoff
+    stage_id: "5-handoff"
+    title: "Create OpenSpec handoff"
+    persona: engineering-lead
+    prompt_family: hve
+    skill_ref: ".b2s/skills/engineering-lead/create-openspec-handoff.md"
+    artifact_template_ref: ".b2s/artifact-templates/openspec-handoff.md"
+    policy_refs:
+      - ".b2s/policies/handoff/coding-constraints.md"
+      - ".b2s/policies/handoff/ai-handoff-constraints.md"
+    inputs:
+      required:
+        - "engineering-readiness/initiative-context.md"
+        - "engineering-readiness/readiness-check.md"
+        - "planning/delivery-structure.md"
+        - "architecture/architecture-rules.md"
+        - "quality-gates/nfr-assessment.md"
+      optional:
+        - "quality-gates/test-strategy.md"
+    outputs:
+      primary: "specs/"
+      secondary: []
+    validation_profile: artifact-package
+    artifact_criticality: critical
+    blocked_by_stage:
+      - "3-planning"
+    blocked_by_action:
+      - "review-initial-architecture"
+    conditions:
+      - "delivery_mode == OpenSpec"
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: accepted
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "5-handoff"

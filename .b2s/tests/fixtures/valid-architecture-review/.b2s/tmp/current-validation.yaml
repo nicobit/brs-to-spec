@@ -1,0 +1,133 @@
+overall: fail
+action_id: review-initial-architecture
+artifact_path: architecture/architecture-review.md
+checks:
+- name: file_exists
+  target: architecture/architecture-review.md
+  result: pass
+  detail: artifact exists
+- name: validation_dispatch
+  target: architecture-review.md
+  result: pass
+  detail: 'template: architecture/architecture-review.md'
+- name: non_empty_file
+  target: architecture-review.md
+  result: pass
+  detail: artifact has content
+- name: tmpl_section_metadata
+  target: architecture-review.md
+  result: pass
+  detail: '## Metadata section present'
+- name: tmpl_section_initiative-architecture_fit
+  target: architecture-review.md
+  result: pass
+  detail: '## Initiative-Architecture Fit section present'
+- name: tmpl_section_architecture_constraints
+  target: architecture-review.md
+  result: pass
+  detail: '## Architecture Constraints section present'
+- name: tmpl_section_brownfield_impact
+  target: architecture-review.md
+  result: pass
+  detail: '## Brownfield Impact section present'
+- name: tmpl_section_quality_attribute_assessment
+  target: architecture-review.md
+  result: pass
+  detail: '## Quality Attribute Assessment section present'
+- name: tmpl_section_open_decisions
+  target: architecture-review.md
+  result: pass
+  detail: '## Open Decisions section present'
+- name: tmpl_section_active_assumptions
+  target: architecture-review.md
+  result: pass
+  detail: '## Active Assumptions section present'
+- name: tmpl_section_known_unknowns
+  target: architecture-review.md
+  result: pass
+  detail: '## Known Unknowns section present'
+- name: tmpl_has_tables
+  target: architecture-review.md
+  result: pass
+  detail: artifact contains at least one table
+- name: tmpl_table_populated_metadata
+  target: architecture-review.md
+  result: pass
+  detail: '''## Metadata'' has content (table rows: 5, prose lines: 0)'
+- name: tmpl_table_populated_initiative-architecture_fit
+  target: architecture-review.md
+  result: pass
+  detail: '''## Initiative-Architecture Fit'' has content (table rows: 4, prose lines:
+    0)'
+- name: tmpl_table_populated_architecture_constraints
+  target: architecture-review.md
+  result: pass
+  detail: '''## Architecture Constraints'' has content (table rows: 3, prose lines:
+    0)'
+- name: tmpl_table_populated_brownfield_impact
+  target: architecture-review.md
+  result: pass
+  detail: '''## Brownfield Impact'' has content (table rows: 2, prose lines: 2)'
+- name: tmpl_table_populated_quality_attribute_assessment
+  target: architecture-review.md
+  result: pass
+  detail: '''## Quality Attribute Assessment'' has content (table rows: 5, prose lines:
+    0)'
+- name: tmpl_table_populated_open_decisions
+  target: architecture-review.md
+  result: pass
+  detail: '''## Open Decisions'' has content (table rows: 2, prose lines: 0)'
+- name: tmpl_table_populated_active_assumptions
+  target: architecture-review.md
+  result: pass
+  detail: '''## Active Assumptions'' has content (table rows: 3, prose lines: 0)'
+- name: tmpl_table_populated_known_unknowns
+  target: architecture-review.md
+  result: pass
+  detail: '''## Known Unknowns'' has content (table rows: 3, prose lines: 1)'
+- name: tmpl_content_depth
+  target: architecture-review.md
+  result: pass
+  detail: artifact has 48 lines (minimum 22)
+- name: tmpl_placeholders_absent
+  target: architecture-review.md
+  result: pass
+  detail: no known placeholder markers found
+- name: validation_audit
+  target: architecture/architecture-review.md
+  result: pass
+  detail: validation coverage is acceptable (dispatch=template, downstream_consumers=25)
+- &id001
+  name: named_validation_rule
+  rule_name: architecture_lists_impacted_systems
+  severity: required
+  target: architecture/architecture-review.md
+  result: fail
+  detail: architecture review lists impacted systems or feature-area fit explicitly
+- &id002
+  name: named_validation_rule
+  rule_name: architecture_lists_constraints
+  severity: required
+  target: architecture/architecture-review.md
+  result: fail
+  detail: architecture review lists constraints with rationale and consequence
+- &id003
+  name: named_validation_rule
+  rule_name: architecture_lists_risks
+  severity: required
+  target: architecture/architecture-review.md
+  result: fail
+  detail: architecture review contains explicit risk-bearing quality and analysis
+    content
+named_rule_results:
+- *id001
+- *id002
+- *id003
+failures:
+- 'architecture/architecture-review.md: architecture_lists_impacted_systems failed
+  - architecture review lists impacted systems or feature-area fit explicitly'
+- 'architecture/architecture-review.md: architecture_lists_constraints failed - architecture
+  review lists constraints with rationale and consequence'
+- 'architecture/architecture-review.md: architecture_lists_risks failed - architecture
+  review contains explicit risk-bearing quality and analysis content'
+advisories: []

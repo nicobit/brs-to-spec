@@ -25,14 +25,19 @@ Before starting, verify:
 
 ### Step 1 - Read all inputs
 
-Read these files in full before writing anything:
-- `{workspace_root}/architecture/architecture-review.md`
-- `{workspace_root}/architecture/architecture-rules.md`
-- All BRS source files under `{workspace_root}/input/`
+Read every file listed in `{resolved_required_inputs}` in full before writing anything.
+
+If `{resolved_optional_inputs}` is not empty, read those files as well.
+Read every policy file listed in `{resolved_policy_inputs}` in full before writing.
 
 Do not start writing until all available inputs are read completely.
 
 ### Step 2 - Define logs, metrics, traces, alerts, dashboards, runbook notes, and support diagnostics for each new operational flow and SLI/SLO concern.
+
+Apply the policy context from `{resolved_policy_inputs}`:
+- make availability and performance expectations observable
+- ensure log design is safe for PII and compliance concerns
+- connect operational concerns to concrete tests, alerts, and runbook signals
 
 ## Output requirements
 

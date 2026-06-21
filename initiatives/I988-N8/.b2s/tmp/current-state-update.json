@@ -1,0 +1,30 @@
+{
+  "overall": "pass",
+  "action_id": "validate-fr-coverage",
+  "previous_state_summary": {
+    "current_stage": "3-epic-elaboration",
+    "next_action": "validate-fr-coverage"
+  },
+  "applied_changes": {
+    "current_stage": "3-epic-elaboration",
+    "artifact_status": {
+      "governance/delivery-constitution.md": "ai_validated",
+      "requirements/atomic-requirements.md": "ai_validated",
+      "architecture/architecture-review.md": "accepted",
+      "architecture/architecture-rules.md": "ai_validated",
+      "planning/delivery-skeleton.md": "ai_validated",
+      "planning/elaboration-plan.md": "accepted",
+      "epics/": "ai_validated",
+      "planning/fr-coverage.md": "ai_validated"
+    }
+  },
+  "next_action": null,
+  "gate_state": {
+    "gate_id": "epic-review",
+    "action_id": "gate-epic-review",
+    "source_action_id": "validate-fr-coverage",
+    "artifact_path": "planning/fr-coverage.md",
+    "status": "waiting_human",
+    "owner": "delivery-lead"
+  }
+}

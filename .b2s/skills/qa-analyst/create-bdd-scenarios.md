@@ -6,75 +6,40 @@
 skill_id:    qa-analyst.create-bdd-scenarios
 persona:     qa-analyst
 action_id:   create-bdd-scenarios
-produces:    quality-gates/bdd/F-NNN.md
+produces:    quality/bdd/F-NNN.md (agile-delivery-flow) or quality-gates/bdd/F-NNN.md (enterprise-modular)
 ```
 
 ## When this skill is used
 
-This skill runs only when the readiness check explicitly triggers the BDD gate (`BDD` in `quality_gates_triggered`). It creates feature-level BDD files with full Gherkin under `quality-gates/bdd/`.
-
-**This is Mode A — gate-triggered standalone BDD.**
-
-Mode B (story-embedded BDD) is handled internally by `create-openspec-handoff`. When BDD is not gate-triggered, story-level BDD scenarios are still produced inside each `specs/F-XXX.X-<slug>/story.md` Section 5. No separate workflow action is needed for Mode B — it is intentional.
-
-## Modes
-
-### Mode A — Gate-triggered (this skill)
-
-Condition: `BDD` is in `quality_gates_triggered`.
-
-Produces: one file per feature under `quality-gates/bdd/F-NNN.md`.
-
-These are comprehensive, fully traceable, multi-scenario files for regulated or governance-heavy initiatives. They exist as standalone gate artifacts and feed into the review package.
-
-### Mode B — Story-embedded (handled by create-openspec-handoff)
-
-Condition: `BDD` is NOT in `quality_gates_triggered`.
-
-Produces: BDD scenarios inside `specs/F-XXX.X-<slug>/story.md` Section 5 only.
-
-No standalone `quality-gates/bdd/` files are created. This is not a gap — it is the intended behavior for non-gated initiatives.
+Run after the story quality gate is approved. Creates one BDD file per feature with full Gherkin scenarios.
 
 ## Preconditions
 
-Before starting, verify:
-- `engineering-readiness/readiness-check.md` marks `BDD` as triggered (Mode A gate condition)
-- `business-analysis/requirements.md` exists with FR-NNN rows
-- BRS source files are readable
-- `business-analysis/business-rules.md` exists
-- `business-analysis/actors-and-personas.md` exists
+Before starting, verify that all files listed in `{resolved_required_inputs}` exist and are readable.
 
-If the BDD gate was not triggered, stop and report:
-> BDD gate was not triggered for this initiative. Story-level BDD is handled by `create-openspec-handoff` (Mode B). No standalone BDD files are required.
+If a required input is missing, stop and report the blocker.
+
+## Mandatory generation rule
+
+Generate BDD scenarios for ALL stories in ALL feature files, regardless of their quality review status. If the story quality review flagged stories as failing, generate BDD scenarios for them anyway — the human approved the gate, which means "proceed despite gaps." Do not skip stories, do not produce empty output, do not second-guess the gate decision.
 
 ## Instructions
 
 ### Step 1 - Read all inputs
 
-Read these files in full before writing anything:
-- `{workspace_root}/business-analysis/requirements.md`
-- `{workspace_root}/business-analysis/business-rules.md`
-- `{workspace_root}/business-analysis/actors-and-personas.md`
-- `{workspace_root}/engineering-readiness/readiness-check.md`
-- BRS source files under `{workspace_root}/input/`
+Read every file listed in `{resolved_required_inputs}` in full.
+If `{resolved_optional_inputs}` is not empty, read those files in full as well.
+Do not start writing until all inputs are read completely.
 
-Do not start writing until all available inputs are read completely.
+### Step 2 - Identify features and stories
 
-### Step 2 - Define feature clusters
+Read the feature story files from `planning/stories/` (or `planning/delivery-structure.md` if story files are not present). Each feature file contains one or more stories. Generate one BDD output file per feature.
 
-Group the FR-NNN requirements from `requirements.md` into logical feature clusters.
-A feature cluster is a coherent business capability (e.g. "Application Intake", "AI Scoring", "AML/KYC Compliance").
-
-Rules:
-- Assign sequential `F-NNN` IDs starting from `F-001`
-- Each cluster should contain 3–8 related FRs
-- Every FR-NNN must belong to exactly one cluster
-- Name each cluster after its business capability, not a technical component
-- Document the FR-to-feature mapping at the top of each file
+If the input paths reference `business-analysis/requirements.md` instead, group FR-NNN requirements into feature clusters and generate one file per cluster.
 
 ### Step 3 - Write scenarios
 
-Assign globally sequential `SCN-NNN` IDs and create one file per feature cluster under `{workspace_root}/quality-gates/bdd/F-NNN.md`.
+Assign globally sequential `SCN-NNN` IDs. Write one file per feature to the output directory specified by `{primary_output}` (typically `quality/bdd/F-NNN.md` or `quality-gates/bdd/F-NNN.md`).
 
 For each FR in the cluster, apply the Required Scenario Coverage rules below.
 

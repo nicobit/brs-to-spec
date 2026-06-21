@@ -1,0 +1,108 @@
+{
+  "status": "ready",
+  "initiative_id": "I222-N2",
+  "current_stage": "1-requirements-and-architecture",
+  "workflow_source": "local",
+  "message": "Ready to execute `create-architecture-rules` - Create architecture rules. Load b2s skill prompt at `.b2s/skills/architect/create-architecture-rules.md` and execute it, then run validate-artifact -> update-state -> dispatch-next.",
+  "action": {
+    "action_id": "create-architecture-rules",
+    "title": "Create architecture rules",
+    "stage_id": "1-requirements-and-architecture",
+    "persona": "architect",
+    "prompt_family": "b2s",
+    "skill_ref": ".b2s/skills/architect/create-architecture-rules.md",
+    "requested_skill_ref": ".b2s/skills/architect/create-architecture-rules.md",
+    "fallback_skill_ref": null,
+    "fallback_used": false,
+    "skill_path": "C:\\Users\\nicol\\source\\brs-to-spec\\.b2s\\skills\\architect\\create-architecture-rules.md",
+    "skill_exists": true,
+    "artifact_template_ref": ".b2s/artifact-templates/architecture-rules.md",
+    "output_paths": [
+      "architecture/architecture-rules.md"
+    ],
+    "required_inputs": [
+      {
+        "path": "architecture/architecture-review.md",
+        "exists": true,
+        "matches": [
+          "architecture/architecture-review.md"
+        ]
+      },
+      {
+        "path": "input/brs.md",
+        "exists": true,
+        "matches": [
+          "input/brs.md"
+        ]
+      }
+    ],
+    "optional_inputs": [
+      {
+        "path": "input/brs/*.md",
+        "exists": false,
+        "matches": []
+      },
+      {
+        "path": "requirements/atomic-requirements.md",
+        "exists": true,
+        "matches": [
+          "requirements/atomic-requirements.md"
+        ]
+      },
+      {
+        "path": "domain/business-rules.md",
+        "exists": false,
+        "matches": []
+      }
+    ],
+    "policy_inputs": [],
+    "missing_required_inputs": [],
+    "missing_policy_inputs": [],
+    "inputs_ready": true,
+    "prompt_placeholders": {
+      "required_inputs": [
+        "architecture/architecture-review.md",
+        "input/brs.md"
+      ],
+      "optional_inputs": [
+        "input/brs/*.md",
+        "requirements/atomic-requirements.md",
+        "domain/business-rules.md"
+      ],
+      "resolved_required_inputs": [
+        "architecture/architecture-review.md",
+        "input/brs.md"
+      ],
+      "resolved_optional_inputs": [
+        "requirements/atomic-requirements.md"
+      ],
+      "resolved_policy_inputs": [],
+      "primary_output": "architecture/architecture-rules.md",
+      "secondary_outputs": [],
+      "artifact_template_ref": ".b2s/artifact-templates/architecture-rules.md",
+      "prompt_family": "b2s",
+      "template_mode": "strict"
+    },
+    "rendered_skill_text": "# Skill - Create Architecture Rules\n\n## Identity\n\n```text\nskill_id:    architect.create-architecture-rules\npersona:     architect\naction_id:   create-architecture-rules\nproduces:    architecture/architecture-rules.md\n```\n\n## When this skill is used\n\nRun this after the architecture review exists. It converts review constraints into stable, numbered `AR-NNN` rules for downstream engineering and handoff artifacts.\n\n## Role for this task\n\nYou are a senior architect formalizing architectural constraints into a binding, engineering-actionable ruleset.\n\n## Preconditions\n\nBefore starting, verify:\n- `architecture/architecture-review.md` exists\n- at least one BRS source file is readable\n- `business-analysis/business-rules.md` exists when available for alignment\n\nIf the architecture review is missing, stop and report the blocker.\n\n## Instructions\n\n### Step 1 - Read all inputs\n\nRead these files in full before writing anything:\n- `{workspace_root}/architecture/architecture-review.md`\n- BRS source files under `{workspace_root}/input/`\n\nIf available, read:\n- `{workspace_root}/business-analysis/business-rules.md`\n\nDo not start writing until all available inputs are read completely.\n\n### Step 2 - Extract and normalize\n\nExtract each binding constraint from `{workspace_root}/architecture/architecture-review.md` and normalize it into an `AR-NNN` rule.\n\nCategories:\n- Boundary\n- Technology\n- Data\n- Security\n- Integration\n- Observability\n- Forbidden Pattern\n\nFor each rule, include:\n- rule statement\n- rationale\n- source\n- scope\n\n## Output requirements\n\nWrite `architecture/architecture-rules.md` using `.b2s/artifact-templates/architecture-rules.md`.\n\n## Done criteria\n\n- [ ] Every review constraint has an `AR-NNN`\n- [ ] Every rule has rationale and source\n- [ ] Forbidden patterns are explicit where applicable\n- [ ] Rules are implementable and unambiguous\n- [ ] No rules are invented beyond the review and source material\n- [ ] Status is `Draft`\n\n## Notes for the staged engine\n\n- Do not mention result files or dispatcher status\n- This prompt writes only the architecture rules artifact\n",
+    "has_human_gate": false,
+    "gate_owner": null
+  },
+  "after_skill_commands": [
+    "python .b2s/scripts/b2s_cli.py validate-artifact --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I222-N2\"",
+    "python .b2s/scripts/b2s_cli.py update-state --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I222-N2\"",
+    "python .b2s/scripts/b2s_cli.py dispatch-next --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I222-N2\""
+  ],
+  "next_cli_commands": [
+    "python .b2s/scripts/b2s_cli.py validate-artifact --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I222-N2\"",
+    "python .b2s/scripts/b2s_cli.py update-state --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I222-N2\"",
+    "python .b2s/scripts/b2s_cli.py dispatch-next --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I222-N2\""
+  ],
+  "integrity_warnings": [
+    {
+      "action_id": "gate-architecture-review",
+      "status": "accepted",
+      "issue": "unlogged",
+      "detail": "action 'gate-architecture-review' is 'accepted' but has no verified engine log entry (artifacts exist on disk \u2014 status may have been set outside the engine)"
+    }
+  ]
+}

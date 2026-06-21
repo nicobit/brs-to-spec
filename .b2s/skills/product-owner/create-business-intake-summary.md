@@ -43,6 +43,7 @@ If the BRS is missing or empty, stop and report the blocker. If optional inputs 
 
 Read every path listed in `{resolved_required_inputs}` fully before writing anything.
 If `{resolved_optional_inputs}` is not empty, read those paths fully as well before writing.
+Read every policy file listed in `{resolved_policy_inputs}` before drafting the summary.
 
 ### Source document inventory
 
@@ -59,6 +60,11 @@ Write for the Product Owner:
 - Surface brownfield context when the initiative changes something that already exists
 - Make each gap actionable with impact and owner
 - Make success measures specific and observable
+
+Apply the policy context from `{resolved_policy_inputs}`:
+- use source-grounded business terminology consistently
+- prefer one canonical business term when the BRS uses synonyms
+- do not invent domain terms or hidden assumptions
 
 Traceability rules:
 - Every requirement row must point back to source material

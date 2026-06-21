@@ -23,6 +23,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     commands = {
         "init-workspace": init_workspace.run,
+        "list-workflow-types": init_workspace.list_workflow_types,
         "list-actions": list_actions.run,
         "dispatch-next": dispatch.run,
         "next-step": next_step.run,
@@ -70,11 +71,11 @@ def build_parser() -> argparse.ArgumentParser:
                 "--workflow-type",
                 type=str,
                 required=False,
-                default="enterprise-modular",
+                default=None,
                 help=(
                     "Workflow type to initialise this initiative with. "
                     "Must match an entry in .b2s/workflow-types/index.yaml. "
-                    "Defaults to 'enterprise-modular'."
+                    "Run `list-workflow-types` to see available options."
                 ),
             )
         if name in {"run-action", "retry-action"}:

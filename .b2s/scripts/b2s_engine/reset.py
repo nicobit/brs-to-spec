@@ -15,8 +15,8 @@ def _timestamp() -> str:
 def run(args: object) -> None:
     workspace_root = workspace.resolve_workspace_root(args.workspace_root)
     state = workspace.load_state(workspace_root)
-    workflow = workspace.load_workflow_definition()
-    _, actions_by_id = workspace.load_stage_actions()
+    workflow = workspace.load_workflow_definition(workspace_root)
+    _, actions_by_id = workspace.load_stage_actions(workspace_root)
     stages = workflow["stages"]
     stage_ids = [stage["id"] for stage in stages]
     target_stage = getattr(args, "stage_id", None) or stage_ids[0]

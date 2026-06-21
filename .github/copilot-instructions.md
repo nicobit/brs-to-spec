@@ -9,9 +9,10 @@ This file is intentionally minimal.
 At the start of every session, always load:
 
 1. `.b2s/agent-instructions.md`
-2. `.b2s/prompts/run-workflow.md`
+2. `.b2s/module-index.md`
+3. `.b2s/prompts/run-workflow.md`
 
-These two files are the authoritative behavioral contract for this framework. Load them before responding to any user request.
+These files are the authoritative behavioral contract for this framework. Load them before responding to any user request.
 
 ## Framework routing
 
@@ -55,3 +56,14 @@ Do not invent next steps. Do not summarize the BRS. Run the workflow.
 
 Do NOT invent progress. Do NOT bypass validation or gates.
 Use `.github/prompts/b2s-repair-chain.prompt.md` (repair), `.github/prompts/b2s-reset-to-phase.prompt.md` (rewind to a stage), or `.github/prompts/b2s-resume.prompt.md` (repair/retry/reset decision then continue) only when the user explicitly triggers repair, reset, or resume.
+
+## Machine-file contract — enforced by the engine
+
+The engine owns all files under `.b2s/state/` and `.b2s/tmp/` in every initiative workspace. Do not write to these paths directly.
+
+- **`workflow-state.json`** — read-only for agents. Use CLI commands to change state.
+- **`execution-log.jsonl`** — engine-written only. Every entry is fingerprinted; fabricated entries are detected on the next `dispatch-next` call.
+- **CLI output files** (`next-step.json`, `current-inputs.json`, `current-validation.yaml`, `current-state-update.json`, `current-gate.json`) — engine-written only.
+- **Gate approval** — run `approve-current-gate` or `reject-current-gate` via the CLI. Do not edit `awaiting_human` or `current_gate` by hand.
+
+Violations are surfaced as `integrity_warnings` in `dispatch-next` output.

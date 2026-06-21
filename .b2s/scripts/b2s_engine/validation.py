@@ -11,6 +11,7 @@ from b2s_engine import workspace
 
 Validator = Callable[[Path, Path], list[dict[str, str]]]
 ProfileValidator = Callable[[Path, Path, dict[str, Any], str], list[dict[str, str]]]
+NamedRuleValidator = Callable[[Path, Path, dict[str, Any], str, list[dict[str, str]]], dict[str, str]]
 
 
 def _read_text(path: Path) -> str:
@@ -35,6 +36,24 @@ def _source_text(workspace_root: Path) -> str:
 def _result(name: str, target: str, passed: bool, detail: str) -> dict[str, str]:
     return {
         "name": name,
+        "target": target,
+        "result": "pass" if passed else "fail",
+        "detail": detail,
+    }
+
+
+def _named_rule_result(
+    rule_name: str,
+    target: str,
+    passed: bool,
+    detail: str,
+    *,
+    severity: str,
+) -> dict[str, str]:
+    return {
+        "name": "named_validation_rule",
+        "rule_name": rule_name,
+        "severity": severity,
         "target": target,
         "result": "pass" if passed else "fail",
         "detail": detail,
@@ -229,6 +248,14 @@ def _placeholders_absent(text: str, extra_patterns: list[str] | None = None) -> 
     if extra_patterns:
         patterns.extend(extra_patterns)
     return not any(re.search(pattern, text, flags=re.IGNORECASE) for pattern in patterns)
+
+
+def _check_passed(checks: list[dict[str, str]], name: str) -> bool:
+    return any(check.get("name") == name and check.get("result") == "pass" for check in checks)
+
+
+def _any_check_passed(checks: list[dict[str, str]], names: list[str]) -> bool:
+    return any(_check_passed(checks, name) for name in names)
 
 
 def _cell_is_populated(value: str) -> bool:
@@ -738,6 +765,185 @@ def _validate_use_cases_puml(path: Path, workspace_root: Path) -> list[dict[str,
                 "PlantUML contains at least the markdown UC identifiers",
             )
         )
+    return checks
+
+
+def _validate_atomic_requirements(path: Path, workspace_root: Path) -> list[dict[str, str]]:
+    text = _read_text(path)
+    source = _source_text(workspace_root)
+    checks = []
+    checks.extend(_non_empty_file(path))
+
+    for heading in ["## Requirement Catalogue", "## Open Questions", "## Assumptions"]:
+        checks.extend(_contains(path, heading, f"has_{heading.split()[-1].lower()}", f"{heading} section present"))
+
+    checks.extend(_matches(path, r"\|\s*(?:FR|REQ)-\d{3}\s*\|", "has_req_rows", "requirement catalogue includes typed rows"))
+
+    source_fr_count = _count_pattern(source, r"\*\*FR-\d{3}\*\*")
+    if source_fr_count == 0:
+        source_fr_count = _count_pattern(source, r"(?:^|\|)\s*FR-\d{3}\s*(?:\||\s)")
+    artifact_req_count = _count_pattern(text, r"^###\s+(?:REQ|FR)-\d{3}\b")
+    if artifact_req_count == 0:
+        artifact_req_count = _table_row_count(text, r"(?:FR|REQ)-\d{3}")
+
+    if source_fr_count >= 4:
+        min_expected = max(2, source_fr_count // 2)
+        checks.append(
+            _result(
+                "req_count_proportional_to_source",
+                path.name,
+                artifact_req_count >= min_expected,
+                f"extracted {artifact_req_count} requirements from {source_fr_count} BRS FRs (minimum {min_expected})"
+                if artifact_req_count >= min_expected
+                else f"only {artifact_req_count} requirements extracted from {source_fr_count} BRS FRs — expected at least {min_expected}; likely incomplete extraction",
+            )
+        )
+    elif source_fr_count >= 2:
+        checks.append(
+            _result(
+                "req_count_not_too_small",
+                path.name,
+                artifact_req_count >= 2,
+                f"extracted {artifact_req_count} requirements from {source_fr_count} BRS FRs",
+            )
+        )
+
+    checks.append(
+        _result(
+            "req_not_template_only",
+            path.name,
+            _placeholders_absent(text),
+            "requirements contain no template placeholder text",
+        )
+    )
+    return checks
+
+
+def _validate_delivery_skeleton(path: Path, workspace_root: Path) -> list[dict[str, str]]:
+    text = _read_text(path)
+    checks = []
+    checks.extend(_non_empty_file(path))
+
+    is_light = "## Epic Summary" in text or "## Epic Dependency Summary" in text
+    if is_light:
+        for heading in ["## Epic and Feature Hierarchy", "## Requirement Coverage"]:
+            checks.extend(_contains(path, heading, f"has_{heading.strip('# ').lower().replace(' ', '_')}", f"{heading} section present"))
+    else:
+        for heading in ["## Story Count Assertion", "## Epic and Feature Hierarchy", "## Story Index", "## Requirement Coverage Summary"]:
+            checks.extend(_contains(path, heading, f"has_{heading.strip('# ').lower().replace(' ', '_')}", f"{heading} section present"))
+
+    epic_count = _count_pattern(text, r"^###\s+E-\d{3}\b")
+    checks.append(
+        _result(
+            "has_epics",
+            path.name,
+            epic_count >= 1,
+            f"skeleton defines {epic_count} epic(s)",
+        )
+    )
+
+    feature_count = _count_pattern(text, r"^\|\s*F-\d{3}\s*\|")
+    checks.append(
+        _result(
+            "has_features",
+            path.name,
+            feature_count >= 1,
+            f"skeleton defines {feature_count} feature(s)",
+        )
+    )
+
+    req_path = workspace_root / "requirements" / "atomic-requirements.md"
+    if req_path.exists():
+        req_text = _read_text(req_path)
+        req_ids = set(re.findall(r"(?:FR|REQ)-\d{3}", req_text))
+        coverage_section = "## Requirement Coverage" if is_light else "## Requirement Coverage Summary"
+        skeleton_req_ids = set(re.findall(r"(?:FR|REQ)-\d{3}", _section_block(text, coverage_section)))
+        if len(req_ids) >= 2:
+            coverage = len(skeleton_req_ids & req_ids) / len(req_ids)
+            checks.append(
+                _result(
+                    "skeleton_req_coverage",
+                    path.name,
+                    coverage >= 0.9,
+                    f"skeleton covers {len(skeleton_req_ids & req_ids)}/{len(req_ids)} requirements ({coverage:.0%})"
+                    if coverage >= 0.9
+                    else f"skeleton only covers {len(skeleton_req_ids & req_ids)}/{len(req_ids)} requirements ({coverage:.0%}) — expected at least 90%",
+                )
+            )
+
+    checks.append(
+        _result(
+            "skeleton_no_placeholders",
+            path.name,
+            _placeholders_absent(text),
+            "skeleton contains no template placeholder text",
+        )
+    )
+    return checks
+
+
+def _validate_fr_coverage_report(path: Path, workspace_root: Path) -> list[dict[str, str]]:
+    text = _read_text(path)
+    checks = []
+    checks.extend(_non_empty_file(path))
+
+    for heading in ["## Coverage Summary", "## Full Coverage Matrix"]:
+        checks.extend(_contains(path, heading, f"has_{heading.strip('# ').lower().replace(' ', '_')}", f"{heading} section present"))
+
+    coverage_match = re.search(r"\|\s*Coverage percentage\s*\|\s*(\d+)%?\s*\|", text)
+    if coverage_match:
+        pct = int(coverage_match.group(1))
+        checks.append(
+            _result(
+                "coverage_percentage_acceptable",
+                path.name,
+                pct >= 90,
+                f"coverage percentage is {pct}%" if pct >= 90
+                else f"coverage percentage is only {pct}% — expected at least 90%; likely missing stories for requirements",
+            )
+        )
+    else:
+        covered_rows = _count_pattern(text, r"\|\s*Covered\s*\|")
+        not_covered_rows = _count_pattern(text, r"\|\s*\*\*Not Covered\*\*\s*\|")
+        total = covered_rows + not_covered_rows
+        if total >= 2:
+            pct = (covered_rows * 100) // total
+            checks.append(
+                _result(
+                    "coverage_percentage_acceptable",
+                    path.name,
+                    pct >= 90,
+                    f"calculated coverage: {covered_rows}/{total} ({pct}%)" if pct >= 90
+                    else f"calculated coverage: only {covered_rows}/{total} ({pct}%) — expected at least 90%",
+                )
+            )
+
+    req_path = workspace_root / "requirements" / "atomic-requirements.md"
+    if req_path.exists():
+        req_text = _read_text(req_path)
+        req_ids = set(re.findall(r"(?:FR|REQ|NFR)-\d{3}", req_text))
+        matrix_ids = set(re.findall(r"(?:FR|REQ|NFR)-\d{3}", _section_block(text, "## Full Coverage Matrix")))
+        if len(req_ids) >= 2:
+            missing = req_ids - matrix_ids
+            checks.append(
+                _result(
+                    "all_reqs_in_matrix",
+                    path.name,
+                    len(missing) == 0,
+                    f"all {len(req_ids)} requirements appear in coverage matrix"
+                    if len(missing) == 0
+                    else f"{len(missing)} requirements missing from coverage matrix: {sorted(missing)[:10]}",
+                )
+            )
+
+    checks.append(
+        _result(
+            "fr_coverage_no_placeholders",
+            path.name,
+            _placeholders_absent(text),
+            "coverage report contains no template placeholder text",
+        )
+    )
     return checks
 
 
@@ -1639,10 +1845,600 @@ def _validate_from_template(
     return checks
 
 
+def _rule_requirement_has_id(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    text = _read_text(path)
+    has_fr = bool(re.search(r"^\|\s*FR-\d{3}\s*\|", text, flags=re.MULTILINE))
+    has_nfr = bool(re.search(r"^\|\s*NFR-\d{3}\s*\|", text, flags=re.MULTILINE))
+    has_constraint = bool(re.search(r"^\|\s*C-\d{3}\s*\|", text, flags=re.MULTILINE))
+    passed = has_fr and has_nfr and has_constraint
+    return _named_rule_result(
+        "requirement_has_id",
+        artifact_path,
+        passed,
+        "functional, non-functional, and constraint rows all use typed identifiers",
+        severity="required",
+    )
+
+
+def _rule_requirement_is_testable(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    passed = (
+        _check_passed(base_checks, "fr_not_template_only")
+        and _check_passed(base_checks, "nfr_section_not_empty")
+        and _check_passed(base_checks, "constraints_section_not_empty")
+    )
+    return _named_rule_result(
+        "requirement_is_testable",
+        artifact_path,
+        passed,
+        "requirements content is populated and avoids template-only wording",
+        severity="required",
+    )
+
+
+def _rule_architecture_lists_impacted_systems(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    return _named_rule_result(
+        "architecture_lists_impacted_systems",
+        artifact_path,
+        _any_check_passed(
+            base_checks,
+            ["fit_section_populated", "tmpl_table_populated_initiative-architecture_fit"],
+        ),
+        "architecture review lists impacted systems or feature-area fit explicitly",
+        severity="required",
+    )
+
+
+def _rule_architecture_lists_constraints(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    return _named_rule_result(
+        "architecture_lists_constraints",
+        artifact_path,
+        _any_check_passed(
+            base_checks,
+            [
+                "constraints_have_rationale_and_consequence",
+                "tmpl_table_populated_architecture_constraints",
+            ],
+        ),
+        "architecture review lists constraints with rationale and consequence",
+        severity="required",
+    )
+
+
+def _rule_architecture_lists_risks(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    passed = _any_check_passed(
+        base_checks,
+        ["quality_attributes_populated", "tmpl_table_populated_quality_attribute_assessment"],
+    )
+    return _named_rule_result(
+        "architecture_lists_risks",
+        artifact_path,
+        passed,
+        "architecture review contains explicit risk-bearing quality and analysis content",
+        severity="required",
+    )
+
+
+def _rule_readiness_has_decision(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    passed = _check_passed(base_checks, "decision_is_populated") and _check_passed(
+        base_checks,
+        "readiness_score_is_numeric",
+    )
+    return _named_rule_result(
+        "readiness_has_decision",
+        artifact_path,
+        passed,
+        "readiness artifact contains a populated decision and numeric score",
+        severity="required",
+    )
+
+
+def _rule_contract_has_schema_definitions(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    text = _read_text(path)
+    passed = False
+    for heading in ["## Schema Definitions", "## Event Definitions"]:
+        if heading in text and _section_non_placeholder(text, heading):
+            passed = True
+            break
+    return _named_rule_result(
+        "contract_has_schema_definitions",
+        artifact_path,
+        passed,
+        "contract includes a populated schema or event definitions section",
+        severity="required",
+    )
+
+
+def _rule_nfr_assessment_has_ids(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    text = _read_text(path)
+    passed = bool(re.search(r"^\|\s*NFR-\d{3}\s*\|", text, flags=re.MULTILINE))
+    return _named_rule_result(
+        "nfr_assessment_has_ids",
+        artifact_path,
+        passed,
+        "nfr assessment includes typed NFR identifiers",
+        severity="required",
+    )
+
+
+def _rule_nfr_assessment_covers_core_domains(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    text = _read_text(path)
+    headings = [
+        "## Security",
+        "## Availability",
+        "## Resiliency",
+        "## Observability",
+        "## Supportability",
+        "## Scalability",
+        "## Compliance",
+    ]
+    passed = all(heading in text and _section_non_placeholder(text, heading) for heading in headings)
+    return _named_rule_result(
+        "nfr_assessment_covers_core_domains",
+        artifact_path,
+        passed,
+        "nfr assessment covers all required enterprise NFR domains",
+        severity="required",
+    )
+
+
+def _rule_nfr_assessment_has_decision(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    text = _read_text(path)
+    passed = "## Decision" in text and _section_non_placeholder(text, "## Decision")
+    return _named_rule_result(
+        "nfr_assessment_has_decision",
+        artifact_path,
+        passed,
+        "nfr assessment includes an explicit delivery decision",
+        severity="required",
+    )
+
+
+NAMED_RULES: dict[str, NamedRuleValidator] = {
+    "requirement_has_id": _rule_requirement_has_id,
+    "requirement_is_testable": _rule_requirement_is_testable,
+    "architecture_lists_impacted_systems": _rule_architecture_lists_impacted_systems,
+    "architecture_lists_constraints": _rule_architecture_lists_constraints,
+    "architecture_lists_risks": _rule_architecture_lists_risks,
+    "readiness_has_decision": _rule_readiness_has_decision,
+    "contract_has_schema_definitions": _rule_contract_has_schema_definitions,
+    "nfr_assessment_has_ids": _rule_nfr_assessment_has_ids,
+    "nfr_assessment_covers_core_domains": _rule_nfr_assessment_covers_core_domains,
+    "nfr_assessment_has_decision": _rule_nfr_assessment_has_decision,
+}
+
+
+def _run_named_validation_rules(
+    action: dict[str, Any],
+    path: Path,
+    workspace_root: Path,
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> list[dict[str, str]]:
+    rules = action.get("validation_rules") or {}
+    results: list[dict[str, str]] = []
+
+    for severity in ("required", "optional"):
+        for rule_name in list(rules.get(severity, []) or []):
+            validator = NAMED_RULES.get(rule_name)
+            if validator is None:
+                results.append(
+                    _named_rule_result(
+                        rule_name,
+                        artifact_path,
+                        False,
+                        f"unknown named validation rule: {rule_name}",
+                        severity=severity,
+                    )
+                )
+                continue
+
+            result = validator(path, workspace_root, action, artifact_path, base_checks)
+            result["severity"] = severity
+            results.append(result)
+
+    return results
+
+
+def _validate_epic_folders_directory(path: Path, workspace_root: Path) -> list[dict[str, str]]:
+    checks: list[dict[str, str]] = []
+    checks.extend(_non_empty_directory(path))
+
+    state = workspace.load_state(workspace_root)
+    current_item = state.get("current_item")
+
+    epic_dirs = sorted([d for d in path.iterdir() if d.is_dir() and d.name.startswith("E-")])
+    flat_files = sorted([f for f in path.iterdir() if f.is_file() and f.name.startswith("E-")])
+
+    if current_item:
+        epic_dirs = [d for d in epic_dirs if d.name.startswith(current_item)]
+        if not epic_dirs:
+            checks.append(
+                _result(
+                    "current_item_folder_exists",
+                    path.name,
+                    False,
+                    f"no folder found for current_item '{current_item}' — expected epics/{current_item}-<slug>/",
+                )
+            )
+            return checks
+
+    if flat_files and not epic_dirs:
+        checks.append(
+            _result(
+                "has_epic_subdirectories",
+                path.name,
+                False,
+                f"epics/ contains flat files ({[f.name for f in flat_files[:5]]}) instead of E-NNN subdirectories — "
+                f"each epic must be a folder (epics/E-001-<slug>/) containing epic.md and stories/",
+            )
+        )
+        return checks
+
+    checks.append(
+        _result(
+            "has_epic_subdirectories",
+            path.name,
+            bool(epic_dirs),
+            f"epics/ contains {len(epic_dirs)} epic subdirectories" if epic_dirs
+            else "epics/ has no E-NNN subdirectories",
+        )
+    )
+
+    for epic_dir in epic_dirs:
+        label = epic_dir.name
+
+        epic_md = epic_dir / "epic.md"
+        checks.append(
+            _result(
+                "epic_has_overview",
+                label,
+                epic_md.exists(),
+                f"{label}/epic.md present" if epic_md.exists()
+                else f"{label}/epic.md missing — every epic folder must contain epic.md",
+            )
+        )
+
+        contract = epic_dir / "implementation-contract.md"
+        checks.append(
+            _result(
+                "epic_has_contract",
+                label,
+                contract.exists(),
+                f"{label}/implementation-contract.md present" if contract.exists()
+                else f"{label}/implementation-contract.md missing — every epic folder must contain an implementation contract",
+            )
+        )
+
+        if contract.exists():
+            ct = _read_text(contract)
+            ct_lines = len([l for l in ct.splitlines() if l.strip()])
+            checks.append(
+                _result(
+                    "contract_has_depth",
+                    label,
+                    ct_lines >= 15,
+                    f"{label}/implementation-contract.md: {ct_lines} lines of content" if ct_lines >= 15
+                    else f"{label}/implementation-contract.md: only {ct_lines} lines — contract must include relevant data/API/event/rules sections",
+                )
+            )
+
+            has_data = "## Data Entities" in ct
+            has_api = "## API Surface" in ct
+            has_events = "## Events" in ct
+            has_any_section = has_data or has_api or has_events or "## Business Rules" in ct
+            checks.append(
+                _result(
+                    "contract_has_sections",
+                    label,
+                    has_any_section,
+                    f"{label}/implementation-contract.md: has implementation sections (data={has_data}, api={has_api}, events={has_events})"
+                    if has_any_section
+                    else f"{label}/implementation-contract.md: no relevant sections found — must include at least one of: Data Entities, API Surface, Events, Business Rules",
+                )
+            )
+
+            if has_data:
+                has_er = "```mermaid" in ct and "erDiagram" in ct
+                checks.append(
+                    _result(
+                        "contract_data_has_er_diagram",
+                        label,
+                        has_er,
+                        f"{label}: Data Entities section has Mermaid ER diagram" if has_er
+                        else f"{label}: Data Entities section missing erDiagram — must include Mermaid ER diagram when data entities are defined",
+                    )
+                )
+
+            if has_api:
+                has_openapi = "```yaml" in ct and "openapi" in ct
+                checks.append(
+                    _result(
+                        "contract_api_has_openapi",
+                        label,
+                        has_openapi,
+                        f"{label}: API Surface section has OpenAPI YAML spec" if has_openapi
+                        else f"{label}: API Surface section missing OpenAPI YAML — must include ```yaml openapi spec when APIs are defined",
+                    )
+                )
+
+        epic_id = re.match(r"(E-\d{3})", label)
+        epic_id_str = epic_id.group(1) if epic_id else None
+        skeleton_path = workspace_root / "planning" / "delivery-skeleton.md"
+        if epic_id_str and skeleton_path.exists():
+            skeleton_text = _read_text(skeleton_path)
+            coverage_section = _section_block(skeleton_text, "## Requirement Coverage")
+            epic_reqs: set[str] = set()
+            for row_match in re.finditer(
+                rf"^\|\s*((?:FR|REQ|NFR)-\d{{3}})\s*\|.*?\|\s*{re.escape(epic_id_str)}\s*\|",
+                coverage_section,
+                flags=re.MULTILINE,
+            ):
+                epic_reqs.add(row_match.group(1))
+
+            if epic_reqs:
+                story_reqs: set[str] = set()
+                for story_file in sorted((epic_dir / "stories").glob("F-*.md")) if (epic_dir / "stories").exists() else []:
+                    if story_file.name.endswith(".prompt.md"):
+                        continue
+                    story_text = _read_text(story_file)
+                    story_reqs.update(re.findall(r"(?:FR|REQ|NFR)-\d{3}", story_text))
+
+                missing_reqs = epic_reqs - story_reqs
+                checks.append(
+                    _result(
+                        "epic_stories_cover_requirements",
+                        label,
+                        len(missing_reqs) == 0,
+                        f"{label}: stories cover all {len(epic_reqs)} requirements from skeleton"
+                        if len(missing_reqs) == 0
+                        else f"{label}: stories missing {len(missing_reqs)} requirements from skeleton: {sorted(missing_reqs)[:10]}",
+                    )
+                )
+
+        stories_dir = epic_dir / "stories"
+        checks.append(
+            _result(
+                "epic_has_stories_dir",
+                label,
+                stories_dir.exists() and stories_dir.is_dir(),
+                f"{label}/stories/ directory present" if stories_dir.exists()
+                else f"{label}/stories/ directory missing — each epic must have a stories/ subfolder",
+            )
+        )
+
+        if stories_dir.exists() and stories_dir.is_dir():
+            story_files = sorted([f for f in stories_dir.glob("F-*.md") if not f.name.endswith(".prompt.md")])
+
+            checks.append(
+                _result(
+                    "epic_has_story_files",
+                    label,
+                    bool(story_files),
+                    f"{label}/stories/ has {len(story_files)} story file(s)" if story_files
+                    else f"{label}/stories/ has no F-NNN.N-*.md story files",
+                )
+            )
+
+            for story_file in story_files:
+                text = _read_text(story_file)
+                slabel = f"{label}/{story_file.name}"
+
+                has_gherkin = "```gherkin" in text
+                checks.append(
+                    _result(
+                        "story_has_gherkin_ac",
+                        slabel,
+                        has_gherkin,
+                        f"{story_file.name}: has Gherkin AC" if has_gherkin
+                        else f"{story_file.name}: no ```gherkin block — AC must use Given/When/Then",
+                    )
+                )
+
+                gherkin_blocks = re.findall(r"```gherkin(.*?)```", text, re.DOTALL)
+                scenario_count = sum(
+                    len(re.findall(r"^\s*Scenario:", block, re.MULTILINE))
+                    for block in gherkin_blocks
+                )
+                checks.append(
+                    _result(
+                        "story_has_minimum_ac",
+                        slabel,
+                        scenario_count >= 2,
+                        f"{story_file.name}: {scenario_count} Gherkin scenarios (minimum 2: happy + negative)"
+                        if scenario_count >= 2
+                        else f"{story_file.name}: only {scenario_count} Gherkin scenario(s) — need at least 2 (happy path + negative/validation)",
+                    )
+                )
+
+            all_story_layers: set[str] = set()
+            for story_file in story_files:
+                stext = _read_text(story_file)
+                slbl = f"{label}/{story_file.name}"
+
+                layers_match = re.search(r"\|\s*Layers?\s*\|\s*([^|]+)\|", stext, re.IGNORECASE)
+                if layers_match:
+                    layer_text = layers_match.group(1).strip()
+                    for layer in re.split(r"[,/]", layer_text):
+                        normalized = layer.strip().lower()
+                        if normalized and normalized not in ("draft", "must", "should", "could"):
+                            all_story_layers.add(normalized)
+                checks.append(
+                    _result(
+                        "story_has_layers",
+                        slbl,
+                        bool(layers_match) and len(layers_match.group(1).strip()) > 2,
+                        f"{story_file.name}: layers declared" if layers_match and len(layers_match.group(1).strip()) > 2
+                        else f"{story_file.name}: missing Layers field in metadata — must declare which layers (Frontend/Backend/Infrastructure/Integration) this story touches",
+                    )
+                )
+
+                story_req_ids = set(re.findall(r"(?:FR|REQ|NFR)-\d{3}", stext))
+                if len(story_req_ids) > 5:
+                    checks.append(
+                        _result(
+                            "story_invest_small",
+                            slbl,
+                            False,
+                            f"{story_file.name}: covers {len(story_req_ids)} requirements — likely too large (INVEST: Small). Consider splitting.",
+                        )
+                    )
+
+                has_business_context = bool(re.search(r"(?i)##\s*business context", stext))
+                checks.append(
+                    _result(
+                        "story_invest_valuable",
+                        slbl,
+                        has_business_context,
+                        f"{story_file.name}: has Business Context section (INVEST: Valuable)" if has_business_context
+                        else f"{story_file.name}: missing '## Business Context' section (INVEST: Valuable) — story must explain WHY it matters",
+                    )
+                )
+
+                has_user_story = bool(re.search(r"(?i)##\s*user story", stext))
+                user_story_text = ""
+                if has_user_story:
+                    user_story_text = _section_block(stext, "## User Story")
+                checks.append(
+                    _result(
+                        "story_has_user_story",
+                        slbl,
+                        has_user_story and len(user_story_text.strip()) >= 20,
+                        f"{story_file.name}: has User Story section with description" if has_user_story and len(user_story_text.strip()) >= 20
+                        else f"{story_file.name}: missing or too brief '## User Story' section — must include 'As a... I want... so that...' with meaningful detail",
+                    )
+                )
+
+            for story_file in story_files:
+                stext2 = _read_text(story_file)
+                slbl2 = f"{label}/{story_file.name}"
+
+                has_impl_guidance = bool(re.search(r"(?i)##\s*implementation guidance", stext2))
+                checks.append(
+                    _result(
+                        "story_has_implementation_guidance",
+                        slbl2,
+                        has_impl_guidance,
+                        f"{story_file.name}: has Implementation Guidance section" if has_impl_guidance
+                        else f"{story_file.name}: missing '## Implementation Guidance' — must reference the implementation contract",
+                    )
+                )
+
+                has_test_table = bool(re.search(r"(?i)##\s*test expectations", stext2))
+                checks.append(
+                    _result(
+                        "story_has_test_expectations",
+                        slbl2,
+                        has_test_table,
+                        f"{story_file.name}: has Test Expectations section" if has_test_table
+                        else f"{story_file.name}: missing '## Test Expectations' — must specify which test types to write",
+                    )
+                )
+
+    skeleton_path = workspace_root / "planning" / "delivery-skeleton.md"
+    if skeleton_path.exists():
+        skel_text = _read_text(skeleton_path)
+        declared_layers: set[str] = set()
+        layers_section = _section_block(skel_text, "## Application Layers")
+        for layer_name in ("frontend", "backend", "infrastructure", "integration"):
+            if re.search(rf"(?i)\|\s*{layer_name}.*?\|\s*yes\s*\|", layers_section):
+                declared_layers.add(layer_name)
+
+        if declared_layers:
+            all_epic_layers: set[str] = set()
+            for epic_dir in epic_dirs:
+                stories_path = epic_dir / "stories"
+                if stories_path.exists():
+                    for sf in stories_path.glob("F-*.md"):
+                        if not sf.name.startswith("F-") or sf.name.endswith(".prompt.md"):
+                            continue
+                        st = _read_text(sf)
+                        lm = re.search(r"\|\s*Layers?\s*\|\s*([^|]+)\|", st, re.IGNORECASE)
+                        if lm:
+                            for part in re.split(r"[,/]", lm.group(1)):
+                                all_epic_layers.add(part.strip().lower())
+
+            missing_layers = declared_layers - all_epic_layers
+            checks.append(
+                _result(
+                    "layers_coverage",
+                    path.name,
+                    len(missing_layers) == 0,
+                    f"all declared layers covered by stories ({sorted(declared_layers)})"
+                    if len(missing_layers) == 0
+                    else f"declared layers not covered by any story: {sorted(missing_layers)} — skeleton declares these layers but no story touches them",
+                )
+            )
+
+    return checks
+
+
 VALIDATORS_BY_ARTIFACT = {
     "routing/routing-decision.md": _validate_routing_decision,
     "business-intake/business-intake-summary.md": _validate_business_intake_summary,
     "business-analysis/requirements.md": _validate_requirements_catalog,
+    "requirements/atomic-requirements.md": _validate_atomic_requirements,
+    "planning/delivery-skeleton.md": _validate_delivery_skeleton,
+    "planning/fr-coverage.md": _validate_fr_coverage_report,
     "business-analysis/use-cases.md": _validate_use_cases_markdown,
     "business-analysis/use-cases.puml": _validate_use_cases_puml,
     "business-analysis/entity-model.md": _validate_entity_model,
@@ -1655,6 +2451,7 @@ VALIDATORS_BY_ARTIFACT = {
     "technical-specifications/integrations/": _validate_integration_spec_directory,
     "standalone-delivery/": _validate_standalone_directory,
     "review-package/": _validate_review_package,
+    "epics/": _validate_epic_folders_directory,
 }
 
 PROFILE_VALIDATORS: dict[str, ProfileValidator] = {
@@ -1855,6 +2652,8 @@ def run(args: object) -> None:
 
     checks = []
     failures = []
+    advisories = []
+    named_rule_results = []
     artifact_paths = workspace.action_output_paths(action)
 
     for artifact_path in artifact_paths:
@@ -1887,12 +2686,29 @@ def run(args: object) -> None:
                     f"{artifact_path}: {validator_check['name']} failed - {validator_check['detail']}"
                 )
 
+        rule_checks = _run_named_validation_rules(action, path, workspace_root, artifact_path, validator_checks)
+        checks.extend(rule_checks)
+        named_rule_results.extend(rule_checks)
+        for rule_check in rule_checks:
+            if rule_check["result"] != "fail":
+                continue
+            if rule_check.get("severity") == "required":
+                failures.append(
+                    f"{artifact_path}: {rule_check['rule_name']} failed - {rule_check['detail']}"
+                )
+            else:
+                advisories.append(
+                    f"{artifact_path}: {rule_check['rule_name']} advisory - {rule_check['detail']}"
+                )
+
     result = {
         "overall": "pass" if not failures else "fail",
         "action_id": action_id,
         "artifact_path": artifact_paths[0] if artifact_paths else None,
         "checks": checks,
+        "named_rule_results": named_rule_results,
         "failures": failures,
+        "advisories": advisories,
     }
     workspace.save_yaml_file(
         workspace.resolve_output_path("validate-artifact", workspace_root, args.output),

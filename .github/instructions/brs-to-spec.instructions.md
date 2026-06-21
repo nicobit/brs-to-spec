@@ -58,3 +58,14 @@ Stop and use the staged repair or reset prompts only when the user explicitly tr
 ## No menus, no permission requests
 
 Do not ask "Proceed?" between stages. Do not offer choices between framework steps. Run continuously until a genuine stop condition is reached.
+
+## Machine-file contract — enforced by the engine
+
+The engine owns all files under `.b2s/state/` and `.b2s/tmp/` in every initiative workspace. Do not write to these paths directly.
+
+- **`workflow-state.json`** — read-only for agents. Use CLI commands to change state.
+- **`execution-log.jsonl`** — engine-written only. Every entry is fingerprinted; fabricated entries are detected on the next `dispatch-next` call.
+- **CLI output files** (`next-step.json`, `current-inputs.json`, `current-validation.yaml`, `current-state-update.json`, `current-gate.json`) — engine-written only.
+- **Gate approval** — run `approve-current-gate` or `reject-current-gate` via the CLI. Do not edit `awaiting_human` or `current_gate` by hand.
+
+Violations are surfaced as `integrity_warnings` in `dispatch-next` output.

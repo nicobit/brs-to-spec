@@ -1,0 +1,138 @@
+{
+  "status": "ready",
+  "initiative_id": "I222-N2",
+  "current_stage": "2-delivery-planning",
+  "workflow_source": "local",
+  "message": "Ready to execute `create-elaboration-plan` - Create elaboration plan. Load b2s skill prompt at `.b2s/skills/delivery-lead/create-elaboration-plan.md` and execute it, then run validate-artifact -> update-state -> dispatch-next.",
+  "action": {
+    "action_id": "create-elaboration-plan",
+    "title": "Create elaboration plan",
+    "stage_id": "2-delivery-planning",
+    "persona": "delivery-lead",
+    "prompt_family": "b2s",
+    "skill_ref": ".b2s/skills/delivery-lead/create-elaboration-plan.md",
+    "requested_skill_ref": ".b2s/skills/delivery-lead/create-elaboration-plan.md",
+    "fallback_skill_ref": null,
+    "fallback_used": false,
+    "skill_path": "C:\\Users\\nicol\\source\\brs-to-spec\\.b2s\\skills\\delivery-lead\\create-elaboration-plan.md",
+    "skill_exists": true,
+    "artifact_template_ref": ".b2s/artifact-templates/elaboration-plan.md",
+    "output_paths": [
+      "planning/elaboration-plan.md"
+    ],
+    "required_inputs": [
+      {
+        "path": "planning/delivery-skeleton.md",
+        "exists": true,
+        "matches": [
+          "planning/delivery-skeleton.md"
+        ]
+      },
+      {
+        "path": "governance/delivery-constitution.md",
+        "exists": true,
+        "matches": [
+          "governance/delivery-constitution.md"
+        ]
+      }
+    ],
+    "optional_inputs": [
+      {
+        "path": "architecture/architecture-impact-map.md",
+        "exists": false,
+        "matches": []
+      },
+      {
+        "path": "architecture/architecture-risks.md",
+        "exists": false,
+        "matches": []
+      },
+      {
+        "path": "architecture/architecture-review.md",
+        "exists": true,
+        "matches": [
+          "architecture/architecture-review.md"
+        ]
+      },
+      {
+        "path": "architecture/architecture-rules.md",
+        "exists": true,
+        "matches": [
+          "architecture/architecture-rules.md"
+        ]
+      },
+      {
+        "path": "architecture/required-adrs.md",
+        "exists": false,
+        "matches": []
+      },
+      {
+        "path": "requirements/atomic-requirements.md",
+        "exists": true,
+        "matches": [
+          "requirements/atomic-requirements.md"
+        ]
+      },
+      {
+        "path": "domain/capability-map.md",
+        "exists": false,
+        "matches": []
+      }
+    ],
+    "policy_inputs": [],
+    "missing_required_inputs": [],
+    "missing_policy_inputs": [],
+    "inputs_ready": true,
+    "prompt_placeholders": {
+      "required_inputs": [
+        "planning/delivery-skeleton.md",
+        "governance/delivery-constitution.md"
+      ],
+      "optional_inputs": [
+        "architecture/architecture-impact-map.md",
+        "architecture/architecture-risks.md",
+        "architecture/architecture-review.md",
+        "architecture/architecture-rules.md",
+        "architecture/required-adrs.md",
+        "requirements/atomic-requirements.md",
+        "domain/capability-map.md"
+      ],
+      "resolved_required_inputs": [
+        "planning/delivery-skeleton.md",
+        "governance/delivery-constitution.md"
+      ],
+      "resolved_optional_inputs": [
+        "architecture/architecture-review.md",
+        "architecture/architecture-rules.md",
+        "requirements/atomic-requirements.md"
+      ],
+      "resolved_policy_inputs": [],
+      "primary_output": "planning/elaboration-plan.md",
+      "secondary_outputs": [],
+      "artifact_template_ref": ".b2s/artifact-templates/elaboration-plan.md",
+      "prompt_family": "b2s",
+      "template_mode": "strict"
+    },
+    "rendered_skill_text": "# Skill - Create Elaboration Plan\n\n## Identity\n\n```text\nskill_id:    delivery-lead.create-elaboration-plan\npersona:     delivery-lead\naction_id:   create-elaboration-plan\nproduces:    planning/elaboration-plan.md\n```\n\n## When this skill is used\n\nRun after the delivery skeleton is created and before epic packages are elaborated. This skill reads the high-level skeleton (epic/feature/story IDs) together with architecture risk and impact data, then proposes an elaboration order \u2014 which epics to detail first, which can be done in parallel, and the dependency rationale.\n\n## Role for this task\n\nYou are a senior delivery lead deciding the elaboration sequence for a progressive decomposition initiative. You must balance business priority, architecture risk, dependency chains, and parallel elaboration opportunities to propose the most effective order for detailed epic and story elaboration.\n\n## Preconditions\n\nBefore starting, verify:\n\n- `planning/delivery-skeleton.md` exists and is readable\n- `architecture/architecture-impact-map.md` exists and is readable\n- `architecture/architecture-risks.md` exists and is readable\n- `governance/delivery-constitution.md` exists and is readable\n\nOptional context:\n\n- `architecture/architecture-review.md`\n- `architecture/architecture-rules.md`\n- `architecture/required-adrs.md`\n- `requirements/atomic-requirements.md`\n- `domain/capability-map.md`\n\nIf a required input is missing, stop and report the blocker.\n\n## Hard constraints\n\n- Every epic in the delivery skeleton must appear in the elaboration plan\n- Every epic must be assigned to exactly one wave\n- Dependencies must be valid \u2014 no epic can depend on an epic in a later wave\n- The Mermaid diagram must include every epic with correct dependency edges\n- At least one parallel group must be identified (or explicitly state none exist with justification)\n- Risk levels must be derived from architecture-risks.md, not invented\n\n## Instructions\n\n### Step 1 - Read inputs fully\n\nRead every file listed in `- planning/delivery-skeleton.md\n- governance/delivery-constitution.md` in full.\nIf `- architecture/architecture-review.md\n- architecture/architecture-rules.md\n- requirements/atomic-requirements.md` is not empty, read those files in full as well.\nDo not start writing until all inputs are read completely.\n\n### Step 2 - Extract epic list and dependency information\n\nFrom `delivery-skeleton.md`, extract all epics with their features, story counts, and priority breakdown (Must/Should/Could). From `architecture-impact-map.md`, extract which epics have cross-cutting system impacts or shared component dependencies. From `architecture-risks.md`, extract which epics carry the most risk.\n\n### Step 3 - Analyse inter-epic dependencies\n\nFor each epic, determine:\n1. Which other epics it depends on (shared data models, shared APIs, shared infrastructure components, upstream events)\n2. Which other epics depend on it (downstream consumers)\n3. Whether it has cross-cutting architectural concerns (touches the same components as other epics)\n4. Its risk level from architecture-risks.md\n\n### Step 4 - Propose wave ordering\n\nAssign each epic to a wave (Wave 1, Wave 2, etc.) based on these prioritisation factors:\n1. **Foundation-first**: Epics that others depend on go in earlier waves\n2. **Risk-first**: Higher-risk epics go earlier (fail fast, learn early)\n3. **Business-priority**: Must-have epics before Should/Could\n4. **Independence**: Standalone epics with no dependencies can fill capacity in any wave\n\n### Step 5 - Identify parallel opportunities\n\nWithin each wave, identify which epics can be elaborated in parallel:\n- No mutual dependencies\n- No shared cross-cutting concerns that would cause conflicting design decisions\n- Document the constraint that prevents parallelisation where applicable\n\n### Step 6 - Build the Mermaid diagram\n\nCreate a Mermaid `graph TD` diagram showing:\n- Subgraphs for each wave (labelled \"Wave 1\", \"Wave 2\", etc.)\n- Every epic as a node with format `ENNN[\"E-NNN: Epic Title\"]`\n- Directed edges for dependencies (A --> B means A must be elaborated before B)\n- Risk-based color classes using `classDef`:\n  - `highRisk fill:#f96,stroke:#333`\n  - `medRisk fill:#ff9,stroke:#333`\n  - `lowRisk fill:#9f9,stroke:#333`\n- Apply the appropriate class to each epic node\n\n### Step 7 - Populate prioritisation criteria\n\nDocument the weighting factors used and explain the rationale for each weight assignment. The rationale must reference specific findings from the architecture inputs, not generic statements.\n\n### Step 8 - Document risks to the elaboration order\n\nIdentify risks that could invalidate the proposed order. Examples:\n- \"If ADR-003 is resolved differently, E-002 may need to precede E-001\"\n- \"If the external API contract changes, Wave 2 may need to be reordered\"\n\n### Step 9 - Write recommendations\n\nSummarise the recommended elaboration sequence in 2-3 sentences, highlighting the key driver for the proposed order and any constraints the delivery lead should consider when reviewing.\n\n## Output requirements\n\nWrite `planning/elaboration-plan.md` using `.b2s/artifact-templates/elaboration-plan.md`.\n\n## Done criteria\n\n- [ ] Every epic from delivery-skeleton.md appears in the elaboration plan\n- [ ] Every epic is assigned to exactly one wave\n- [ ] No dependency points forward (no epic depends on an epic in a later wave)\n- [ ] Mermaid diagram includes all epics with correct dependency edges\n- [ ] Mermaid diagram uses risk-based color classes\n- [ ] At least one parallel group identified (or justified absence)\n- [ ] Risk levels sourced from architecture-risks.md\n- [ ] Prioritisation criteria documented with specific rationale\n- [ ] Epic Dependency Analysis table is fully populated\n- [ ] Risks and Mitigations table has at least one entry\n- [ ] Recommendations section is populated\n- [ ] No placeholder text remains\n\n## Stop conditions\n\n- If `planning/delivery-skeleton.md` is missing, stop and report the blocker\n- If `architecture/architecture-impact-map.md` is missing, stop and report the blocker\n- If `architecture/architecture-risks.md` is missing, stop and report the blocker\n\n## Notes for the staged engine\n\n- Do not mention event completion, result files, or dispatcher status\n- This prompt writes only the artifact\n- Validation and state updates are handled by the `.b2s` engine\n",
+    "has_human_gate": true,
+    "gate_owner": "delivery-lead"
+  },
+  "after_skill_commands": [
+    "python .b2s/scripts/b2s_cli.py validate-artifact --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I222-N2\"",
+    "python .b2s/scripts/b2s_cli.py update-state --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I222-N2\"",
+    "python .b2s/scripts/b2s_cli.py dispatch-next --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I222-N2\""
+  ],
+  "next_cli_commands": [
+    "python .b2s/scripts/b2s_cli.py validate-artifact --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I222-N2\"",
+    "python .b2s/scripts/b2s_cli.py update-state --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I222-N2\"",
+    "python .b2s/scripts/b2s_cli.py dispatch-next --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I222-N2\""
+  ],
+  "integrity_warnings": [
+    {
+      "action_id": "gate-architecture-review",
+      "status": "accepted",
+      "issue": "unlogged",
+      "detail": "action 'gate-architecture-review' is 'accepted' but has no verified engine log entry (artifacts exist on disk \u2014 status may have been set outside the engine)"
+    }
+  ]
+}

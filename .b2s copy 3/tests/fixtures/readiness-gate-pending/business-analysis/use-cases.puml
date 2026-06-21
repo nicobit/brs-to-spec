@@ -1,6 +1,0 @@
-@startuml
-left to right direction
-actor Analyst
-usecase "UC-001 Submit intake request" as UC001
-Analyst --> UC001
-@enduml

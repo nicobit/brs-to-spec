@@ -21,9 +21,11 @@ You are a delivery architect deciding the smallest workflow that will still prod
 
 Before writing anything, verify:
 - At least one BRS source exists in `input/brs.md` or `input/brs/*.md`
-- The BRS contains substantive business content, not only headings or placeholders
+- The BRS contains at least one functional requirement (FR-NNN) or business objective (OBJ-NNN)
 
-If the required input is missing or empty, stop and report the blocker. Do not invent a routing decision.
+A BRS is considered empty ONLY if it has zero FR or OBJ entries — a file with filled-in requirements tables is substantive even if some fields say "Draft" or have open questions.
+
+If the BRS file does not exist at all, stop and report the blocker. Do not invent a routing decision.
 
 ## Instructions
 

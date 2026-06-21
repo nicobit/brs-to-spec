@@ -1,0 +1,55 @@
+version: 1
+framework: b2s
+description: >
+  Compact mixed-family workflow fixture for orchestration tests.
+
+constraints:
+  single_active_action: true
+  max_active_actions: 1
+  state_files_orchestrator_only: true
+
+stages:
+  - id: "0-routing"
+    name: "Routing"
+    execution_mode: serial
+    actions:
+      - route-initiative
+    next_stages:
+      - id: "2-business-intake"
+        condition: always
+
+  - id: "2-business-intake"
+    name: "Business intake"
+    execution_mode: serial
+    actions:
+      - create-business-intake-summary
+    next_stages:
+      - id: "2b-business-analysis"
+        condition: always
+
+  - id: "2b-business-analysis"
+    name: "Requirements"
+    execution_mode: serial
+    actions:
+      - create-requirements
+    next_stages:
+      - id: "3-planning"
+        condition: always
+
+  - id: "3-planning"
+    name: "Architecture"
+    execution_mode: serial
+    actions:
+      - review-initial-architecture
+    next_stages:
+      - id: "5-handoff"
+        condition: always
+
+  - id: "5-handoff"
+    name: "Handoff"
+    execution_mode: serial
+    actions:
+      - create-openspec-handoff
+    next_stages: []
+
+human_triggered_actions: []

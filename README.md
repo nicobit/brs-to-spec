@@ -8,6 +8,26 @@
 
 ## What problem does this solve?
 
+## Action model
+
+The current `.b2s` engine is driven by enriched action definitions. An action
+can declare its inputs, policy references, prompt family, skill prompt,
+template contract, validation rules, and gate behavior while remaining backward
+compatible with older minimal action files.
+
+At the framework level, the staged unit is:
+
+```text
+Phase -> Inputs -> Policies -> Prompt Family -> Skill Prompt -> Template -> Artifact -> Validation -> Gate
+```
+
+Reference docs for this richer action model:
+
+- [`.b2s/docs/action-contract-v2.md`](.b2s/docs/action-contract-v2.md)
+- [`.b2s/docs/golden-action-examples.md`](.b2s/docs/golden-action-examples.md)
+- [`.b2s/docs/action-migration-guide.md`](.b2s/docs/action-migration-guide.md)
+- [`.b2s/docs/phase-family-map.md`](.b2s/docs/phase-family-map.md)
+
 Enterprise delivery fails when AI coding agents are pointed at raw BRS documents. A real initiative carries ambiguity, implicit assumptions, architecture constraints, regulatory expectations, and cross-team dependencies that no coding agent can resolve from a Word file. This framework creates the controlled path between business intent and safe engineering execution.
 
 OpenSpec is the default engineering downstream, but it is not mandatory. The framework also supports standalone execution, Microsoft 365 Copilot / Copilot Studio business intake, and GitHub Copilot / VS Code guided delivery workflows.

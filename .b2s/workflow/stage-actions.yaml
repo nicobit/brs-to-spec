@@ -44,8 +44,13 @@ actions:
     title: "Create business intake summary"
     source_event_template: "EVT-TPL-002"
     persona: product-owner
+    prompt_family: b2s
     skill_ref: ".b2s/skills/product-owner/create-business-intake-summary.md"
     artifact_template_ref: ".b2s/artifact-templates/business-intake-summary.md"
+    policy_refs:
+      - ".b2s/policies/business/business-glossary-guidance.md"
+      - ".b2s/policies/business/business-writing-guidelines.md"
+    template_mode: strict
     inputs:
       required:
         - "input/brs.md"
@@ -119,8 +124,13 @@ actions:
     title: "Create requirements catalog"
     source_event_template: "EVT-TPL-043"
     persona: product-owner
+    prompt_family: speckit
     skill_ref: ".b2s/skills/product-owner/create-requirements.md"
     artifact_template_ref: ".b2s/artifact-templates/requirements.md"
+    policy_refs:
+      - ".b2s/policies/requirements/definition-of-ready.md"
+      - ".b2s/policies/requirements/requirement-writing-standard.md"
+    template_mode: strict
     inputs:
       required:
         - "business-intake/business-intake-summary.md"
@@ -132,7 +142,11 @@ actions:
       primary: "business-analysis/requirements.md"
       secondary: []
     must_include: []
-    validation_rules: {}
+    validation_rules:
+      required:
+        - "requirement_has_id"
+        - "requirement_is_testable"
+      optional: []
     validation_profile: catalog
     artifact_criticality: high
     blocked_by_stage:
@@ -481,8 +495,13 @@ actions:
     title: "Review initial architecture"
     source_event_template: "EVT-TPL-008"
     persona: architect
+    prompt_family: b2s
     skill_ref: ".b2s/skills/architect/review-initial-architecture.md"
     artifact_template_ref: ".b2s/artifact-templates/architecture-review.md"
+    policy_refs:
+      - ".b2s/policies/architecture/architecture-principles.md"
+      - ".b2s/policies/architecture/technology-standards.md"
+    template_mode: strict
     inputs:
       required:
         - "business-analysis/requirements.md"
@@ -499,7 +518,12 @@ actions:
       primary: "architecture/architecture-review.md"
       secondary: []
     must_include: []
-    validation_rules: {}
+    validation_rules:
+      required:
+        - "architecture_lists_impacted_systems"
+        - "architecture_lists_constraints"
+        - "architecture_lists_risks"
+      optional: []
     validation_profile: analytical-review
     artifact_criticality: critical
     required_sections:
@@ -673,6 +697,7 @@ actions:
     title: "Create epic packages"
     source_event_template: "EVT-TPL-011b"
     persona: delivery-lead
+    prompt_family: bmad
     skill_ref: ".b2s/skills/delivery-lead/create-epic-packages.md"
     artifact_template_ref: ".b2s/artifact-templates/epic-package.md"
     inputs:
@@ -711,6 +736,7 @@ actions:
     title: "Create feature packages"
     source_event_template: "EVT-TPL-011c"
     persona: delivery-lead
+    prompt_family: bmad
     skill_ref: ".b2s/skills/delivery-lead/create-feature-packages.md"
     artifact_template_ref: ".b2s/artifact-templates/feature-package.md"
     inputs:
@@ -941,6 +967,10 @@ actions:
     persona: engineering-lead
     skill_ref: ".b2s/skills/engineering-lead/check-engineering-readiness.md"
     artifact_template_ref: ".b2s/artifact-templates/readiness-check.md"
+    policy_refs:
+      - ".b2s/policies/requirements/definition-of-ready.md"
+      - ".b2s/policies/architecture/architecture-principles.md"
+      - ".b2s/policies/architecture/technology-standards.md"
     inputs:
       required:
         - "planning/delivery-structure.md"
@@ -958,7 +988,10 @@ actions:
       primary: "engineering-readiness/readiness-check.md"
       secondary: []
     must_include: []
-    validation_rules: {}
+    validation_rules:
+      required:
+        - "readiness_has_decision"
+      optional: []
     validation_profile: analytical-review
     artifact_criticality: critical
     blocked_by_stage:
@@ -1143,6 +1176,79 @@ actions:
     blocked_by_action: []
     conditions:
       - "TEST_STRATEGY in quality_gates_triggered"
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
+  - action_id: create-nfr-assessment
+    stage_id: "4b-quality-gates"
+    title: "Create NFR assessment"
+    source_event_template: "EVT-TPL-045"
+    persona: engineering-lead
+    prompt_family: b2s
+    skill_ref: ".b2s/skills/engineering-lead/create-nfr-assessment.md"
+    artifact_template_ref: ".b2s/artifact-templates/nfr-assessment.md"
+    policy_refs:
+      - ".b2s/policies/security/security-policy.md"
+      - ".b2s/policies/nfr/availability-standard.md"
+      - ".b2s/policies/nfr/performance-standard.md"
+      - ".b2s/policies/nfr/regulatory-standard.md"
+    template_mode: strict
+    inputs:
+      required:
+        - "engineering-readiness/readiness-check.md"
+        - "business-analysis/requirements.md"
+        - "architecture/architecture-review.md"
+        - "architecture/architecture-rules.md"
+      optional:
+        - "planning/delivery-structure.md"
+        - "quality-gates/security-review.md"
+        - "quality-gates/observability-plan.md"
+        - "quality-gates/api-contract.md"
+        - "quality-gates/data-contract.md"
+        - "quality-gates/event-contract.md"
+        - "input/brs.md"
+        - "input/brs/*.md"
+    outputs:
+      primary: "quality-gates/nfr-assessment.md"
+      secondary: []
+    must_include: []
+    validation_rules:
+      required:
+        - "nfr_assessment_has_ids"
+        - "nfr_assessment_covers_core_domains"
+        - "nfr_assessment_has_decision"
+      optional: []
+    validation_profile: analytical-review
+    artifact_criticality: critical
+    required_sections:
+      - "## Metadata"
+      - "## Assessment Scope"
+      - "## NFR Catalog"
+      - "## Security"
+      - "## Availability"
+      - "## Resiliency"
+      - "## Observability"
+      - "## Supportability"
+      - "## Scalability"
+      - "## Compliance"
+      - "## Cross-Cutting Risks"
+      - "## Required Follow-Ups"
+      - "## Decision"
+    forbidden_placeholders:
+      - "{{initiative_id}}"
+      - "{{date}}"
+    blocked_by_stage:
+      - "4-engineering-readiness"
+    blocked_by_action:
+      - "gate-engineering-readiness-review"
+    conditions: []
     human_gate:
       required: false
     selection_mode: serial
@@ -1450,6 +1556,9 @@ actions:
     persona: security-reviewer
     skill_ref: ".b2s/skills/security-reviewer/create-data-contract.md"
     artifact_template_ref: ".b2s/artifact-templates/data-contract.md"
+    policy_refs:
+      - ".b2s/policies/security/security-policy.md"
+      - ".b2s/policies/nfr/regulatory-standard.md"
     inputs:
       required:
         - "engineering-readiness/readiness-check.md"
@@ -1464,7 +1573,10 @@ actions:
       primary: "quality-gates/data-contract.md"
       secondary: []
     must_include: []
-    validation_rules: {}
+    validation_rules:
+      required:
+        - "contract_has_schema_definitions"
+      optional: []
     validation_profile: structured-document
     artifact_criticality: critical
     required_sections:
@@ -1549,6 +1661,11 @@ actions:
     persona: engineering-lead
     skill_ref: ".b2s/skills/engineering-lead/create-observability-plan.md"
     artifact_template_ref: ".b2s/artifact-templates/observability-plan.md"
+    policy_refs:
+      - ".b2s/policies/security/security-policy.md"
+      - ".b2s/policies/nfr/availability-standard.md"
+      - ".b2s/policies/nfr/performance-standard.md"
+      - ".b2s/policies/testing/testing-expectations.md"
     inputs:
       required:
         - "engineering-readiness/readiness-check.md"
@@ -1637,14 +1754,20 @@ actions:
     title: "Create OpenSpec handoff"
     source_event_template: "EVT-TPL-024"
     persona: engineering-lead
+    prompt_family: hve
     skill_ref: ".b2s/skills/engineering-lead/create-openspec-handoff.md"
     artifact_template_ref: ".b2s/artifact-templates/openspec-handoff.md"
+    policy_refs:
+      - ".b2s/policies/handoff/coding-constraints.md"
+      - ".b2s/policies/testing/testing-expectations.md"
+      - ".b2s/policies/handoff/ai-handoff-constraints.md"
     inputs:
       required:
         - "engineering-readiness/initiative-context.md"
         - "engineering-readiness/readiness-check.md"
         - "planning/delivery-structure.md"
         - "architecture/architecture-rules.md"
+        - "quality-gates/nfr-assessment.md"
       optional:
         - "business-analysis/requirements.md"
         - "business-analysis/business-rules.md"
@@ -1690,8 +1813,13 @@ actions:
     title: "Create standalone handoff"
     source_event_template: "EVT-TPL-025"
     persona: engineering-lead
+    prompt_family: hve
     skill_ref: ".b2s/skills/engineering-lead/create-standalone-handoff.md"
     artifact_template_ref: ".b2s/artifact-templates/standalone-handoff.md"
+    policy_refs:
+      - ".b2s/policies/handoff/coding-constraints.md"
+      - ".b2s/policies/testing/testing-expectations.md"
+      - ".b2s/policies/handoff/ai-handoff-constraints.md"
     inputs:
       required:
         - "engineering-readiness/initiative-context.md"
@@ -1699,6 +1827,7 @@ actions:
         - "planning/delivery-structure.md"
         - "architecture/architecture-review.md"
         - "architecture/architecture-rules.md"
+        - "quality-gates/nfr-assessment.md"
       optional:
         - "quality-gates/test-strategy.md"
         - "quality-gates/bdd/"
@@ -1730,6 +1859,7 @@ actions:
     title: "Create compact handoff"
     source_event_template: "EVT-TPL-026"
     persona: engineering-lead
+    prompt_family: hve
     skill_ref: ".b2s/skills/engineering-lead/create-compact-handoff.md"
     artifact_template_ref: ".b2s/artifact-templates/compact-handoff.md"
     inputs:

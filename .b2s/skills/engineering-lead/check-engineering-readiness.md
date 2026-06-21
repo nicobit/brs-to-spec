@@ -39,6 +39,12 @@ If required inputs are missing, stop and report the blocker rather than inventin
 ### Step 1 - Read all inputs before writing
 
 Read the full upstream artifact set before writing any conclusion.
+Read every policy file listed in `{resolved_policy_inputs}` before making the readiness decision.
+
+Apply the policy context from `{resolved_policy_inputs}`:
+- assess readiness against explicit architecture and technology constraints
+- treat definition-of-ready expectations as gating evidence
+- surface deviations and missing approvals rather than smoothing them over
 
 ### Step 2 - Apply gate trigger rules
 

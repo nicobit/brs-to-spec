@@ -37,3 +37,27 @@ workflow_types:
       - OpenSpec
       - Standalone
       - FastPath
+
+  - id: agile-delivery-flow
+    path: ".b2s/workflow-types/agile-delivery-flow"
+    description: "Progressive decomposition workflow with architecture-awareness at every phase. Governance-first, domain-driven, with story quality gates and dispatch routing."
+    suitable_for:
+      - "Architecture-aware progressive delivery"
+      - "Domain-driven delivery with capability mapping"
+      - "Initiatives requiring per-story quality validation"
+      - "AI-agent handoff workflows with dispatch routing"
+    delivery_modes:
+      - OpenSpec
+      - Standalone
+
+  - id: agile-delivery-light-flow
+    path: ".b2s/workflow-types/agile-delivery-light-flow"
+    description: "Lean progressive decomposition — half the artifacts of agile-delivery-flow. Keeps elaboration planning, story quality gates, BDD scenarios, and OpenSpec/Standalone handoff. Drops domain analysis, architecture impact, test strategy, readiness review, and dispatch."
+    suitable_for:
+      - "Architecture-aware progressive delivery with minimal overhead"
+      - "Initiatives that need story quality gates but not full domain analysis"
+      - "Teams that want elaboration planning without capability mapping"
+      - "Faster adoption with fewer artifacts while keeping quality gates"
+    delivery_modes:
+      - OpenSpec
+      - Standalone

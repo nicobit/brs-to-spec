@@ -208,8 +208,34 @@ def run(args: object) -> None:
 
     artifact_status = action["status_model"]["artifact_on_pass"]
     _apply_artifact_statuses(state, action, artifact_status)
-    state["action_status"][action_id] = artifact_status
-    state["last_completed_action"] = action_id
+
+    iteration_mode = action.get("iteration_mode")
+    current_item = state.get("current_item")
+
+    if iteration_mode == "per_item" and current_item:
+        item_key = f"{action_id}#{current_item}"
+        state.setdefault("action_item_status", {})[item_key] = artifact_status
+
+        items = workspace.extract_items_from_source(
+            workspace_root,
+            action["item_source"],
+            action["item_pattern"],
+        )
+        all_done = all(
+            state["action_item_status"].get(f"{action_id}#{item}") in workspace.ACTION_STATUSES_COMPLETE
+            for item in items
+        )
+
+        if all_done:
+            state["action_status"][action_id] = artifact_status
+            state["last_completed_action"] = action_id
+        else:
+            state["action_status"][action_id] = workspace.ACTION_STATUS_IN_PROGRESS
+        state["current_item"] = None
+    else:
+        state["action_status"][action_id] = artifact_status
+        state["last_completed_action"] = action_id
+
     state["active_action"] = None
     state["next_action"] = None
     state["blocked_reason"] = None

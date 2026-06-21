@@ -1,8 +1,0 @@
-{
-  "overall": "pass",
-  "gate_id": "business-intake-review",
-  "artifact_path": "business-intake/business-intake-summary.md",
-  "decision": "approved",
-  "blocking_reason": null,
-  "note": "Approved by product-owner (via Copilot)"
-}

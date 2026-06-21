@@ -1,0 +1,43 @@
+overall: pass
+action_id: validate-fr-coverage
+artifact_path: planning/fr-coverage.md
+checks:
+- name: file_exists
+  target: planning/fr-coverage.md
+  result: pass
+  detail: artifact exists
+- name: validation_dispatch
+  target: fr-coverage.md
+  result: pass
+  detail: 'dedicated: planning/fr-coverage.md'
+- name: non_empty_file
+  target: fr-coverage.md
+  result: pass
+  detail: artifact has content
+- name: has_coverage_summary
+  target: fr-coverage.md
+  result: pass
+  detail: '## Coverage Summary section present'
+- name: has_full_coverage_matrix
+  target: fr-coverage.md
+  result: pass
+  detail: '## Full Coverage Matrix section present'
+- name: coverage_percentage_acceptable
+  target: fr-coverage.md
+  result: pass
+  detail: coverage percentage is 100%
+- name: all_reqs_in_matrix
+  target: fr-coverage.md
+  result: pass
+  detail: all 53 requirements appear in coverage matrix
+- name: fr_coverage_no_placeholders
+  target: fr-coverage.md
+  result: pass
+  detail: coverage report contains no template placeholder text
+- name: validation_audit
+  target: planning/fr-coverage.md
+  result: pass
+  detail: validation coverage is acceptable (dispatch=dedicated, downstream_consumers=1)
+named_rule_results: []
+failures: []
+advisories: []

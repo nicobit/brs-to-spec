@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 import unittest
+from unittest import mock
 
 import yaml
 
@@ -22,6 +23,9 @@ if str(SCRIPT_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPT_ROOT))
 
 from b2s_engine import next_step, workspace  # noqa: E402
+from b2s_engine import action_contract, inputs as inputs_module  # noqa: E402
+from b2s_engine import dispatch as dispatch_module  # noqa: E402
+from b2s_engine import validation as validation_module  # noqa: E402
 
 
 def run_cli(*args: str) -> subprocess.CompletedProcess[str]:
@@ -75,6 +79,10 @@ class EngineFixtureTests(unittest.TestCase):
             [],
         )
         self.assertEqual(
+            inputs["prompt_placeholders"]["resolved_policy_inputs"],
+            [],
+        )
+        self.assertEqual(
             inputs["prompt_placeholders"]["primary_output"],
             "routing/routing-decision.md",
         )
@@ -82,6 +90,8 @@ class EngineFixtureTests(unittest.TestCase):
             inputs["prompt_placeholders"]["secondary_outputs"],
             [],
         )
+        self.assertEqual(inputs["prompt_placeholders"]["prompt_family"], "b2s")
+        self.assertEqual(inputs["prompt_placeholders"]["template_mode"], "strict")
 
     def test_next_step_from_valid_business_intake_fixture_selects_requirements(self) -> None:
         self.materialize_fixture("valid-business-intake-flow")
@@ -589,6 +599,106 @@ class WorkflowLoadingTests(unittest.TestCase):
         result = next_step.select_next_action(ws, state)
         self.assertEqual(result["selected_action"], "route-initiative")
         self.assertEqual(result["selected_stage"], "0-routing")
+
+    def test_stage_actions_are_normalized_with_v2_defaults(self):
+        """Central workflow actions should expose additive v2 defaults when fields are omitted."""
+        actions, by_id = workspace.load_stage_actions()
+        action = by_id["route-initiative"]
+        self.assertEqual(action["prompt_family"], "b2s")
+        self.assertEqual(action["policy_refs"], [])
+        self.assertEqual(action["template_mode"], "strict")
+        self.assertEqual(action["validation_rules"]["required"], [])
+        self.assertEqual(action["validation_rules"]["optional"], [])
+
+    def test_stage_actions_preserve_seeded_v2_metadata(self):
+        """Representative actions should retain their explicit v2 metadata after normalization."""
+        actions, by_id = workspace.load_stage_actions()
+        requirements = by_id["create-requirements"]
+        self.assertEqual(requirements["prompt_family"], "speckit")
+        self.assertEqual(
+            requirements["policy_refs"],
+            [
+                ".b2s/policies/requirements/definition-of-ready.md",
+                ".b2s/policies/requirements/requirement-writing-standard.md",
+            ],
+        )
+        self.assertEqual(requirements["template_mode"], "strict")
+        self.assertIn("requirement_has_id", requirements["validation_rules"]["required"])
+
+        nfr = by_id["create-nfr-assessment"]
+        self.assertEqual(nfr["prompt_family"], "b2s")
+        self.assertEqual(
+            nfr["policy_refs"],
+            [
+                ".b2s/policies/security/security-policy.md",
+                ".b2s/policies/nfr/availability-standard.md",
+                ".b2s/policies/nfr/performance-standard.md",
+                ".b2s/policies/nfr/regulatory-standard.md",
+            ],
+        )
+        self.assertIn("nfr_assessment_covers_core_domains", nfr["validation_rules"]["required"])
+
+    def test_old_style_action_record_remains_compatible_across_engine_surfaces(self):
+        """An old-style action with no v2 metadata should still normalize, collect inputs, dispatch, and validate."""
+        ws = FIXTURES_ROOT / "local-workflow-override"
+        old_action = {
+            "action_id": "legacy-route",
+            "title": "Legacy route",
+            "persona": "orchestrator",
+            "skill_ref": ".b2s/skills/orchestrator/route-initiative.md",
+            "artifact_template_ref": ".b2s/artifact-templates/routing-decision.md",
+            "inputs": {"required": ["input/brs.md"]},
+            "outputs": {"primary": "routing/routing-decision.md"},
+            "human_gate": {"required": False},
+            "artifact_criticality": "high",
+        }
+        normalized = action_contract.normalize_action(old_action)
+        self.assertEqual(normalized["prompt_family"], "b2s")
+        self.assertEqual(normalized["policy_refs"], [])
+        self.assertEqual(normalized["template_mode"], "strict")
+        self.assertEqual(normalized["validation_rules"], {"required": [], "optional": []})
+
+        collected = inputs_module.collect_action_inputs(normalized, ws)
+        self.assertEqual(collected["overall"], "pass")
+        self.assertEqual(collected["prompt_placeholders"]["resolved_required_inputs"], ["input/brs.md"])
+        self.assertEqual(collected["prompt_placeholders"]["resolved_policy_inputs"], [])
+
+        summary = dispatch_module._action_summary(normalized, ws)
+        self.assertEqual(summary["prompt_family"], "b2s")
+        self.assertTrue(summary["skill_exists"])
+        self.assertIsNotNone(summary["rendered_skill_text"])
+
+        with mock.patch.object(validation_module.workspace, "load_stage_actions", return_value=([], {})):
+            artifact = Path("C:/tmp/legacy-route.md")
+            dispatch, _ = validation_module._validator_for_artifact(
+                normalized,
+                "routing/routing-decision.md",
+                artifact,
+            )
+        self.assertIn(dispatch, {"dedicated", "template", "profile"})
+
+    def test_mixed_family_local_workflow_fixture_loads_expected_families(self):
+        ws = FIXTURES_ROOT / "mixed-family-local-workflow"
+        actions, by_id = workspace.load_stage_actions(workspace_root=ws)
+        self.assertEqual(by_id["create-business-intake-summary"]["prompt_family"], "b2s")
+        self.assertEqual(by_id["create-requirements"]["prompt_family"], "speckit")
+        self.assertEqual(by_id["review-initial-architecture"]["prompt_family"], "b2s")
+        self.assertEqual(by_id["create-openspec-handoff"]["prompt_family"], "hve")
+        self.assertEqual(len(actions), 5)
+
+    def test_mixed_family_local_workflow_dispatches_requirements_step(self):
+        ws = FIXTURES_ROOT / "mixed-family-local-workflow"
+        plan = dispatch_module.build_plan(ws)
+        self.assertEqual(plan["status"], "ready")
+        self.assertEqual(plan["action"]["action_id"], "create-requirements")
+        self.assertEqual(plan["action"]["prompt_family"], "speckit")
+        self.assertEqual(
+            plan["action"]["prompt_placeholders"]["resolved_policy_inputs"],
+            [
+                ".b2s/policies/requirements/definition-of-ready.md",
+                ".b2s/policies/requirements/requirement-writing-standard.md",
+            ],
+        )
 
 
 if __name__ == "__main__":

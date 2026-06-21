@@ -1,0 +1,1315 @@
+version: 1
+framework: b2s
+description: >
+  Stage action registry for the agile-delivery-flow workflow type.
+  Progressive decomposition with architecture-awareness at every phase.
+
+actions:
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Stage 0 — Governance
+  # ──────────────────────────────────────────────────────────────────────
+
+  - action_id: create-delivery-constitution
+    stage_id: "0-governance"
+    title: "Create delivery constitution"
+    source_event_template: "EVT-TPL-100"
+    persona: governance-architect
+    skill_ref: ".b2s/skills/governance-architect/create-delivery-constitution.md"
+    artifact_template_ref: ".b2s/artifact-templates/delivery-constitution.md"
+    inputs:
+      required:
+        - "input/brs.md"
+      optional:
+        - "input/architecture.md"
+        - "input/repository-context.md"
+        - "input/input-package.md"
+    outputs:
+      primary: "governance/delivery-constitution.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: structured-document
+    artifact_criticality: critical
+    blocked_by_stage: []
+    blocked_by_action: []
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "0-governance"
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Stage 1 — Requirements extraction
+  # ──────────────────────────────────────────────────────────────────────
+
+  - action_id: create-atomic-requirements
+    stage_id: "1-requirements"
+    title: "Create atomic requirements"
+    source_event_template: "EVT-TPL-101"
+    persona: product-owner
+    skill_ref: ".b2s/skills/product-owner/create-atomic-requirements.md"
+    artifact_template_ref: ".b2s/artifact-templates/atomic-requirements.md"
+    inputs:
+      required:
+        - "input/brs.md"
+        - "governance/delivery-constitution.md"
+      optional:
+        - "input/architecture.md"
+        - "input/repository-context.md"
+        - "input/input-package.md"
+        - "input/brs/*.md"
+    outputs:
+      primary: "requirements/atomic-requirements.md"
+      secondary: []
+    must_include: []
+    validation_rules:
+      required:
+        - "requirement_has_id"
+      optional: []
+    validation_profile: catalog
+    artifact_criticality: critical
+    blocked_by_stage:
+      - "0-governance"
+    blocked_by_action:
+      - "create-delivery-constitution"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "1-requirements"
+
+  - action_id: extract-open-questions
+    stage_id: "1-requirements"
+    title: "Extract open questions"
+    source_event_template: "EVT-TPL-102"
+    persona: product-owner
+    skill_ref: ".b2s/skills/product-owner/extract-open-questions.md"
+    artifact_template_ref: ".b2s/artifact-templates/open-questions.md"
+    inputs:
+      required:
+        - "requirements/atomic-requirements.md"
+        - "input/brs.md"
+      optional:
+        - "input/brs/*.md"
+    outputs:
+      primary: "requirements/open-questions.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: catalog
+    artifact_criticality: high
+    blocked_by_stage: []
+    blocked_by_action:
+      - "create-atomic-requirements"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
+  - action_id: extract-assumptions
+    stage_id: "1-requirements"
+    title: "Extract assumptions"
+    source_event_template: "EVT-TPL-103"
+    persona: product-owner
+    skill_ref: ".b2s/skills/product-owner/extract-assumptions.md"
+    artifact_template_ref: ".b2s/artifact-templates/assumptions.md"
+    inputs:
+      required:
+        - "requirements/atomic-requirements.md"
+        - "input/brs.md"
+      optional:
+        - "input/brs/*.md"
+    outputs:
+      primary: "requirements/assumptions.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: catalog
+    artifact_criticality: high
+    blocked_by_stage: []
+    blocked_by_action:
+      - "create-atomic-requirements"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
+  - action_id: gate-requirements-review
+    stage_id: "1-requirements"
+    title: "Requirements review gate"
+    source_event_template: "EVT-TPL-104"
+    persona: orchestrator
+    skill_ref: ".b2s/skills/orchestrator/gate-requirements-review.md"
+    artifact_template_ref: null
+    inputs:
+      required:
+        - "requirements/atomic-requirements.md"
+      optional:
+        - "requirements/open-questions.md"
+        - "requirements/assumptions.md"
+    outputs:
+      primary: "requirements/atomic-requirements.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: catalog
+    artifact_criticality: high
+    blocked_by_stage: []
+    blocked_by_action:
+      - "create-atomic-requirements"
+      - "extract-open-questions"
+      - "extract-assumptions"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: accepted
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "1-requirements"
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Stage 2 — Domain analysis
+  # ──────────────────────────────────────────────────────────────────────
+
+  - action_id: create-capability-map
+    stage_id: "2-domain-analysis"
+    title: "Create capability map"
+    source_event_template: "EVT-TPL-105"
+    persona: product-owner
+    skill_ref: ".b2s/skills/product-owner/create-capability-map.md"
+    artifact_template_ref: ".b2s/artifact-templates/capability-map.md"
+    inputs:
+      required:
+        - "requirements/atomic-requirements.md"
+        - "governance/delivery-constitution.md"
+        - "input/brs.md"
+      optional:
+        - "requirements/open-questions.md"
+        - "requirements/assumptions.md"
+        - "input/brs/*.md"
+    outputs:
+      primary: "domain/capability-map.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: catalog
+    artifact_criticality: critical
+    blocked_by_stage:
+      - "1-requirements"
+    blocked_by_action:
+      - "gate-requirements-review"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "2-domain-analysis"
+
+  - action_id: create-domain-model
+    stage_id: "2-domain-analysis"
+    title: "Create domain model"
+    source_event_template: "EVT-TPL-106"
+    persona: product-owner
+    skill_ref: ".b2s/skills/product-owner/create-entity-model.md"
+    artifact_template_ref: ".b2s/artifact-templates/entity-model.md"
+    inputs:
+      required:
+        - "requirements/atomic-requirements.md"
+      optional:
+        - "domain/capability-map.md"
+        - "input/architecture.md"
+        - "input/brs.md"
+        - "input/brs/*.md"
+    outputs:
+      primary: "domain/domain-model.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: catalog
+    artifact_criticality: high
+    blocked_by_stage: []
+    blocked_by_action:
+      - "create-capability-map"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
+  - action_id: create-domain-business-rules
+    stage_id: "2-domain-analysis"
+    title: "Create business rules"
+    source_event_template: "EVT-TPL-107"
+    persona: product-owner
+    skill_ref: ".b2s/skills/product-owner/create-business-rules.md"
+    artifact_template_ref: ".b2s/artifact-templates/business-rules.md"
+    inputs:
+      required:
+        - "requirements/atomic-requirements.md"
+      optional:
+        - "domain/capability-map.md"
+        - "input/brs.md"
+        - "input/brs/*.md"
+    outputs:
+      primary: "domain/business-rules.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: catalog
+    artifact_criticality: high
+    blocked_by_stage: []
+    blocked_by_action:
+      - "create-capability-map"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
+  - action_id: create-domain-traceability
+    stage_id: "2-domain-analysis"
+    title: "Create domain traceability matrix"
+    source_event_template: "EVT-TPL-108"
+    persona: delivery-lead
+    skill_ref: ".b2s/skills/delivery-lead/create-traceability-matrix.md"
+    artifact_template_ref: ".b2s/artifact-templates/traceability-matrix.md"
+    inputs:
+      required:
+        - "domain/capability-map.md"
+        - "requirements/atomic-requirements.md"
+      optional:
+        - "domain/domain-model.md"
+        - "domain/business-rules.md"
+    outputs:
+      primary: "domain/traceability-matrix.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: catalog
+    artifact_criticality: high
+    blocked_by_stage: []
+    blocked_by_action:
+      - "create-domain-model"
+      - "create-domain-business-rules"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Stage 3 — Architecture context
+  # ──────────────────────────────────────────────────────────────────────
+
+  - action_id: draft-architecture-from-brs
+    stage_id: "3-architecture-context"
+    title: "Draft architecture from BRS"
+    source_event_template: "EVT-TPL-032"
+    persona: architect
+    skill_ref: ".b2s/skills/architect/draft-architecture-from-brs.md"
+    artifact_template_ref: ".b2s/artifact-templates/draft-architecture.md"
+    inputs:
+      required:
+        - "input/brs.md"
+      optional:
+        - "input/brs/*.md"
+        - "requirements/atomic-requirements.md"
+        - "domain/capability-map.md"
+        - "input/architecture.md"
+    outputs:
+      primary: "architecture/draft-architecture.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: analytical-review
+    artifact_criticality: high
+    blocked_by_stage:
+      - "2-domain-analysis"
+    blocked_by_action: []
+    conditions:
+      - "input/architecture.md does not exist"
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "3-architecture-context"
+
+  - action_id: review-initial-architecture
+    stage_id: "3-architecture-context"
+    title: "Review initial architecture"
+    source_event_template: "EVT-TPL-008"
+    persona: architect
+    skill_ref: ".b2s/skills/architect/review-initial-architecture.md"
+    artifact_template_ref: ".b2s/artifact-templates/architecture-review.md"
+    inputs:
+      required:
+        - "requirements/atomic-requirements.md"
+        - "domain/capability-map.md"
+        - "governance/delivery-constitution.md"
+        - "input/brs.md"
+      optional:
+        - "input/brs/*.md"
+        - "architecture/draft-architecture.md"
+        - "input/architecture.md"
+        - "domain/business-rules.md"
+        - "domain/domain-model.md"
+    outputs:
+      primary: "architecture/architecture-review.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: analytical-review
+    artifact_criticality: critical
+    blocked_by_stage: []
+    blocked_by_action:
+      - "create-capability-map"
+    conditions: []
+    human_gate:
+      required: true
+      gate_id: "architecture-review"
+      owner: "architect"
+      artifact_status_on_gate_accept: accepted
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "3-architecture-context"
+
+  - action_id: create-architecture-rules
+    stage_id: "3-architecture-context"
+    title: "Create architecture rules"
+    source_event_template: "EVT-TPL-009"
+    persona: architect
+    skill_ref: ".b2s/skills/architect/create-architecture-rules.md"
+    artifact_template_ref: ".b2s/artifact-templates/architecture-rules.md"
+    inputs:
+      required:
+        - "architecture/architecture-review.md"
+        - "input/brs.md"
+      optional:
+        - "input/brs/*.md"
+        - "requirements/atomic-requirements.md"
+        - "domain/business-rules.md"
+    outputs:
+      primary: "architecture/architecture-rules.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: catalog
+    artifact_criticality: critical
+    blocked_by_stage: []
+    blocked_by_action:
+      - "review-initial-architecture"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Stage 4 — Architecture impact
+  # ──────────────────────────────────────────────────────────────────────
+
+  - action_id: create-architecture-impact-map
+    stage_id: "4-architecture-impact"
+    title: "Create architecture impact map"
+    source_event_template: "EVT-TPL-109"
+    persona: architect
+    skill_ref: ".b2s/skills/architect/create-architecture-impact-map.md"
+    artifact_template_ref: ".b2s/artifact-templates/architecture-impact-map.md"
+    inputs:
+      required:
+        - "requirements/atomic-requirements.md"
+        - "domain/capability-map.md"
+        - "domain/domain-model.md"
+        - "architecture/architecture-review.md"
+      optional:
+        - "architecture/architecture-rules.md"
+        - "input/architecture.md"
+        - "governance/delivery-constitution.md"
+    outputs:
+      primary: "architecture/architecture-impact-map.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: analytical-review
+    artifact_criticality: critical
+    blocked_by_stage:
+      - "3-architecture-context"
+    blocked_by_action:
+      - "create-architecture-rules"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "4-architecture-impact"
+
+  - action_id: identify-required-adrs
+    stage_id: "4-architecture-impact"
+    title: "Identify required ADRs"
+    source_event_template: "EVT-TPL-110"
+    persona: architect
+    skill_ref: ".b2s/skills/architect/identify-required-adrs.md"
+    artifact_template_ref: ".b2s/artifact-templates/required-adrs.md"
+    inputs:
+      required:
+        - "architecture/architecture-impact-map.md"
+      optional:
+        - "architecture/architecture-review.md"
+        - "architecture/architecture-rules.md"
+        - "governance/delivery-constitution.md"
+    outputs:
+      primary: "architecture/required-adrs.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: catalog
+    artifact_criticality: high
+    blocked_by_stage: []
+    blocked_by_action:
+      - "create-architecture-impact-map"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
+  - action_id: identify-architecture-risks
+    stage_id: "4-architecture-impact"
+    title: "Identify architecture risks"
+    source_event_template: "EVT-TPL-111"
+    persona: architect
+    skill_ref: ".b2s/skills/architect/identify-architecture-risks.md"
+    artifact_template_ref: ".b2s/artifact-templates/architecture-risks.md"
+    inputs:
+      required:
+        - "architecture/architecture-impact-map.md"
+        - "architecture/architecture-review.md"
+      optional:
+        - "architecture/required-adrs.md"
+        - "architecture/architecture-rules.md"
+        - "governance/delivery-constitution.md"
+    outputs:
+      primary: "architecture/architecture-risks.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: catalog
+    artifact_criticality: high
+    blocked_by_stage: []
+    blocked_by_action:
+      - "create-architecture-impact-map"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Stage 5 — Delivery planning
+  # ──────────────────────────────────────────────────────────────────────
+
+  - action_id: create-delivery-skeleton
+    stage_id: "5-delivery-planning"
+    title: "Create delivery skeleton"
+    source_event_template: "EVT-TPL-118"
+    persona: delivery-lead
+    skill_ref: ".b2s/skills/delivery-lead/create-delivery-skeleton.md"
+    artifact_template_ref: ".b2s/artifact-templates/delivery-skeleton.md"
+    inputs:
+      required:
+        - "requirements/atomic-requirements.md"
+        - "domain/capability-map.md"
+        - "architecture/architecture-review.md"
+        - "architecture/architecture-impact-map.md"
+        - "governance/delivery-constitution.md"
+        - "input/brs.md"
+      optional:
+        - "input/brs/*.md"
+        - "domain/business-rules.md"
+        - "domain/domain-model.md"
+        - "architecture/architecture-rules.md"
+        - "architecture/required-adrs.md"
+        - "architecture/architecture-risks.md"
+    outputs:
+      primary: "planning/delivery-skeleton.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: structured-document
+    artifact_criticality: critical
+    blocked_by_stage:
+      - "4-architecture-impact"
+    blocked_by_action: []
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "5-delivery-planning"
+
+  - action_id: create-elaboration-plan
+    stage_id: "5-delivery-planning"
+    title: "Create elaboration plan"
+    source_event_template: "EVT-TPL-121"
+    persona: delivery-lead
+    skill_ref: ".b2s/skills/delivery-lead/create-elaboration-plan.md"
+    artifact_template_ref: ".b2s/artifact-templates/elaboration-plan.md"
+    inputs:
+      required:
+        - "planning/delivery-skeleton.md"
+        - "architecture/architecture-impact-map.md"
+        - "architecture/architecture-risks.md"
+        - "governance/delivery-constitution.md"
+      optional:
+        - "architecture/architecture-review.md"
+        - "architecture/architecture-rules.md"
+        - "architecture/required-adrs.md"
+        - "requirements/atomic-requirements.md"
+        - "domain/capability-map.md"
+    outputs:
+      primary: "planning/elaboration-plan.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: structured-document
+    artifact_criticality: critical
+    blocked_by_stage: []
+    blocked_by_action:
+      - "create-delivery-skeleton"
+    conditions: []
+    human_gate:
+      required: true
+      gate_id: "elaboration-plan-review"
+      owner: "delivery-lead"
+      artifact_status_on_gate_accept: accepted
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
+  - action_id: gate-elaboration-plan-review
+    stage_id: "5-delivery-planning"
+    title: "Elaboration plan review gate"
+    source_event_template: "EVT-TPL-122"
+    persona: orchestrator
+    skill_ref: ".b2s/skills/orchestrator/gate-elaboration-plan-review.md"
+    artifact_template_ref: null
+    inputs:
+      required:
+        - "planning/elaboration-plan.md"
+      optional:
+        - "planning/delivery-skeleton.md"
+    outputs:
+      primary: "planning/elaboration-plan.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: structured-document
+    artifact_criticality: high
+    blocked_by_stage: []
+    blocked_by_action:
+      - "create-elaboration-plan"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: accepted
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
+  - action_id: create-epic-packages
+    stage_id: "5-delivery-planning"
+    title: "Create epic packages"
+    source_event_template: "EVT-TPL-011b"
+    persona: delivery-lead
+    skill_ref: ".b2s/skills/delivery-lead/create-epic-packages.md"
+    artifact_template_ref: ".b2s/artifact-templates/epic-package.md"
+    inputs:
+      required:
+        - "planning/delivery-skeleton.md"
+        - "requirements/atomic-requirements.md"
+        - "architecture/architecture-review.md"
+        - "governance/delivery-constitution.md"
+      optional:
+        - "domain/business-rules.md"
+        - "domain/capability-map.md"
+        - "planning/elaboration-plan.md"
+    outputs:
+      primary: "planning/epics/"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: artifact-package
+    artifact_criticality: standard
+    blocked_by_stage: []
+    blocked_by_action:
+      - "create-delivery-skeleton"
+      - "gate-elaboration-plan-review"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
+  - action_id: create-feature-stories
+    stage_id: "5-delivery-planning"
+    title: "Create per-feature story files"
+    source_event_template: "EVT-TPL-119"
+    persona: delivery-lead
+    skill_ref: ".b2s/skills/delivery-lead/create-feature-stories.md"
+    artifact_template_ref: ".b2s/artifact-templates/feature-stories.md"
+    inputs:
+      required:
+        - "planning/delivery-skeleton.md"
+        - "planning/epics/"
+        - "requirements/atomic-requirements.md"
+        - "domain/capability-map.md"
+        - "architecture/architecture-impact-map.md"
+        - "governance/delivery-constitution.md"
+      optional:
+        - "domain/business-rules.md"
+        - "domain/domain-model.md"
+        - "architecture/architecture-review.md"
+        - "architecture/architecture-rules.md"
+        - "input/brs.md"
+        - "planning/elaboration-plan.md"
+    outputs:
+      primary: "planning/stories/"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: artifact-package
+    artifact_criticality: critical
+    blocked_by_stage: []
+    blocked_by_action:
+      - "create-epic-packages"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
+  - action_id: validate-fr-coverage
+    stage_id: "5-delivery-planning"
+    title: "Validate requirement coverage"
+    source_event_template: "EVT-TPL-120"
+    persona: delivery-lead
+    skill_ref: ".b2s/skills/delivery-lead/validate-fr-coverage.md"
+    artifact_template_ref: ".b2s/artifact-templates/fr-coverage.md"
+    inputs:
+      required:
+        - "requirements/atomic-requirements.md"
+        - "planning/delivery-skeleton.md"
+        - "planning/stories/"
+      optional:
+        - "domain/capability-map.md"
+        - "planning/epics/"
+    outputs:
+      primary: "planning/fr-coverage.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: analytical-review
+    artifact_criticality: critical
+    blocked_by_stage: []
+    blocked_by_action:
+      - "create-feature-stories"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Stage 6 — Story quality gate
+  # ──────────────────────────────────────────────────────────────────────
+
+  - action_id: validate-story-quality
+    stage_id: "6-story-quality-gate"
+    title: "Validate story quality"
+    source_event_template: "EVT-TPL-112"
+    persona: qa-analyst
+    skill_ref: ".b2s/skills/qa-analyst/validate-story-quality.md"
+    artifact_template_ref: ".b2s/artifact-templates/story-quality-review.md"
+    inputs:
+      required:
+        - "planning/delivery-skeleton.md"
+        - "planning/stories/"
+        - "planning/fr-coverage.md"
+        - "requirements/atomic-requirements.md"
+        - "architecture/architecture-impact-map.md"
+        - "governance/delivery-constitution.md"
+      optional:
+        - "domain/capability-map.md"
+        - "domain/business-rules.md"
+        - "architecture/architecture-review.md"
+        - "architecture/architecture-rules.md"
+        - "architecture/required-adrs.md"
+    outputs:
+      primary: "quality/story-quality-review.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: analytical-review
+    artifact_criticality: critical
+    blocked_by_stage:
+      - "5-delivery-planning"
+    blocked_by_action: []
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "6-story-quality-gate"
+
+  - action_id: gate-story-quality-review
+    stage_id: "6-story-quality-gate"
+    title: "Story quality review gate"
+    source_event_template: "EVT-TPL-113"
+    persona: orchestrator
+    skill_ref: ".b2s/skills/orchestrator/gate-story-quality-review.md"
+    artifact_template_ref: null
+    inputs:
+      required:
+        - "quality/story-quality-review.md"
+      optional: []
+    outputs:
+      primary: "quality/story-quality-review.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: analytical-review
+    artifact_criticality: high
+    blocked_by_stage: []
+    blocked_by_action:
+      - "validate-story-quality"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: accepted
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Stage 7 — BDD and testing
+  # ──────────────────────────────────────────────────────────────────────
+
+  - action_id: create-bdd-scenarios
+    stage_id: "7-bdd-and-testing"
+    title: "Create BDD scenarios"
+    source_event_template: "EVT-TPL-017"
+    persona: qa-analyst
+    skill_ref: ".b2s/skills/qa-analyst/create-bdd-scenarios.md"
+    artifact_template_ref: ".b2s/artifact-templates/bdd-scenarios.md"
+    inputs:
+      required:
+        - "planning/delivery-skeleton.md"
+        - "planning/stories/"
+        - "domain/business-rules.md"
+        - "requirements/atomic-requirements.md"
+        - "input/brs.md"
+      optional:
+        - "input/brs/*.md"
+        - "quality/story-quality-review.md"
+    outputs:
+      primary: "quality/bdd/"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: artifact-package
+    artifact_criticality: high
+    blocked_by_stage:
+      - "6-story-quality-gate"
+    blocked_by_action:
+      - "gate-story-quality-review"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "7-bdd-and-testing"
+
+  - action_id: create-test-strategy
+    stage_id: "7-bdd-and-testing"
+    title: "Create test strategy"
+    source_event_template: "EVT-TPL-018"
+    persona: qa-analyst
+    skill_ref: ".b2s/skills/qa-analyst/create-test-strategy.md"
+    artifact_template_ref: ".b2s/artifact-templates/test-strategy.md"
+    inputs:
+      required:
+        - "architecture/architecture-review.md"
+        - "planning/delivery-skeleton.md"
+        - "input/brs.md"
+      optional:
+        - "input/brs/*.md"
+        - "quality/bdd/"
+        - "quality/story-quality-review.md"
+    outputs:
+      primary: "quality/test-strategy.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: analytical-review
+    artifact_criticality: critical
+    blocked_by_stage:
+      - "6-story-quality-gate"
+    blocked_by_action: []
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
+  - action_id: create-test-data
+    stage_id: "7-bdd-and-testing"
+    title: "Create test data requirements"
+    source_event_template: "EVT-TPL-114"
+    persona: qa-analyst
+    skill_ref: ".b2s/skills/qa-analyst/create-test-data.md"
+    artifact_template_ref: ".b2s/artifact-templates/test-data.md"
+    inputs:
+      required:
+        - "quality/bdd/"
+        - "planning/delivery-skeleton.md"
+        - "quality/test-strategy.md"
+      optional:
+        - "domain/domain-model.md"
+        - "domain/business-rules.md"
+        - "architecture/architecture-impact-map.md"
+    outputs:
+      primary: "quality/test-data.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: structured-document
+    artifact_criticality: standard
+    blocked_by_stage: []
+    blocked_by_action:
+      - "create-bdd-scenarios"
+      - "create-test-strategy"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Stage 8 — Handoff
+  # ──────────────────────────────────────────────────────────────────────
+
+  - action_id: create-openspec-handoff
+    stage_id: "8-handoff"
+    title: "Create OpenSpec handoff"
+    source_event_template: "EVT-TPL-024"
+    persona: engineering-lead
+    skill_ref: ".b2s/skills/engineering-lead/create-openspec-handoff.md"
+    artifact_template_ref: ".b2s/artifact-templates/openspec-handoff.md"
+    inputs:
+      required:
+        - "planning/delivery-skeleton.md"
+        - "planning/stories/"
+        - "architecture/architecture-rules.md"
+        - "governance/delivery-constitution.md"
+      optional:
+        - "requirements/atomic-requirements.md"
+        - "domain/business-rules.md"
+        - "domain/capability-map.md"
+        - "architecture/architecture-review.md"
+        - "architecture/architecture-impact-map.md"
+        - "planning/fr-coverage.md"
+        - "quality/bdd/"
+        - "quality/test-strategy.md"
+        - "quality/test-data.md"
+        - "planning/epics/"
+    outputs:
+      primary: "specs/"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: artifact-package
+    artifact_criticality: critical
+    blocked_by_stage:
+      - "7-bdd-and-testing"
+    blocked_by_action: []
+    conditions:
+      - "delivery_mode == OpenSpec"
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "8-handoff"
+
+  - action_id: create-standalone-handoff
+    stage_id: "8-handoff"
+    title: "Create standalone handoff"
+    source_event_template: "EVT-TPL-025"
+    persona: engineering-lead
+    skill_ref: ".b2s/skills/engineering-lead/create-standalone-handoff.md"
+    artifact_template_ref: ".b2s/artifact-templates/standalone-handoff.md"
+    inputs:
+      required:
+        - "planning/delivery-skeleton.md"
+        - "planning/stories/"
+        - "architecture/architecture-review.md"
+        - "architecture/architecture-rules.md"
+        - "governance/delivery-constitution.md"
+      optional:
+        - "quality/test-strategy.md"
+        - "quality/bdd/"
+        - "quality/test-data.md"
+        - "architecture/architecture-impact-map.md"
+        - "planning/fr-coverage.md"
+    outputs:
+      primary: "standalone-delivery/"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: artifact-package
+    artifact_criticality: critical
+    blocked_by_stage:
+      - "7-bdd-and-testing"
+    blocked_by_action: []
+    conditions:
+      - "delivery_mode == Standalone"
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "8-handoff"
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Stage 9 — Readiness review
+  # ──────────────────────────────────────────────────────────────────────
+
+  - action_id: create-readiness-report
+    stage_id: "9-readiness-review"
+    title: "Create readiness report"
+    source_event_template: "EVT-TPL-115"
+    persona: engineering-lead
+    skill_ref: ".b2s/skills/engineering-lead/create-readiness-report.md"
+    artifact_template_ref: ".b2s/artifact-templates/readiness-report.md"
+    inputs:
+      required:
+        - "governance/delivery-constitution.md"
+        - "requirements/atomic-requirements.md"
+        - "domain/capability-map.md"
+        - "architecture/architecture-review.md"
+        - "architecture/architecture-impact-map.md"
+        - "planning/delivery-skeleton.md"
+        - "quality/story-quality-review.md"
+      optional:
+        - "quality/bdd/"
+        - "quality/test-strategy.md"
+        - "quality/test-data.md"
+        - "architecture/required-adrs.md"
+        - "architecture/architecture-risks.md"
+        - "requirements/open-questions.md"
+        - "requirements/assumptions.md"
+        - "specs/"
+        - "standalone-delivery/"
+    outputs:
+      primary: "review/readiness-report.md"
+      secondary:
+        - "review/ready-stories.md"
+        - "review/blocked-stories.md"
+        - "review/fix-recommendations.md"
+    must_include: []
+    validation_rules: {}
+    validation_profile: analytical-review
+    artifact_criticality: critical
+    blocked_by_stage:
+      - "8-handoff"
+    blocked_by_action: []
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "9-readiness-review"
+
+  - action_id: gate-readiness-review
+    stage_id: "9-readiness-review"
+    title: "Readiness review gate"
+    source_event_template: "EVT-TPL-116"
+    persona: orchestrator
+    skill_ref: ".b2s/skills/orchestrator/gate-readiness-review.md"
+    artifact_template_ref: null
+    inputs:
+      required:
+        - "review/readiness-report.md"
+      optional:
+        - "review/ready-stories.md"
+        - "review/blocked-stories.md"
+        - "review/fix-recommendations.md"
+    outputs:
+      primary: "review/readiness-report.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: analytical-review
+    artifact_criticality: high
+    blocked_by_stage: []
+    blocked_by_action:
+      - "create-readiness-report"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: accepted
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Stage 10 — Dispatch
+  # ──────────────────────────────────────────────────────────────────────
+
+  - action_id: dispatch-next-action
+    stage_id: "10-dispatch"
+    title: "Dispatch next action"
+    source_event_template: "EVT-TPL-117"
+    persona: orchestrator
+    skill_ref: ".b2s/skills/orchestrator/dispatch-next-action.md"
+    artifact_template_ref: ".b2s/artifact-templates/dispatch-action.md"
+    inputs:
+      required:
+        - "review/readiness-report.md"
+        - "review/ready-stories.md"
+        - "review/blocked-stories.md"
+      optional:
+        - "requirements/open-questions.md"
+        - "architecture/required-adrs.md"
+        - "review/fix-recommendations.md"
+        - "governance/delivery-constitution.md"
+    outputs:
+      primary: "dispatch/next-action.md"
+      secondary:
+        - "dispatch/dispatch-log.md"
+        - "dispatch/persona-message.md"
+    must_include: []
+    validation_rules: {}
+    validation_profile: structured-document
+    artifact_criticality: standard
+    blocked_by_stage:
+      - "9-readiness-review"
+    blocked_by_action:
+      - "gate-readiness-review"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "10-dispatch"
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Human-triggered actions (outside main flow)
+  # ──────────────────────────────────────────────────────────────────────
+
+  - action_id: create-brs
+    stage_id: "human-triggered"
+    title: "Create BRS"
+    source_event_template: "EVT-TPL-033"
+    persona: product-owner
+    skill_ref: ".b2s/skills/product-owner/create-brs.md"
+    artifact_template_ref: ".b2s/artifact-templates/brs.md"
+    inputs:
+      required: []
+      optional:
+        - "input/input-package.md"
+    outputs:
+      primary: "input/brs.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    blocked_by_stage: []
+    blocked_by_action: []
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: draft
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
+  - action_id: spec-correction
+    stage_id: "human-triggered"
+    title: "Spec correction"
+    source_event_template: "EVT-TPL-039"
+    persona: reviewer
+    skill_ref: ".b2s/skills/reviewer/spec-correction.md"
+    artifact_template_ref: null
+    inputs:
+      required: []
+      optional: []
+    outputs:
+      primary: "corrections/"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    blocked_by_stage: []
+    blocked_by_action: []
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: draft
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}

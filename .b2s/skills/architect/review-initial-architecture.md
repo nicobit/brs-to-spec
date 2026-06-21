@@ -34,16 +34,10 @@ If `input/architecture.md` is missing, proceed with a BRS-driven review and flag
 
 ### Step 1 - Read all inputs
 
-Read these files in full before writing anything:
-- `{workspace_root}/business-intake/business-intake-summary.md`
-- `{workspace_root}/routing/routing-decision.md`
-- BRS source files under `{workspace_root}/input/`
-
-If available, read:
-- `{workspace_root}/input/architecture.md`
-- `{workspace_root}/business-analysis/business-rules.md`
-
-Do not start writing until all available inputs are read completely.
+Read every file listed in `{resolved_required_inputs}` in full before writing anything.
+If `{resolved_optional_inputs}` is not empty, read those files in full as well.
+Read every policy file listed in `{resolved_policy_inputs}` in full before assessing the architecture.
+Do not start writing until all required inputs and policy inputs are read completely.
 
 ### Step 2 - Assess
 
@@ -55,6 +49,11 @@ Assess:
 - active assumptions and what changes if they are false
 - known unknowns
 - quality attributes such as performance, security, scalability, and availability
+
+Apply the architecture principles from `{resolved_policy_inputs}`:
+- make impacted systems and boundaries explicit
+- surface technical debt and constraints clearly
+- avoid assuming new platforms or patterns without source support
 
 ## Output requirements
 

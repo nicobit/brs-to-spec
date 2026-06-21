@@ -27,6 +27,31 @@ Use it at the start of every working session. The workflow runner detects the ac
 
 ## Workspace rule
 
+## Action model
+
+The `.b2s` engine now executes enriched action definitions from
+`.b2s/workflow/stage-actions.yaml`.
+
+Each action can declare:
+
+- required and optional inputs
+- policy files that must be read before generation
+- prompt family metadata such as `b2s`, `speckit`, `bmad`, or `hve`
+- the skill prompt to load
+- the artifact template contract
+- validation profile and named validation rules
+- human gate behavior
+
+Older actions remain valid. If an action omits the richer v2 metadata, the
+engine fills in safe defaults at load time.
+
+Reference docs:
+
+- [`.b2s/docs/action-contract-v2.md`](.b2s/docs/action-contract-v2.md)
+- [`.b2s/docs/golden-action-examples.md`](.b2s/docs/golden-action-examples.md)
+- [`.b2s/docs/action-migration-guide.md`](.b2s/docs/action-migration-guide.md)
+- [`.b2s/docs/phase-family-map.md`](.b2s/docs/phase-family-map.md)
+
 Work inside one initiative workspace at a time.
 
 The standard workspace shape is:

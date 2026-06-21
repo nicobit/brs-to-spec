@@ -32,8 +32,12 @@ SUPPORTED_PROMPT_PLACEHOLDERS = {
     "optional_inputs",
     "resolved_required_inputs",
     "resolved_optional_inputs",
+    "resolved_policy_inputs",
     "primary_output",
     "secondary_outputs",
+    "prompt_family",
+    "template_mode",
+    "current_item",
 }
 
 
@@ -57,58 +61,69 @@ def _render_prompt_text(text: str, placeholders: dict[str, Any]) -> str:
     return pattern.sub(repl, text)
 
 
+def _skill_file_details(skill_ref: str) -> tuple[Path | None, bool]:
+    if not skill_ref:
+        return None, False
+    skill_path = (workspace.REPO_ROOT / skill_ref).resolve()
+    return skill_path, skill_path.exists()
+
+
 def _resolve_skill_prompt(action: dict[str, Any], workspace_root: Path, prompt_placeholders: dict[str, Any] | None = None) -> dict[str, Any]:
     """Return skill prompt path and rendered content when available."""
     skill_ref = action.get("skill_ref", "")
-    # skill_ref is repo-root-relative (e.g. ".b2s/skills/..."), FRAMEWORK_ROOT is .b2s/
-    repo_root = workspace.REPO_ROOT
-    skill_path = (repo_root / skill_ref).resolve() if skill_ref else None
+    prompt_family = str(action.get("prompt_family") or "b2s")
+    fallback_skill_ref = str((action.get("compatibility") or {}).get("fallback_skill_ref") or "")
+    skill_path, skill_exists = _skill_file_details(skill_ref)
     prompt_text = None
     rendered_prompt = None
-    if skill_path and skill_path.exists():
-        prompt_text = skill_path.read_text(encoding="utf-8")
+
+    resolved_skill_ref = skill_ref
+    resolved_skill_path = skill_path
+    fallback_used = False
+
+    if not skill_exists and fallback_skill_ref:
+        fallback_path, fallback_exists = _skill_file_details(fallback_skill_ref)
+        if fallback_exists:
+            resolved_skill_ref = fallback_skill_ref
+            resolved_skill_path = fallback_path
+            skill_exists = True
+            fallback_used = True
+
+    if not skill_exists:
+        if prompt_family != "b2s":
+            raise FileNotFoundError(
+                f"Skill prompt for family '{prompt_family}' not found: '{skill_ref}'. "
+                "Provide a valid skill_ref or compatibility.fallback_skill_ref."
+            )
+        raise FileNotFoundError(f"Skill prompt not found: '{skill_ref}'")
+
+    if resolved_skill_path and resolved_skill_path.exists():
+        prompt_text = resolved_skill_path.read_text(encoding="utf-8")
         rendered_prompt = _render_prompt_text(prompt_text, prompt_placeholders or {})
     return {
-        "skill_ref": skill_ref,
-        "skill_path": str(skill_path) if skill_path else None,
-        "skill_exists": skill_path.exists() if skill_path else False,
+        "skill_ref": resolved_skill_ref,
+        "skill_path": str(resolved_skill_path) if resolved_skill_path else None,
+        "skill_exists": skill_exists,
+        "requested_skill_ref": skill_ref,
+        "fallback_skill_ref": fallback_skill_ref or None,
+        "fallback_used": fallback_used,
+        "prompt_family": prompt_family,
         "skill_text": prompt_text,
         "rendered_skill_text": rendered_prompt,
     }
 
 
-def _collect_inputs(action: dict[str, Any], workspace_root: Path) -> dict[str, Any]:
+def _collect_inputs(action: dict[str, Any], workspace_root: Path, current_item: str | None = None) -> dict[str, Any]:
     """Resolve required and optional inputs for an action."""
-    required_inputs = []
-    optional_inputs = []
-    missing_required = []
-
-    for pattern in action.get("inputs", {}).get("required", []):
-        exists, matches = workspace.resolve_input_pattern(workspace_root, pattern)
-        entry = {"path": pattern, "exists": exists, "matches": matches}
-        required_inputs.append(entry)
-        if not exists:
-            missing_required.append(pattern)
-
-    for pattern in action.get("inputs", {}).get("optional", []):
-        exists, matches = workspace.resolve_input_pattern(workspace_root, pattern)
-        optional_inputs.append({"path": pattern, "exists": exists, "matches": matches})
-
-    prompt_placeholders = {
-        "required_inputs": [entry["path"] for entry in required_inputs],
-        "optional_inputs": [entry["path"] for entry in optional_inputs],
-        "resolved_required_inputs": inputs_module._flatten_resolved_paths(required_inputs),
-        "resolved_optional_inputs": inputs_module._flatten_resolved_paths(optional_inputs),
-        "primary_output": action.get("outputs", {}).get("primary"),
-        "secondary_outputs": list(action.get("outputs", {}).get("secondary", [])),
-    }
-
+    collected = inputs_module.collect_action_inputs(action, workspace_root, current_item=current_item)
     return {
-        "required_inputs": required_inputs,
-        "optional_inputs": optional_inputs,
-        "missing_required_inputs": missing_required,
-        "inputs_ready": not missing_required,
-        "prompt_placeholders": prompt_placeholders,
+        "required_inputs": collected["required_inputs"],
+        "optional_inputs": collected["optional_inputs"],
+        "policy_inputs": collected["policy_inputs"],
+        "missing_required_inputs": collected["missing_required_inputs"],
+        "missing_policy_inputs": collected["missing_policy_inputs"],
+        "inputs_ready": collected["overall"] == "pass",
+        "prompt_placeholders": collected["prompt_placeholders"],
     }
 
 
@@ -121,14 +136,20 @@ def _action_summary(action: dict[str, Any], workspace_root: Path) -> dict[str, A
         "title": action.get("title", ""),
         "stage_id": action.get("stage_id", ""),
         "persona": action.get("persona", ""),
+        "prompt_family": skill["prompt_family"],
         "skill_ref": skill["skill_ref"],
+        "requested_skill_ref": skill["requested_skill_ref"],
+        "fallback_skill_ref": skill["fallback_skill_ref"],
+        "fallback_used": skill["fallback_used"],
         "skill_path": skill["skill_path"],
         "skill_exists": skill["skill_exists"],
         "artifact_template_ref": action.get("artifact_template_ref", ""),
         "output_paths": output_paths,
         "required_inputs": collected["required_inputs"],
         "optional_inputs": collected["optional_inputs"],
+        "policy_inputs": collected["policy_inputs"],
         "missing_required_inputs": collected["missing_required_inputs"],
+        "missing_policy_inputs": collected["missing_policy_inputs"],
         "inputs_ready": collected["inputs_ready"],
         "prompt_placeholders": collected["prompt_placeholders"],
         "rendered_skill_text": skill["rendered_skill_text"],
@@ -152,10 +173,35 @@ STATUS_COMPLETE = "complete"     # workflow is fully complete
 # --------------------------------------------------------------------------- #
 
 
+def _check_gate_receipt(workspace_root: Path, current_state: dict[str, Any]) -> str | None:
+    """If last_completed_action is a gate, verify the engine wrote a receipt."""
+    last = current_state.get("last_completed_action", "")
+    if not last or not last.startswith("gate-"):
+        return None
+    if current_state.get("awaiting_human"):
+        return None
+
+    receipt_path = workspace.tmp_dir(workspace_root) / "current-gate.json"
+    if not receipt_path.exists():
+        return (
+            f"Gate '{last}' was marked complete but no engine receipt found at "
+            f"'.b2s/tmp/current-gate.json'. The gate may have been approved "
+            f"outside the b2s engine. Run `repair-state` or re-approve via "
+            f"`approve-current-gate`."
+        )
+    return None
+
+
 def build_plan(workspace_root: Path) -> dict[str, Any]:
     """Build and return an execution plan dict for the current workflow state."""
     current_state = workspace.load_state(workspace_root)
     _, actions_by_id = workspace.load_stage_actions(workspace_root)
+
+    # --- state integrity audit ---
+    integrity_issues = workspace.check_state_integrity(workspace_root, current_state)
+
+    # --- gate receipt verification ---
+    gate_integrity_error = _check_gate_receipt(workspace_root, current_state)
 
     # --- workflow type mismatch check ---
     workflow_type_warning = None
@@ -168,10 +214,29 @@ def build_plan(workspace_root: Path) -> dict[str, Any]:
             f"Re-initialise with --workflow-type {recommended_type} to switch."
         )
 
+    # --- blocked by gate integrity failure ---
+    if gate_integrity_error:
+        plan = {
+            "status": STATUS_BLOCKED,
+            "initiative_id": current_state.get("initiative_id"),
+            "current_stage": current_state.get("current_stage"),
+            "blocking_reason": gate_integrity_error,
+            "message": f"Gate integrity check failed: {gate_integrity_error}",
+            "next_cli_commands": [
+                f"python .b2s/scripts/b2s_cli.py repair-state --workspace-root <path>",
+            ],
+            "action": None,
+        }
+        if integrity_issues:
+            plan["integrity_warnings"] = integrity_issues
+        if workflow_type_warning:
+            plan["workflow_type_warning"] = workflow_type_warning
+        return plan
+
     # --- gate check ---
     if current_state.get("awaiting_human"):
         gate = current_state.get("current_gate") or {}
-        return {
+        plan = {
             "status": STATUS_GATE,
             "initiative_id": current_state.get("initiative_id"),
             "current_stage": current_state.get("current_stage"),
@@ -189,6 +254,9 @@ def build_plan(workspace_root: Path) -> dict[str, Any]:
             ],
             "action": None,
         }
+        if integrity_issues:
+            plan["integrity_warnings"] = integrity_issues
+        return plan
 
     # --- select next action ---
     selection = next_step.select_next_action(workspace_root, current_state)
@@ -227,6 +295,8 @@ def build_plan(workspace_root: Path) -> dict[str, Any]:
             "next_cli_commands": [],
             "action": None,
         }
+        if integrity_issues:
+            plan["integrity_warnings"] = integrity_issues
         if workflow_type_warning:
             plan["workflow_type_warning"] = workflow_type_warning
         return plan
@@ -242,6 +312,8 @@ def build_plan(workspace_root: Path) -> dict[str, Any]:
             "next_cli_commands": [],
             "action": None,
         }
+        if integrity_issues:
+            plan["integrity_warnings"] = integrity_issues
         if workflow_type_warning:
             plan["workflow_type_warning"] = workflow_type_warning
         return plan
@@ -249,6 +321,12 @@ def build_plan(workspace_root: Path) -> dict[str, Any]:
     # --- ready ---
     action_id = selection["selected_action"]
     action = actions_by_id[action_id]
+
+    current_item = selection.get("current_item")
+    if current_item is not None:
+        current_state["current_item"] = current_item
+        workspace.save_state(workspace_root, current_state)
+
     summary = _action_summary(action, workspace_root)
     workspace_str = str(workspace_root)
 
@@ -258,20 +336,31 @@ def build_plan(workspace_root: Path) -> dict[str, Any]:
         f"python .b2s/scripts/b2s_cli.py dispatch-next --workspace-root \"{workspace_str}\"",
     ]
 
+    item_msg = f" [item: {current_item}]" if current_item else ""
+    pending = selection.get("pending_items", [])
+    total = selection.get("total_items")
+    progress_msg = f" ({total - len(pending)}/{total} items done)" if total else ""
+
     plan = {
         "status": STATUS_READY,
         "initiative_id": current_state.get("initiative_id"),
         "current_stage": selection["selected_stage"],
         "workflow_source": workspace.active_workflow_source(workspace_root),
         "message": (
-            f"Ready to execute `{action_id}` - {summary['title']}. "
-            f"Load skill prompt at `{summary['skill_ref']}` and execute it, "
+            f"Ready to execute `{action_id}` - {summary['title']}{item_msg}{progress_msg}. "
+            f"Load {summary['prompt_family']} skill prompt at `{summary['skill_ref']}` and execute it, "
             "then run validate-artifact -> update-state -> dispatch-next."
         ),
         "action": summary,
         "after_skill_commands": after_skill_commands,
         "next_cli_commands": after_skill_commands,
     }
+    if current_item is not None:
+        plan["current_item"] = current_item
+        plan["pending_items"] = pending
+        plan["total_items"] = total
+    if integrity_issues:
+        plan["integrity_warnings"] = integrity_issues
     if workflow_type_warning:
         plan["workflow_type_warning"] = workflow_type_warning
     return plan
@@ -316,6 +405,11 @@ def run(args: object) -> None:
 
     elif status == STATUS_BLOCKED:
         print(f"\n  Blocking reason: {plan.get('blocking_reason')}")
+
+    if plan.get("integrity_warnings"):
+        print(f"\n  [INTEGRITY] {len(plan['integrity_warnings'])} issue(s) detected:")
+        for issue in plan["integrity_warnings"]:
+            print(f"    - [{issue.get('issue', 'unknown')}] {issue.get('detail', '')}")
 
     if plan.get("workflow_type_warning"):
         print(f"\n  [WARNING] {plan['workflow_type_warning']}")

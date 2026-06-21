@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import hashlib
 import json
 from pathlib import Path
 import shutil
@@ -10,12 +11,17 @@ from typing import Any
 
 import yaml
 
+from b2s_engine import action_contract
+
 
 FRAMEWORK_ROOT = Path(__file__).resolve().parents[2]
 REPO_ROOT = FRAMEWORK_ROOT.parent
 
+_ENGINE_SALT = "b2s-engine-v2-integrity"
+
 ACTION_STATUSES_COMPLETE = {"ai_validated", "accepted"}
 ACTION_STATUSES_TERMINAL = ACTION_STATUSES_COMPLETE | {"failed"}
+ACTION_STATUS_IN_PROGRESS = "in_progress"
 
 DEFAULT_OUTPUTS = {
     "next-step": ".b2s/state/next-step.json",
@@ -115,6 +121,8 @@ def load_state(workspace_root: Path) -> dict[str, Any]:
     state = load_json_file(state_dir(workspace_root) / "workflow-state.json")
     state.setdefault("artifact_status", {})
     state.setdefault("action_status", {})
+    state.setdefault("action_item_status", {})
+    state.setdefault("current_item", None)
     state.setdefault("quality_gates_triggered", [])
     state.setdefault("optional_artifacts_requested", [])
     state.setdefault("current_gate", None)
@@ -140,6 +148,53 @@ def _next_execution_entry_id(path: Path) -> str:
     return f"RUN-{line_count + 1:05d}"
 
 
+def _compute_engine_fingerprint(
+    entry_id: str,
+    command: str,
+    action_id: str | None,
+    timestamp: str,
+) -> str:
+    payload = f"{_ENGINE_SALT}:{entry_id}:{command}:{action_id or ''}:{timestamp}"
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
+
+
+def _verify_entry_fingerprint(entry: dict[str, Any]) -> bool:
+    fp = entry.get("engine_fingerprint")
+    if not fp:
+        return False
+    expected = _compute_engine_fingerprint(
+        entry.get("entry_id", ""),
+        entry.get("command", ""),
+        entry.get("action_id"),
+        entry.get("timestamp", ""),
+    )
+    return fp == expected
+
+
+def verify_execution_log(workspace_root: Path) -> list[dict[str, str]]:
+    """Check every execution log entry for a valid engine fingerprint.
+
+    Returns a list of issues for entries that are missing or have invalid
+    fingerprints — indicating they were written outside the engine.
+    """
+    entries = _load_execution_log(workspace_root)
+    issues: list[dict[str, str]] = []
+    for entry in entries:
+        if not _verify_entry_fingerprint(entry):
+            issues.append({
+                "entry_id": entry.get("entry_id", "unknown"),
+                "command": entry.get("command", "unknown"),
+                "action_id": entry.get("action_id"),
+                "issue": "fabricated",
+                "detail": (
+                    f"log entry '{entry.get('entry_id')}' for command "
+                    f"'{entry.get('command')}' has no valid engine fingerprint "
+                    f"— it was written outside the b2s engine"
+                ),
+            })
+    return issues
+
+
 def append_execution_log(
     workspace_root: Path,
     *,
@@ -151,9 +206,11 @@ def append_execution_log(
     ensure_runtime_layout(workspace_root)
     state = load_state(workspace_root)
     path = execution_log_path(workspace_root)
+    entry_id = _next_execution_entry_id(path)
+    ts = _timestamp()
     entry = {
-        "entry_id": _next_execution_entry_id(path),
-        "timestamp": _timestamp(),
+        "entry_id": entry_id,
+        "timestamp": ts,
         "command": command,
         "overall": overall,
         "initiative_id": state.get("initiative_id"),
@@ -164,6 +221,7 @@ def append_execution_log(
         "awaiting_human": state.get("awaiting_human"),
         "blocked_reason": state.get("blocked_reason"),
         "state_validated": state.get("state_validated"),
+        "engine_fingerprint": _compute_engine_fingerprint(entry_id, command, action_id, ts),
     }
     if details:
         entry["details"] = details
@@ -199,7 +257,7 @@ def load_stage_actions(
     workspace_root: Path | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, dict[str, Any]]]:
     payload = load_yaml_file(_resolve_workflow_path("stage-actions.yaml", workspace_root))
-    actions = payload["actions"]
+    actions = action_contract.normalize_actions(payload["actions"])
     by_id = {action["action_id"]: action for action in actions}
     return actions, by_id
 
@@ -229,6 +287,24 @@ def artifact_exists(workspace_root: Path, relative_path: str) -> bool:
     return artifact_path.exists()
 
 
+def extract_items_from_source(workspace_root: Path, source_path: str, pattern: str) -> list[str]:
+    """Extract item IDs from a source file using a regex pattern."""
+    import re as _re
+    full_path = workspace_root / source_path
+    if not full_path.exists():
+        return []
+    text = full_path.read_text(encoding="utf-8")
+    matches = _re.findall(pattern, text, flags=_re.MULTILINE)
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for match in matches:
+        item_id = match.strip() if isinstance(match, str) else match[0].strip()
+        if item_id not in seen:
+            seen.add(item_id)
+            ordered.append(item_id)
+    return ordered
+
+
 def resolve_input_pattern(workspace_root: Path, pattern: str) -> tuple[bool, list[str]]:
     if "*" in pattern or "?" in pattern:
         matches = sorted(
@@ -239,6 +315,17 @@ def resolve_input_pattern(workspace_root: Path, pattern: str) -> tuple[bool, lis
     exists = artifact_exists(workspace_root, pattern)
     matches = [pattern] if exists else []
     return exists, matches
+
+
+def resolve_policy_reference(pattern: str) -> tuple[bool, list[str]]:
+    """Resolve a framework-level policy reference."""
+    if pattern.startswith(".b2s/"):
+        candidate = REPO_ROOT / pattern
+        exists = candidate.exists()
+        return exists, [pattern] if exists else []
+    candidate = REPO_ROOT / pattern
+    exists = candidate.exists()
+    return exists, [pattern] if exists else []
 
 
 def read_action_id_from_state_or_args(
@@ -294,6 +381,8 @@ def check_state_integrity(
 ) -> list[dict[str, str]]:
     """Detect action statuses that have no execution-log evidence or missing artifacts.
 
+    Also checks execution log entries for valid engine fingerprints.
+
     Returns a list of issues found. Each issue is a dict with keys:
       action_id, status, issue, detail
     """
@@ -302,13 +391,18 @@ def check_state_integrity(
     action_status = state.get("action_status", {})
     issues: list[dict[str, str]] = []
 
+    fingerprint_issues = verify_execution_log(workspace_root)
+    issues.extend(fingerprint_issues)
+
+    verified_entries = [e for e in log_entries if _verify_entry_fingerprint(e)]
+
     for action_id, status in list(action_status.items()):
         if status not in ACTION_STATUSES_COMPLETE:
             continue
         if action_id not in actions_by_id:
             continue
 
-        logged = _logged_commands_for_action(log_entries, action_id)
+        logged = _logged_commands_for_action(verified_entries, action_id)
         has_engine_evidence = bool(logged & _STATE_SETTING_COMMANDS)
 
         action = actions_by_id[action_id]
@@ -324,7 +418,7 @@ def check_state_integrity(
                 "status": status,
                 "issue": "ghost",
                 "detail": (
-                    f"action '{action_id}' is '{status}' but has no engine log entry "
+                    f"action '{action_id}' is '{status}' but has no verified engine log entry "
                     f"and artifact(s) missing: {missing_artifacts}"
                 ),
             })
@@ -334,7 +428,7 @@ def check_state_integrity(
                 "status": status,
                 "issue": "unlogged",
                 "detail": (
-                    f"action '{action_id}' is '{status}' but has no engine log entry "
+                    f"action '{action_id}' is '{status}' but has no verified engine log entry "
                     f"(artifacts exist on disk — status may have been set outside the engine)"
                 ),
             })

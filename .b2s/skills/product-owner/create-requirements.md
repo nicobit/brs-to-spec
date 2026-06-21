@@ -37,9 +37,10 @@ If either required input is missing, stop and report the blocker. Do not fabrica
 
 ### Step 1 - Read inputs fully
 
-Read `{workspace_root}/business-intake/business-intake-summary.md` in full.
-Read all BRS source files under `{workspace_root}/input/` in full.
-Do not start writing until both are read completely.
+Read every file listed in `{resolved_required_inputs}` in full.
+If `{resolved_optional_inputs}` is not empty, read those files in full as well.
+Read every policy file listed in `{resolved_policy_inputs}` in full before writing.
+Do not start writing until all required inputs and policy inputs are read completely.
 
 Mentally discard any existing content of `business-analysis/requirements.md` and rebuild the artifact from the current inputs only.
 
@@ -72,6 +73,11 @@ Before finalizing, verify every row is:
 - Testable
 - Traceable
 - Uniquely identified
+
+Apply the requirement writing standard from `{resolved_policy_inputs}`:
+- keep requirements atomic
+- avoid implementation leakage unless the source states a hard constraint
+- prefer measurable wording over generic capability language
 
 ## Output requirements
 

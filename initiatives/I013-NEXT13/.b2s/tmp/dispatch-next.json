@@ -1,9 +1,0 @@
-{
-  "status": "blocked",
-  "initiative_id": "I013-NEXT13",
-  "current_stage": "6-review-package",
-  "blocking_reason": "stage `6-review-package` is incomplete but no executable action is currently ready",
-  "message": "Workflow is blocked: stage `6-review-package` is incomplete but no executable action is currently ready",
-  "next_cli_commands": [],
-  "action": null
-}

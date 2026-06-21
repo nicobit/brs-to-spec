@@ -26,16 +26,19 @@ Before starting, verify:
 
 ### Step 1 - Read all inputs
 
-Read these files in full before writing anything:
-- `{workspace_root}/architecture/architecture-review.md`
-- `{workspace_root}/business-analysis/business-rules.md`
+Read every file listed in `{resolved_required_inputs}` in full before writing anything.
 
-If optional files exist, read them too:
-- `{workspace_root}/business-analysis/entity-model.md`
+If `{resolved_optional_inputs}` is not empty, read those files too.
+Read every policy file listed in `{resolved_policy_inputs}` in full before writing.
 
 Do not start writing until all available inputs are read completely.
 
 ### Step 2 - Document each new or changed data asset with classification, schema, PII handling, encryption, retention, access control, flow, and migration approach.
+
+Apply the policy context from `{resolved_policy_inputs}`:
+- make security controls and access boundaries explicit
+- preserve regulatory and retention obligations from the source context
+- do not leave PII handling implicit
 
 ## Output requirements
 

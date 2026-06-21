@@ -19,6 +19,7 @@ When the user says anything like "create initiative", "new initiative", "initial
 2. Do NOT create `initiative.yaml`, `00-start.md`, `README.md`, or any file not produced by the CLI.
 3. Do NOT copy or recreate the `.b2s/` framework folder inside the initiative workspace.
 4. Read and follow `.github/prompts/b2s-new-initiative.prompt.md` — follow it exactly.
+5. ALWAYS ask the user to choose a workflow type. The default is `agile-delivery-light-flow`. Present all available types and recommend the default unless the initiative clearly needs a different one.
 
 ## Hard stop — before creating any file or folder inside `initiatives/`
 
