@@ -1,0 +1,9 @@
+{
+  "workflow_type": "agile-delivery-light-flow",
+  "source_path": "C:\\Users\\nicol\\source\\brs-to-spec\\.b2s\\workflow-types\\agile-delivery-light-flow",
+  "copied_at": "2026-06-22T16:43:25.566871+00:00",
+  "files_copied": [
+    "stage-actions.yaml",
+    "workflow-definition.yaml"
+  ]
+}
