@@ -45,7 +45,7 @@ For each system, record its name and whether this initiative only calls it (`con
 
 ### Step 3 — Map systems to stories
 
-From `planning/delivery-structure.md`, identify which story (`F-NNN.N`) depends on each external system. Record these story refs for the Traceability and Dependent Stories sections.
+From `planning/delivery-structure.md`, identify which story (`S-NNN.N`) depends on each external system. Record these story refs for the Traceability and Dependent Stories sections.
 
 ### Step 4 — Extract integration constraints
 

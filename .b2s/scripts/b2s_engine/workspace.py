@@ -290,7 +290,12 @@ def artifact_exists(workspace_root: Path, relative_path: str) -> bool:
 def _parse_elaboration_waves(workspace_root: Path) -> list[list[str]] | None:
     """Parse elaboration-plan.md and return a list of waves, each a list of epic IDs.
 
-    Returns None if the elaboration plan does not exist or has no parseable wave table.
+    Supports two formats:
+    1. Single table with a Wave column: ``| Wave 1 | E-001 — ... | ... |``
+    2. Separate heading + table per wave: ``### Wave 1 — ...`` followed by
+       a table whose rows contain epic IDs.
+
+    Returns None if the elaboration plan does not exist or has no parseable waves.
     """
     import re as _re
     plan_path = workspace_root / "planning" / "elaboration-plan.md"
@@ -298,6 +303,7 @@ def _parse_elaboration_waves(workspace_root: Path) -> list[list[str]] | None:
         return None
     text = plan_path.read_text(encoding="utf-8")
 
+    # --- Strategy 1: single table with Wave column ---
     in_table = False
     waves: list[list[str]] = []
     for line in text.splitlines():
@@ -316,6 +322,41 @@ def _parse_elaboration_waves(workspace_root: Path) -> list[list[str]] | None:
                     waves.append(epic_ids)
         elif in_table and not stripped.startswith("|"):
             in_table = False
+
+    if waves:
+        return waves
+
+    # --- Strategy 2: separate ### Wave N headings with tables ---
+    current_wave_epics: list[str] = []
+    in_wave = False
+    for line in text.splitlines():
+        stripped = line.strip()
+        if _re.match(r"^#{2,3}\s+[Ww]ave\s+\d+", stripped):
+            if current_wave_epics:
+                waves.append(current_wave_epics)
+                current_wave_epics = []
+            in_wave = True
+            epic_ids_in_heading = _re.findall(r"E-\d{3}", stripped)
+            current_wave_epics.extend(epic_ids_in_heading)
+            continue
+        if in_wave and stripped.startswith("|"):
+            if stripped.startswith("|---"):
+                continue
+            cells = [c.strip() for c in stripped.split("|")]
+            cells = [c for c in cells if c]
+            if cells:
+                first_cell_ids = _re.findall(r"E-\d{3}", cells[0])
+                for eid in first_cell_ids:
+                    if eid not in current_wave_epics:
+                        current_wave_epics.append(eid)
+        elif in_wave and stripped.startswith("#"):
+            if current_wave_epics:
+                waves.append(current_wave_epics)
+                current_wave_epics = []
+            in_wave = False
+
+    if current_wave_epics:
+        waves.append(current_wave_epics)
 
     return waves if waves else None
 

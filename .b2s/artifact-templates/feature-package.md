@@ -51,7 +51,7 @@
 
 | Story ID | Story Title | Priority | Increment | Status |
 |---|---|---|---|---|
-| F-NNN.N | {{story title}} | Must / Should / Could | D1 / D2 | Draft |
+| S-NNN.N | {{story title}} | Must / Should / Could | D1 / D2 | Draft |
 
 ## Acceptance Criteria Summary
 

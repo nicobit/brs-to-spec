@@ -53,7 +53,7 @@ From `engineering-readiness/readiness-check.md`, read `api_contract_mode`:
 
 ### Step 4 — Map endpoints to stories
 
-From `planning/delivery-structure.md`, identify which story (`F-NNN.N`) implements each endpoint. Every endpoint in the output must have a `Story ref` field.
+From `planning/delivery-structure.md`, identify which story (`S-NNN.N`) implements each endpoint. Every endpoint in the output must have a `Story ref` field.
 
 ### Step 5 — Extract architecture constraints
 

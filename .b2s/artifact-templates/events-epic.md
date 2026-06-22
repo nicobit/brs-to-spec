@@ -4,7 +4,7 @@
 
 | Event | Type | Producer | Consumers | Trigger | Delivery | Story |
 |---|---|---|---|---|---|---|
-| {{event.name}} | domain / integration / audit | {{service}} | {{service(s)}} | {{what causes emission}} | at-least-once / at-most-once | F-NNN.N |
+| {{event.name}} | domain / integration / audit | {{service}} | {{service(s)}} | {{what causes emission}} | at-least-once / at-most-once | S-NNN.N |
 
 ---
 

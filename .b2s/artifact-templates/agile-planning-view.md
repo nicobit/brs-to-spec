@@ -15,7 +15,7 @@
 
 | Framework ID | GitLab Type | Title | Milestone | Source Artifact |
 |---|---|---|---|---|
-| E-NNN / F-NNN / F-NNN.N | Epic / Parent Issue / Issue | | D1 | |
+| E-NNN / F-NNN / S-NNN.N | Epic / Parent Issue / Issue | | D1 | |
 
 ## Quality Gate Tracking
 

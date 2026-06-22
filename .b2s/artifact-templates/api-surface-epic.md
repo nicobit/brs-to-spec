@@ -4,7 +4,7 @@
 
 | EP | Method | Path | Purpose | Auth | Story |
 |---|---|---|---|---|---|
-| EP-001 | GET / POST / PUT / DELETE | /api/v1/{{resource}} | {{purpose}} | JWT / API key / None | F-NNN.N |
+| EP-001 | GET / POST / PUT / DELETE | /api/v1/{{resource}} | {{purpose}} | JWT / API key / None | S-NNN.N |
 
 ---
 
@@ -116,7 +116,7 @@ components:
 
 | API | Provider | Purpose | Story | Timeout | Fallback |
 |---|---|---|---|---|---|
-| {{api name}} | {{provider}} | {{why this epic calls it}} | F-NNN.N | {{ms}} | {{what happens on failure}} |
+| {{api name}} | {{provider}} | {{why this epic calls it}} | S-NNN.N | {{ms}} | {{what happens on failure}} |
 
 ### {{API Name}} — Contract Summary
 

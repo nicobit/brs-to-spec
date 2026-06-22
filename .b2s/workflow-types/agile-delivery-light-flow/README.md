@@ -4,9 +4,10 @@
 
 Use this workflow for initiatives that need **architecture-aware progressive
 delivery with minimal overhead**. It produces epic-centric output — one
-folder per epic containing an overview and lean user stories with embedded
-BDD acceptance criteria. Implementation contracts and coding handoff are
-generated later, only for selected epics.
+folder per epic containing an overview, an implementation contract (data
+entities, API surface, events, business rules), and lean user stories with
+embedded BDD acceptance criteria. Coding handoff is generated later, only
+for selected epics.
 
 Choose this workflow when:
 
@@ -63,15 +64,17 @@ Mermaid dependency diagram.
 ### Stage 3 — Epic elaboration
 
 Generates one folder per epic containing `epic.md` (overview, scope, risks,
-dependencies) and individual lean story files with embedded Given/When/Then
-acceptance criteria. Validates requirement coverage across all stories.
+dependencies), `implementation-contract.md` (data entities, API surface,
+events, business rules), and individual lean story files with embedded
+Given/When/Then acceptance criteria. Stories reference the contract for
+technical detail. Validates requirement coverage across all stories.
 
 **Human gate:** Epic folders must be reviewed before the workflow completes.
 
-### Phase C — Implementation prep
+### Phase C — Coding handoff (on demand)
 
-After epic review, generate `implementation-contract.md` and
-`coding-handoff.md` only for the epics selected for implementation.
+After epic review, generate `coding-handoff.md` only for the epics
+selected for implementation.
 
 ## Human gates
 
@@ -87,15 +90,16 @@ After epic review, generate `implementation-contract.md` and
 epics/
   E-001-<slug>/
     epic.md
+    implementation-contract.md
     stories/
-      F-001.1-<slug>.md
-      F-001.2-<slug>.md
-    implementation-contract.md   ← generated later on demand
+      S-001.1-<slug>.md
+      S-001.2-<slug>.md
     coding-handoff.md            ← generated later on demand
   E-002-<slug>/
     epic.md
+    implementation-contract.md
     stories/
-      F-003.1-<slug>.md
+      S-003.1-<slug>.md
 ```
 
 ## Comparison with other workflow types
@@ -107,7 +111,7 @@ epics/
 | Total steps | 31 | 11 | 6 |
 | Output structure | Scattered (5 folders) | Epic-centric (1 folder) | Single handoff |
 | Domain analysis | Yes | No | No |
-| Architecture impact | Yes | No | No |
+| Architecture review/rules | Yes | Yes | No |
 | Elaboration plan | Yes | Yes | No |
 | BDD | Separate files | Embedded in AC | No |
 | OpenSpec handoff | Yes | On-demand per epic coding handoff | No |

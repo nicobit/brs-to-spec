@@ -29,7 +29,7 @@
 
 | Story ref | Dependency type | Impact if unavailable |
 |---|---|---|
-| {{FR-NNN or F-NNN.N}} | {{blocking / optional}} | {{describe}} |
+| {{FR-NNN or S-NNN.N}} | {{blocking / optional}} | {{describe}} |
 
 ## Connection Details
 

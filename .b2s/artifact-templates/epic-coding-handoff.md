@@ -32,7 +32,7 @@
 
 | Order | Story | Why this order |
 |---|---|---|
-| 1 | F-NNN.N | {{dependency or foundation reason}} |
+| 1 | S-NNN.N | {{dependency or foundation reason}} |
 
 ---
 

@@ -21,7 +21,7 @@
 
 | Consumer | Type | Dependency level | Story ref |
 |---|---|---|---|
-| {{consumer name}} | {{internal / external}} | {{blocking / non-blocking}} | {{FR-NNN or F-NNN.N}} |
+| {{consumer name}} | {{internal / external}} | {{blocking / non-blocking}} | {{FR-NNN or S-NNN.N}} |
 
 ## Traceability
 
@@ -44,7 +44,7 @@
 **Purpose:** {{one line}}
 **Authentication:** {{OAuth2 / API key / mTLS — must match architecture rules}}
 **Authorization:** {{roles or scopes required}}
-**Story ref:** {{F-NNN.N or FR-NNN}}
+**Story ref:** {{S-NNN.N or FR-NNN}}
 
 **Request:**
 

@@ -55,7 +55,7 @@ Record the constraint ID alongside every value derived from it in the output.
 
 ### Step 4 — Map integrations to stories
 
-From `planning/delivery-structure.md`, identify which story (`F-NNN.N`) depends on each external system. Record these for the Dependent Stories section.
+From `planning/delivery-structure.md`, identify which story (`S-NNN.N`) depends on each external system. Record these for the Dependent Stories section.
 
 ### Step 5 — Specify reliability contract
 

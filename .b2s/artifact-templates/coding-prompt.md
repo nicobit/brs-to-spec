@@ -1,4 +1,4 @@
-# Coding Prompt — F-NNN.N {{Story Title}}
+# Coding Prompt — S-NNN.N {{Story Title}}
 
 ## Goal
 

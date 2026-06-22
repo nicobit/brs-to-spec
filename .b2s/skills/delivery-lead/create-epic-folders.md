@@ -97,7 +97,7 @@ Derive content from the BRS, architecture review, architecture rules, and the re
 
 ### Step 5 - Create story files
 
-For each story in this epic, create `epics/E-NNN-<slug>/stories/F-NNN.N-<slug>.md` using `.b2s/artifact-templates/lean-story.md`.
+For each story in this epic, create `epics/E-NNN-<slug>/stories/S-NNN.N-<slug>.md` using `.b2s/artifact-templates/lean-story.md`.
 
 Each story must include:
 1. Specific actor and business outcome
@@ -123,7 +123,7 @@ Before finishing, cross-check:
 Write to `epics/E-NNN-<slug>/` containing:
 - `epic.md`
 - `implementation-contract.md`
-- `stories/F-NNN.N-<slug>.md`
+- `stories/S-NNN.N-<slug>.md`
 
 ## Done criteria
 

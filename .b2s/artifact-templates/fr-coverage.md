@@ -26,8 +26,8 @@
 
 | REQ / FR | Requirement Title | Capability | Epic | Feature | Story | Open Questions Propagated | Evidence | Status |
 |---|---|---|---|---|---|---|---|---|
-| REQ-001 | {{canonical title}} | CAP-NNN | E-NNN | F-NNN | F-NNN.N | Yes / No / N/A | {{story or traceability note}} | Covered |
-| REQ-002 | {{canonical title}} | CAP-NNN | E-NNN | F-NNN | F-NNN.N | Yes / No / N/A | {{story or traceability note}} | Covered |
+| REQ-001 | {{canonical title}} | CAP-NNN | E-NNN | F-NNN | S-NNN.N | Yes / No / N/A | {{story or traceability note}} | Covered |
+| REQ-002 | {{canonical title}} | CAP-NNN | E-NNN | F-NNN | S-NNN.N | Yes / No / N/A | {{story or traceability note}} | Covered |
 | REQ-003 | {{canonical title}} | — | — | — | — | No | {{why no story exists}} | **Not Covered** |
 
 ---

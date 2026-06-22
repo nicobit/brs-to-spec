@@ -174,13 +174,13 @@ def _epic_review_summary(workspace_root: Path, validation_result: dict | None = 
         if epic_md.exists():
             epic_text = epic_md.read_text(encoding="utf-8")
             summary["not_ready_stories"] += len(
-                re.findall(r"\|\s*F-\d{3}\.\d+\s*\|.*?\|\s*Not Ready\s*\|", epic_text, flags=re.MULTILINE)
+                re.findall(r"\|\s*[FS]-\d{3}\.\d+\s*\|.*?\|\s*Not Ready\s*\|", epic_text, flags=re.MULTILINE)
             )
 
         stories_dir = epic_dir / "stories"
         if not stories_dir.exists():
             continue
-        story_files = sorted([f for f in stories_dir.glob("F-*.md") if not f.name.endswith(".prompt.md")])
+        story_files = sorted([f for f in stories_dir.glob("S-*.md") if not f.name.endswith(".prompt.md")])
         summary["total_stories"] += len(story_files)
         for story_file in story_files:
             text = story_file.read_text(encoding="utf-8")

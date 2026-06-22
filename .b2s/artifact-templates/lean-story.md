@@ -1,10 +1,10 @@
-# F-NNN.N — {{Story Title}}
+# S-NNN.N — {{Story Title}}
 
 ## Metadata
 
 | Field | Value |
 |---|---|
-| Story ID | F-NNN.N |
+| Story ID | S-NNN.N |
 | Epic | E-NNN — {{Epic Title}} |
 | Actor | {{specific role name, not "user"}} |
 | Layers | Frontend / Backend / Infrastructure / Integration |

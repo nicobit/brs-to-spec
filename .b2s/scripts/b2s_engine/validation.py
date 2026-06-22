@@ -273,7 +273,15 @@ def _canonical_requirements(workspace_root: Path) -> dict[str, dict[str, Any]]:
 
 
 def _all_requirement_ids(workspace_root: Path) -> set[str]:
-    return set(_canonical_requirements(workspace_root))
+    """Return all known requirement IDs: canonical headings plus any
+    FR/NFR/C IDs referenced in the atomic-requirements body text."""
+    canonical = set(_canonical_requirements(workspace_root))
+    req_path = workspace_root / "requirements" / "atomic-requirements.md"
+    if req_path.exists():
+        _REQ_REF_RE = r"(?<![A-Za-z])(?:FR|REQ|NFR|C)-\d{3}"
+        all_refs = set(re.findall(_REQ_REF_RE, _read_text(req_path)))
+        canonical |= all_refs
+    return canonical
 
 
 def _extract_requirement_titles_from_story(text: str) -> dict[str, str]:
@@ -323,7 +331,7 @@ def _artifact_requirement_pairs(path: Path) -> dict[str, str]:
                 pairs.update(_extract_requirement_titles_from_epic(_read_text(epic_md)))
             stories_dir = epic_dir / "stories"
             if stories_dir.exists():
-                for story_file in sorted(stories_dir.glob("F-*.md")):
+                for story_file in sorted(stories_dir.glob("S-*.md")):
                     if story_file.name.endswith(".prompt.md"):
                         continue
                     pairs.update(_extract_requirement_titles_from_story(_read_text(story_file)))
@@ -1449,12 +1457,13 @@ def _validate_story_package_directory(path: Path, workspace_root: Path) -> list[
         lines = text.splitlines()
         first_heading = next((l for l in lines if l.startswith("# ")), "")
 
-        # story_has_id
+        # story_has_id — accept both F-NNN.N (specs/ structure) and S-NNN.N (epics/ structure)
+        _story_id_re = r"[FS]-\d{3}\.\d+"
         checks.append(_result(
             "story_has_id", label,
-            bool(re.search(r"F-\d{3}\.\d+", first_heading)),
-            f"{label}/story.md: first heading contains story ID" if re.search(r"F-\d{3}\.\d+", first_heading)
-            else f"{label}/story.md: first heading does not contain a story ID (F-NNN.N)",
+            bool(re.search(_story_id_re, first_heading)),
+            f"{label}/story.md: first heading contains story ID" if re.search(_story_id_re, first_heading)
+            else f"{label}/story.md: first heading does not contain a story ID (S-NNN.N or F-NNN.N)",
         ))
 
         # story_not_generic_title
@@ -1697,8 +1706,8 @@ def _validate_exposed_api_spec_directory(path: Path, workspace_root: Path) -> li
         checks.append(_result(
             "exposed_api_has_story_ref",
             label,
-            bool(re.search(r"F-\d{3}\.\d+", text)),
-            f"{label}: endpoint table references at least one story (F-NNN.N)",
+            bool(re.search(r"[FS]-\d{3}\.\d+", text)),
+            f"{label}: endpoint table references at least one story (S-NNN.N or F-NNN.N)",
         ))
 
     return checks
@@ -2347,7 +2356,7 @@ def _rule_requirement_semantics_preserved(
         stories_dir = epic_dir / "stories"
         if not stories_dir.exists():
             continue
-        for story_file in sorted(stories_dir.glob("F-*.md")):
+        for story_file in sorted(stories_dir.glob("S-*.md")):
             if story_file.name.endswith(".prompt.md"):
                 continue
             text = _read_text(story_file)
@@ -2401,7 +2410,7 @@ def _rule_open_questions_propagated(
             stories_dir = epic_dir / "stories"
             if not stories_dir.exists():
                 continue
-            for story_file in sorted(stories_dir.glob("F-*.md")):
+            for story_file in sorted(stories_dir.glob("S-*.md")):
                 if story_file.name.endswith(".prompt.md"):
                     continue
                 text = _read_text(story_file)
@@ -2471,11 +2480,12 @@ def _rule_coverage_claim_matches_evidence(
         row for row in rows
         if len(row) >= 9 and re.fullmatch(r"(?:FR|REQ|NFR|C)-\d{3}", row[0].strip())
     ]
-    story_files = {
-        story_file.stem.split("-", 1)[0]
-        for story_file in (workspace_root / "epics").rglob("F-*.md")
-        if story_file.is_file() and not story_file.name.endswith(".prompt.md")
-    }
+    story_files = set()
+    for story_file in (workspace_root / "epics").rglob("S-*.md"):
+        if story_file.is_file() and not story_file.name.endswith(".prompt.md"):
+            m = re.match(r"(S-\d{3}\.\d+)", story_file.stem)
+            if m:
+                story_files.add(m.group(1))
     covered = 0
     mismatches: list[str] = []
     for row in matrix_rows:
@@ -2794,7 +2804,7 @@ def _validate_epic_folders_directory(path: Path, workspace_root: Path) -> list[d
 
             if epic_reqs:
                 story_reqs: set[str] = set()
-                for story_file in sorted((epic_dir / "stories").glob("F-*.md")) if (epic_dir / "stories").exists() else []:
+                for story_file in sorted((epic_dir / "stories").glob("S-*.md")) if (epic_dir / "stories").exists() else []:
                     if story_file.name.endswith(".prompt.md"):
                         continue
                     story_text = _read_text(story_file)
@@ -2824,7 +2834,7 @@ def _validate_epic_folders_directory(path: Path, workspace_root: Path) -> list[d
         )
 
         if stories_dir.exists() and stories_dir.is_dir():
-            story_files = sorted([f for f in stories_dir.glob("F-*.md") if not f.name.endswith(".prompt.md")])
+            story_files = sorted([f for f in stories_dir.glob("S-*.md") if not f.name.endswith(".prompt.md")])
 
             checks.append(
                 _result(
@@ -2832,7 +2842,7 @@ def _validate_epic_folders_directory(path: Path, workspace_root: Path) -> list[d
                     label,
                     bool(story_files),
                     f"{label}/stories/ has {len(story_files)} story file(s)" if story_files
-                    else f"{label}/stories/ has no F-NNN.N-*.md story files",
+                    else f"{label}/stories/ has no S-NNN.N-*.md story files",
                 )
             )
 
@@ -2900,6 +2910,32 @@ def _validate_epic_folders_directory(path: Path, workspace_root: Path) -> list[d
                         )
                     )
 
+                if layers_match:
+                    layer_list = [l.strip().lower() for l in re.split(r"[,/]", layers_match.group(1)) if l.strip().lower() not in ("draft", "must", "should", "could", "")]
+                    if len(layer_list) > 3:
+                        checks.append(
+                            _result(
+                                "story_slicing_layers",
+                                slbl,
+                                False,
+                                f"{story_file.name}: touches {len(layer_list)} layers ({', '.join(layer_list)}) — consider splitting to 1-2 layers per story",
+                            )
+                        )
+
+                actor_match = re.search(r"\|\s*Actor\s*\|\s*([^|]+)\|", stext, re.IGNORECASE)
+                if actor_match:
+                    actor_text = actor_match.group(1).strip()
+                    actor_count = len([a for a in re.split(r"[,/]", actor_text) if a.strip() and a.strip().lower() not in ("system",)])
+                    if actor_count > 2:
+                        checks.append(
+                            _result(
+                                "story_slicing_actors",
+                                slbl,
+                                False,
+                                f"{story_file.name}: has {actor_count} actors — a story should focus on one actor goal. Consider splitting.",
+                            )
+                        )
+
                 has_business_context = bool(re.search(r"(?i)##\s*business context", stext))
                 checks.append(
                     _result(
@@ -2965,8 +3001,8 @@ def _validate_epic_folders_directory(path: Path, workspace_root: Path) -> list[d
             for epic_dir in epic_dirs:
                 stories_path = epic_dir / "stories"
                 if stories_path.exists():
-                    for sf in stories_path.glob("F-*.md"):
-                        if not sf.name.startswith("F-") or sf.name.endswith(".prompt.md"):
+                    for sf in stories_path.glob("S-*.md"):
+                        if not sf.name.startswith("S-") or sf.name.endswith(".prompt.md"):
                             continue
                         st = _read_text(sf)
                         lm = re.search(r"\|\s*Layers?\s*\|\s*([^|]+)\|", st, re.IGNORECASE)

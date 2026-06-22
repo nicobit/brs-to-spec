@@ -92,16 +92,16 @@ def _scan_story_files(workspace_root: Path) -> list[dict[str, Any]]:
         if not stories_dir.exists():
             continue
 
-        for story_file in sorted(stories_dir.glob("F-*.md")):
+        for story_file in sorted(stories_dir.glob("S-*.md")):
             if story_file.name.endswith(".prompt.md"):
                 continue
 
             text = _read_text(story_file)
-            story_id_match = re.match(r"(F-\d{3}\.\d+)", story_file.stem)
+            story_id_match = re.match(r"(S-\d{3}\.\d+)", story_file.stem)
             story_id = story_id_match.group(1) if story_id_match else story_file.stem
 
-            feature_match = re.match(r"(F-\d{3})", story_id)
-            feature_id = feature_match.group(1) if feature_match else story_id
+            feature_num = re.match(r"S-(\d{3})", story_id)
+            feature_id = f"F-{feature_num.group(1)}" if feature_num else story_id
 
             linked_reqs: list[str] = []
             linked_block = _section_block(text, "## Linked Requirements")

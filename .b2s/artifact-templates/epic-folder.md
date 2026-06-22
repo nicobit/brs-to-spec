@@ -81,7 +81,7 @@
 
 | Story ID | Title | Layers | Priority | Increment | Readiness |
 |---|---|---|---|---|---|
-| F-NNN.N | {{title}} | Frontend / Backend / Infra / Integration | Must / Should / Could | D1 / D2 | Ready / Not Ready |
+| S-NNN.N | {{title}} | Frontend / Backend / Infra / Integration | Must / Should / Could | D1 / D2 | Ready / Not Ready |
 
 ---
 *Status: Draft — set to Accepted only after epic review gate. Never self-accept.*

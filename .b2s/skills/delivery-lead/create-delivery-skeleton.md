@@ -43,7 +43,7 @@ If a required input is missing, stop and report the blocker.
 - Do NOT write full story detail — only IDs, titles, and one-line summaries
 - Every requirement (FR/REQ) from `atomic-requirements.md` must appear in the Requirement Coverage Summary
 - Every capability (CAP-NNN) from `capability-map.md` must map to at least one epic
-- Story IDs use the format F-NNN.N (feature.story)
+- Story IDs use the format S-NNN.N (feature.story)
 - This file must be small enough to never truncate — keep it compact
 
 ## Instructions
@@ -73,7 +73,7 @@ Each feature is a coherent deliverable sub-capability. Assign IDs F-001, F-002, 
 
 ### Step 5 - Define story IDs per feature
 
-For each feature, list story IDs (F-NNN.N) with one-line titles. Each story must be:
+For each feature, list story IDs (S-NNN.N) with one-line titles. Each story must be:
 - Independently implementable
 - Small enough for one focused session
 - Traceable to at least one requirement

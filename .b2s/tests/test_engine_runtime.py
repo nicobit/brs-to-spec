@@ -831,7 +831,7 @@ class EngineRuntimeTests(unittest.TestCase):
         """A minimal artifact that has a template_ref fails template-driven structural checks."""
         (self.workspace_root / "planning").mkdir()
         (self.workspace_root / "planning" / "delivery-structure.md").write_text(
-            "# Delivery Structure\n\n## Metadata\n\nText.\n\n## FR Coverage\n\n| FR-NNN | Stories | Status |\n|---|---|---|\n| FR-001 | F-001.1 | Covered |\n",
+            "# Delivery Structure\n\n## Metadata\n\nText.\n\n## FR Coverage\n\n| FR-NNN | Stories | Status |\n|---|---|---|\n| FR-001 | S-001.1 | Covered |\n",
             encoding="utf-8",
         )
         state = {
@@ -988,8 +988,8 @@ class EngineRuntimeTests(unittest.TestCase):
 
                 | REQ / FR | Requirement Title | Capability | Epic | Feature | Story | Open Questions Propagated | Evidence | Status |
                 |---|---|---|---|---|---|---|---|---|
-                | REQ-001 | Submit request | CAP-001 | E-001 | F-001 | F-001.1 | N/A | story exists | Covered |
-                | REQ-999 | Invented requirement | CAP-001 | E-001 | F-001 | F-001.1 | N/A | invented | Covered |
+                | REQ-001 | Submit request | CAP-001 | E-001 | F-001 | S-001.1 | N/A | story exists | Covered |
+                | REQ-999 | Invented requirement | CAP-001 | E-001 | F-001 | S-001.1 | N/A | invented | Covered |
                 """
             ),
             encoding="utf-8",
@@ -1037,10 +1037,10 @@ class EngineRuntimeTests(unittest.TestCase):
             "# E-001 - Submit request\n",
             encoding="utf-8",
         )
-        (self.workspace_root / "epics" / "E-001-submit-request" / "stories" / "F-001.1-submit.md").write_text(
+        (self.workspace_root / "epics" / "E-001-submit-request" / "stories" / "S-001.1-submit.md").write_text(
             textwrap.dedent(
                 """\
-                # F-001.1 - Submit request
+                # S-001.1 - Submit request
 
                 | Field | Value |
                 |---|---|
@@ -1121,10 +1121,10 @@ class EngineRuntimeTests(unittest.TestCase):
             "# Implementation Contract\n\n## Data Entities\n\nApplication entity with ARN.\n",
             encoding="utf-8",
         )
-        (self.workspace_root / "epics" / "E-001-submit-request" / "stories" / "F-001.1-submit.md").write_text(
+        (self.workspace_root / "epics" / "E-001-submit-request" / "stories" / "S-001.1-submit.md").write_text(
             textwrap.dedent(
                 """\
-                # F-001.1 - Submit request
+                # S-001.1 - Submit request
 
                 | Field | Value |
                 |---|---|
@@ -1195,7 +1195,7 @@ class EngineRuntimeTests(unittest.TestCase):
             ),
             encoding="utf-8",
         )
-        (self.workspace_root / "epics" / "E-001-submit-request" / "stories" / "F-001.1-submit.md").write_text(
+        (self.workspace_root / "epics" / "E-001-submit-request" / "stories" / "S-001.1-submit.md").write_text(
             "# story\n",
             encoding="utf-8",
         )
@@ -1313,16 +1313,16 @@ class EngineRuntimeTests(unittest.TestCase):
 
                 | Story ID | Title | Layers | Priority | Increment | Readiness |
                 |---|---|---|---|---|---|
-                | F-001.1 | Submit request | Frontend | Must | D1 | Ready |
-                | F-001.2 | Track request | Backend | Must | D1 | Not Ready |
+                | S-001.1 | Submit request | Frontend | Must | D1 | Ready |
+                | S-001.2 | Track request | Backend | Must | D1 | Not Ready |
                 """
             ),
             encoding="utf-8",
         )
-        (self.workspace_root / "epics" / "E-001-submit-request" / "stories" / "F-001.1-submit.md").write_text(
+        (self.workspace_root / "epics" / "E-001-submit-request" / "stories" / "S-001.1-submit.md").write_text(
             textwrap.dedent(
                 """\
-                # F-001.1
+                # S-001.1
 
                 ## Acceptance Criteria
 
@@ -1343,10 +1343,10 @@ class EngineRuntimeTests(unittest.TestCase):
             ),
             encoding="utf-8",
         )
-        (self.workspace_root / "epics" / "E-001-submit-request" / "stories" / "F-001.2-track.md").write_text(
+        (self.workspace_root / "epics" / "E-001-submit-request" / "stories" / "S-001.2-track.md").write_text(
             textwrap.dedent(
                 """\
-                # F-001.2
+                # S-001.2
 
                 ## Acceptance Criteria
 
