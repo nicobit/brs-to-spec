@@ -241,12 +241,16 @@ def select_next_action(
                         action["item_pattern"],
                     )
                     item_statuses = state.get("action_item_status", {})
-                    pending = [
+                    completed = {
                         item for item in items
-                        if item_statuses.get(f"{action_id}#{item}") not in workspace.ACTION_STATUSES_COMPLETE
-                    ]
-                    result["current_item"] = pending[0] if pending else None
-                    result["pending_items"] = pending
+                        if item_statuses.get(f"{action_id}#{item}") in workspace.ACTION_STATUSES_COMPLETE
+                    }
+                    pending = [item for item in items if item not in completed]
+                    wave_ordered = workspace.order_items_by_wave(
+                        workspace_root, pending,
+                    )
+                    result["current_item"] = wave_ordered[0] if wave_ordered else None
+                    result["pending_items"] = wave_ordered
                     result["total_items"] = len(items)
                 return result
 

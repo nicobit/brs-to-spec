@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from b2s_engine import workspace
+from b2s_engine import coverage, workspace
 
 
 def _flatten_resolved_paths(entries: list[dict[str, object]]) -> list[str]:
@@ -75,6 +75,15 @@ def run(args: object) -> None:
     action = actions_by_id[action_id]
     collected = collect_action_inputs(action, workspace_root)
 
+    computed_inputs: list[str] = []
+    if action_id == "validate-fr-coverage":
+        coverage_data = coverage.compute_coverage(workspace_root)
+        coverage_path = workspace.tmp_dir(workspace_root) / "computed-coverage.json"
+        workspace.save_json_file(coverage_path, coverage_data)
+        computed_inputs.append(
+            coverage_path.relative_to(workspace_root).as_posix()
+        )
+
     result = {
         "overall": collected["overall"],
         "action_id": action_id,
@@ -84,6 +93,7 @@ def run(args: object) -> None:
         "missing_required_inputs": collected["missing_required_inputs"],
         "missing_policy_inputs": collected["missing_policy_inputs"],
         "prompt_placeholders": collected["prompt_placeholders"],
+        "computed_inputs": computed_inputs,
         "read_evidence": [],
     }
     workspace.save_json_file(

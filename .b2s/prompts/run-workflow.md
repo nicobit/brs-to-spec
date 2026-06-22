@@ -64,6 +64,9 @@ The CLI produces machine files. You read those files. That is the contract.
 
 9. Read every path listed in `{resolved_required_inputs}` in full.
    Read `{resolved_optional_inputs}` and `{resolved_policy_inputs}` if non-empty.
+   If `computed_inputs` is present and non-empty, read every path listed there.
+   Computed inputs contain engine-derived data that is authoritative — use it
+   as the primary source and do not re-derive or override its content.
    Do not start generating until all resolved inputs are read.
 
 10. Check `current-inputs.json` for a `current_item` field in `prompt_placeholders`.
@@ -85,11 +88,23 @@ The CLI produces machine files. You read those files. That is the contract.
 
 14. Read `WORKSPACE_ROOT/.b2s/tmp/current-validation.yaml` in full.
 
-15. If validation fails:
-    a. Fix the ROOT CAUSE — add missing files, expand content, fix structure.
-       NEVER delete and recreate an artifact. Edit to fix.
-    b. Go back to step 13 (re-validate).
-    c. After 3 consecutive failures, stop and report.
+15. If validation fails — **auto-resolve protocol**:
+    a. Read every failure in `current-validation.yaml` — each has `name`, `rule_name`, `detail`.
+    b. For each failure, diagnose and fix:
+       - `no_unknown_requirement_references`: find the unknown IDs in the artifact; either
+         remove them or replace with canonical IDs from `atomic-requirements.md`.
+       - `requirement_title_consistency`: read the canonical title from `atomic-requirements.md`
+         and update the downstream artifact to match exactly.
+       - `open_questions_propagated`: read the requirement's blocking questions / ambiguities
+         from `atomic-requirements.md` and add them to the story's `## Open Questions` section.
+       - `coverage_claim_matches_evidence`: re-read actual story files, rebuild the matrix from
+         evidence, and recalculate summary metrics.
+       - `requirement_semantics_preserved`: ensure the story's User Story, Business Context,
+         and Acceptance Criteria contain keywords from the linked requirement text.
+       - Any other failure: read the `detail` field for the specific issue and edit to fix.
+    c. NEVER delete and recreate an artifact. Edit the specific section that failed.
+    d. Go back to step 13 (re-validate).
+    e. After 3 consecutive failures on the SAME rule, stop and report the unresolvable issue.
 
 16. **Run CLI:**
     ```

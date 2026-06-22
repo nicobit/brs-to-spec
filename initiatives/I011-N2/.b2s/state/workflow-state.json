@@ -1,0 +1,52 @@
+{
+  "initiative_id": "I011-N2",
+  "workflow_type": "agile-delivery-light-flow",
+  "workflow_type_recommended": null,
+  "current_stage": "3-epic-elaboration",
+  "delivery_mode": "OpenSpec",
+  "execution_mode": null,
+  "project_type": null,
+  "last_completed_action": "create-epic-folders",
+  "next_action": null,
+  "active_action": null,
+  "action_status": {
+    "create-delivery-constitution": "ai_validated",
+    "create-atomic-requirements": "ai_validated",
+    "review-initial-architecture": "accepted",
+    "gate-architecture-review": "accepted",
+    "create-architecture-rules": "ai_validated",
+    "create-delivery-skeleton": "ai_validated",
+    "create-elaboration-plan": "accepted",
+    "gate-elaboration-plan-review": "accepted",
+    "create-epic-folders": "ai_validated",
+    "validate-fr-coverage": "failed"
+  },
+  "artifact_status": {
+    "governance/delivery-constitution.md": "ai_validated",
+    "requirements/atomic-requirements.md": "ai_validated",
+    "architecture/architecture-review.md": "accepted",
+    "architecture/architecture-rules.md": "ai_validated",
+    "planning/delivery-skeleton.md": "ai_validated",
+    "planning/elaboration-plan.md": "accepted",
+    "epics/": "ai_validated",
+    "planning/fr-coverage.md": "failed"
+  },
+  "readiness_score": null,
+  "api_contract_mode": null,
+  "quality_gates_triggered": [],
+  "optional_artifacts_requested": [],
+  "open_decisions": 0,
+  "blocking_decisions": 0,
+  "awaiting_human": false,
+  "current_gate": null,
+  "blocked_reason": "planning/fr-coverage.md: all_reqs_in_matrix failed - 37 requirements missing from coverage matrix: ['FR-001', 'FR-002', 'FR-003', 'FR-004', 'FR-005', 'FR-006', 'FR-007', 'FR-008', 'FR-009', 'FR-010']; planning/fr-coverage.md: no_unknown_requirement_references failed - unknown requirement references found: ['REQ-016', 'REQ-017', 'REQ-018', 'REQ-019', 'REQ-020', 'REQ-021', 'REQ-022', 'REQ-023', 'REQ-024', 'REQ-025']; planning/fr-coverage.md: requirement_title_consistency failed - REQ-004 title mismatch: downstream='Status retrieval by ARN' canonical='AI Pre-Screening Trigger and Output'; REQ-005 title mismatch: downstream='Status retrieval security' canonical='Auto-Approve Criteria and Offer Flow'; REQ-006 title mismatch: downstream='Trigger AI pre-screening' canonical='Experian Integration for Credit Reports'; REQ-007 title mismatch: downstream='AI recommendation labels' canonical='AML and KYC Screening'; REQ-008 title mismatch: downstream='AI scoring inputs' canonical='Underwriter Queue Presentation and Actions'; planning/fr-coverage.md: open_questions_propagated failed - REQ-004 unresolved questions are not surfaced in coverage report; REQ-005 unresolved questions are not surfaced in coverage report; REQ-006 unresolved questions are not surfaced in coverage report; REQ-007 unresolved questions are not surfaced in coverage report; REQ-008 unresolved questions are not surfaced in coverage report; planning/fr-coverage.md: coverage_claim_matches_evidence failed - REQ-001 marked Covered but story 'F-001.1' is missing; REQ-002 marked Covered but story 'F-001.2' is missing; REQ-003 marked Covered but story 'F-001.3' is missing; declared total=30 computed total=30; declared covered=30 computed covered=0; declared pct=100% computed pct=0%",
+  "state_validated": true,
+  "last_updated": "2026-06-21T22:27:11.657185+00:00",
+  "action_item_status": {
+    "create-epic-folders#E-001": "ai_validated",
+    "create-epic-folders#E-002": "ai_validated",
+    "create-epic-folders#E-003": "ai_validated",
+    "create-epic-folders#E-004": "ai_validated"
+  },
+  "current_item": null
+}

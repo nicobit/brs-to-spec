@@ -11,11 +11,11 @@ produces:    planning/fr-coverage.md
 
 ## When this skill is used
 
-Run after all feature story files are generated. This skill validates that every requirement from atomic-requirements.md is covered by at least one story, and produces a coverage report.
+Run after epic story files are generated. This skill validates that every canonical requirement from `atomic-requirements.md` is covered by at least one story and that downstream traceability is semantically consistent.
 
 ## Role for this task
 
-You are a delivery lead validating requirement coverage. You compare the full list of requirements against the stories produced across all feature story files and report gaps.
+You are a delivery lead performing a strict traceability review. You do not invent coverage. You report real coverage, real gaps, and real open questions.
 
 ## Preconditions
 
@@ -23,60 +23,65 @@ Before starting, verify:
 
 - `requirements/atomic-requirements.md` exists and is readable
 - `planning/delivery-skeleton.md` exists and is readable
-- `planning/stories/` directory exists with at least one story file
-
-Optional context:
-
-- `domain/capability-map.md`
-- `planning/epics/`
+- `epics/` exists with at least one story file
 
 If a required input is missing, stop and report the blocker.
 
 ## Hard constraints
 
-- Every requirement from atomic-requirements.md must appear in the coverage matrix
-- Do not invent stories to fill gaps — report gaps with recommended actions
-- Coverage percentage must be accurate
+- Every requirement from `atomic-requirements.md` must appear in the coverage matrix
+- Do not mark a requirement as Covered unless the referenced story file exists and describes the same business behavior
+- Use canonical requirement titles from `atomic-requirements.md`
+- Flag unknown or invented requirement IDs
+- Surface unresolved questions and ambiguities instead of hiding them
+- Coverage metrics must be mathematically correct
 
 ## Instructions
 
-### Step 1 - Read inputs fully
+### Step 1 — Read the computed coverage data
+
+The engine has pre-computed the coverage mapping in `.b2s/tmp/computed-coverage.json`.
+This file is listed in `{computed_inputs}` in `current-inputs.json`.
+
+**Read this file first.** It contains:
+- `canonical_requirements` — every requirement ID and canonical title from atomic-requirements.md
+- `stories` — every story file on disk with its linked requirement IDs, epic, and feature
+- `coverage_matrix` — the pre-built mapping of requirements to stories with status
+- `summary` — total, covered, not_covered, coverage_pct (pre-computed)
+
+This data was derived deterministically from the actual files. Use it as the
+authoritative source for the coverage report. Do NOT re-derive, guess, or
+invent coverage data.
+
+### Step 2 — Read additional inputs
 
 Read every file listed in `{resolved_required_inputs}` in full.
-If `{resolved_optional_inputs}` is not empty, read those files in full as well.
-Read every file in `planning/stories/` in full.
-Do not start writing until all inputs are read completely.
+Use these only for context (e.g., delivery-skeleton for capability mapping).
+Do not use them to override the computed coverage data.
 
-### Step 2 - Extract requirement list
+### Step 3 — Format the coverage matrix
 
-From `atomic-requirements.md`, extract every requirement ID (FR-NNN, REQ-NNN, NFR-NNN) and its title.
+Transcribe `coverage_matrix` from the computed data into the markdown table
+defined by the artifact template. For each row use:
+- `req_id` and `title` exactly as provided (do NOT rename or paraphrase)
+- `epic`, `feature`, `story` exactly as provided
+- `open_questions_propagated` exactly as provided
+- `evidence` exactly as provided
+- `status` exactly as provided
 
-### Step 3 - Scan stories for coverage
+### Step 4 — Format the summary
 
-For each story file in `planning/stories/`, extract the Linked Requirements field from every story. Build a mapping: requirement → stories that cover it.
+Transcribe `summary` from the computed data into the Coverage Summary table.
+The numbers MUST match exactly — do not recount or adjust.
 
-### Step 4 - Build coverage matrix
+### Step 5 — Document gaps and risks
 
-For each requirement:
+For each row where `status` is `Not Covered`:
+- Explain why (missing story, deferred, out of scope)
+- Recommend an action (create story, defer to next wave, accept risk)
 
-- If at least one story covers it → Status: Covered
-- If no story covers it → Status: **Not Covered**
-
-For not-covered requirements, determine:
-
-- Why it's not covered (out of scope, deferred, blocked, missing capability)
-- Recommended action (add story, defer to Phase 2, escalate)
-
-### Step 5 - Build summary views
-
-- Coverage by Capability
-- Coverage by Epic
-- Gaps and Risks
-
-### Step 6 - Calculate metrics
-
-- Total requirements, covered, not covered, coverage percentage
-- Flag if coverage is below 100%
+For rows where `open_questions_propagated` is `No`:
+- Flag that unresolved questions need to be added to the story's Open Questions section
 
 ## Output requirements
 
@@ -84,17 +89,17 @@ Write `planning/fr-coverage.md` using `.b2s/artifact-templates/fr-coverage.md`.
 
 ## Done criteria
 
-- [ ] Every requirement from atomic-requirements.md appears in the matrix
-- [ ] Not-covered requirements have reasons and recommended actions
-- [ ] Coverage percentage is accurate
-- [ ] Summary views by capability and epic are populated
-- [ ] Gaps and risks are identified
+- [ ] Every canonical requirement appears in the matrix
+- [ ] Covered rows point to real story files
+- [ ] Requirement titles use canonical titles
+- [ ] Unresolved questions are surfaced where relevant
+- [ ] Summary counts and percentage are accurate
 - [ ] No placeholder text remains
 
 ## Stop conditions
 
 - If `requirements/atomic-requirements.md` is missing, stop and report the blocker
-- If `planning/stories/` is empty, stop and report the blocker
+- If no story files exist under `epics/`, stop and report the blocker
 
 ## Notes for the staged engine
 

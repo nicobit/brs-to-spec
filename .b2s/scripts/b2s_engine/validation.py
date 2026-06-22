@@ -168,6 +168,203 @@ def _section_table_rows(text: str, heading: str) -> list[list[str]]:
     return rows
 
 
+def _normalize_text(value: str) -> str:
+    normalized = re.sub(r"[^a-z0-9]+", " ", (value or "").lower())
+    return re.sub(r"\s+", " ", normalized).strip()
+
+
+def _normalized_title(value: str) -> str:
+    return _normalize_text(value)
+
+
+def _keywords(value: str) -> set[str]:
+    stopwords = {
+        "a", "an", "and", "are", "as", "at", "be", "by", "for", "from",
+        "has", "have", "if", "in", "is", "it", "of", "on", "or", "so",
+        "that", "the", "their", "then", "there", "this", "to", "when",
+        "with", "within", "shall", "should", "must", "can", "will",
+        "system", "user", "users",
+    }
+    return {
+        token for token in _normalize_text(value).split()
+        if len(token) >= 4 and token not in stopwords
+    }
+
+
+def _canonical_requirements(workspace_root: Path) -> dict[str, dict[str, Any]]:
+    req_path = workspace_root / "requirements" / "atomic-requirements.md"
+    if not req_path.exists():
+        return {}
+
+    text = _read_text(req_path)
+    pattern = re.compile(
+        r"^###\s+((?:FR|REQ|NFR|C)-\d{3})\s+[—-]\s+(.+?)\n(.*?)(?=^###\s+(?:FR|REQ|NFR|C)-\d{3}\s+[—-]\s+|\Z)",
+        flags=re.MULTILINE | re.DOTALL,
+    )
+    requirements: dict[str, dict[str, Any]] = {}
+
+    for match in pattern.finditer(text):
+        req_id = match.group(1).strip()
+        title = match.group(2).strip()
+        block = match.group(3)
+
+        def _field(label: str) -> str:
+            field_match = re.search(
+                rf"^\|\s*{re.escape(label)}\s*\|\s*(.*?)\s*\|$",
+                block,
+                flags=re.MULTILINE,
+            )
+            return field_match.group(1).strip() if field_match else ""
+
+        requirement_text_match = re.search(
+            r"####\s+Requirement Text\s*(.*?)(?=^####\s+|\Z)",
+            block,
+            flags=re.MULTILINE | re.DOTALL,
+        )
+        requirement_text = requirement_text_match.group(1).strip() if requirement_text_match else ""
+
+        blocking_questions = _field("Blocking Questions")
+        ambiguities = _field("Ambiguities")
+        signature_source = " ".join(
+            part for part in [
+                title,
+                _field("Actor"),
+                _field("Business Object"),
+                _field("Trigger / Event"),
+                _field("Expected Outcome"),
+                requirement_text,
+            ] if part
+        )
+        requirements[req_id] = {
+            "id": req_id,
+            "title": title,
+            "normalized_title": _normalized_title(title),
+            "actor": _field("Actor"),
+            "business_object": _field("Business Object"),
+            "trigger": _field("Trigger / Event"),
+            "expected_outcome": _field("Expected Outcome"),
+            "text": requirement_text,
+            "ambiguities": ambiguities,
+            "blocking_questions": blocking_questions,
+            "keywords": _keywords(signature_source),
+        }
+
+    if requirements:
+        return requirements
+
+    # Fallback for older requirement formats.
+    fallback_ids = sorted(set(re.findall(r"(?:FR|REQ|NFR|C)-\d{3}", text)))
+    return {
+        req_id: {
+            "id": req_id,
+            "title": req_id,
+            "normalized_title": _normalized_title(req_id),
+            "actor": "",
+            "business_object": "",
+            "trigger": "",
+            "expected_outcome": "",
+            "text": "",
+            "ambiguities": "",
+            "blocking_questions": "",
+            "keywords": {req_id.lower().replace("-", "")},
+        }
+        for req_id in fallback_ids
+    }
+
+
+def _all_requirement_ids(workspace_root: Path) -> set[str]:
+    return set(_canonical_requirements(workspace_root))
+
+
+def _extract_requirement_titles_from_story(text: str) -> dict[str, str]:
+    titles: dict[str, str] = {}
+    rows = _section_table_rows(text, "## Linked Requirements")
+    for row in rows:
+        if len(row) < 2:
+            continue
+        req_id = row[0].strip()
+        if re.fullmatch(r"(?:FR|REQ|NFR|C)-\d{3}", req_id):
+            titles[req_id] = row[1].strip()
+    return titles
+
+
+def _extract_requirement_titles_from_epic(text: str) -> dict[str, str]:
+    titles: dict[str, str] = {}
+    rows = _section_table_rows(text, "## Source Traceability")
+    for row in rows:
+        if len(row) < 3:
+            continue
+        if row[0].strip().lower() != "requirement":
+            continue
+        req_id = row[1].strip()
+        if re.fullmatch(r"(?:FR|REQ|NFR|C)-\d{3}", req_id):
+            titles[req_id] = row[2].strip()
+    return titles
+
+
+def _extract_requirement_titles_from_coverage(text: str) -> dict[str, str]:
+    titles: dict[str, str] = {}
+    rows = _section_table_rows(text, "## Full Coverage Matrix")
+    for row in rows:
+        if len(row) < 2:
+            continue
+        req_id = row[0].strip()
+        if re.fullmatch(r"(?:FR|REQ|NFR|C)-\d{3}", req_id):
+            titles[req_id] = row[1].strip()
+    return titles
+
+
+def _artifact_requirement_pairs(path: Path) -> dict[str, str]:
+    if path.is_dir():
+        pairs: dict[str, str] = {}
+        for epic_dir in sorted([d for d in path.iterdir() if d.is_dir() and d.name.startswith("E-")]):
+            epic_md = epic_dir / "epic.md"
+            if epic_md.exists():
+                pairs.update(_extract_requirement_titles_from_epic(_read_text(epic_md)))
+            stories_dir = epic_dir / "stories"
+            if stories_dir.exists():
+                for story_file in sorted(stories_dir.glob("F-*.md")):
+                    if story_file.name.endswith(".prompt.md"):
+                        continue
+                    pairs.update(_extract_requirement_titles_from_story(_read_text(story_file)))
+        return pairs
+
+    text = _read_text(path)
+    if path.name == "fr-coverage.md":
+        return _extract_requirement_titles_from_coverage(text)
+    return {}
+
+
+def _all_requirement_references_in_artifact(path: Path) -> set[str]:
+    _REQ_REF_RE = r"(?<![A-Za-z])(?:FR|REQ|NFR|C)-\d{3}"
+    if path.is_dir():
+        refs: set[str] = set()
+        for child in path.rglob("*.md"):
+            refs.update(re.findall(_REQ_REF_RE, _read_text(child)))
+        return refs
+    return set(re.findall(_REQ_REF_RE, _read_text(path)))
+
+
+def _selected_epic_ids(workspace_root: Path, fallback_to_all: bool = True) -> list[str]:
+    selected_path = workspace_root / "input" / "selected-epics.md"
+    if selected_path.exists():
+        selected = re.findall(r"\bE-\d{3}\b", _read_text(selected_path))
+        if selected:
+            return sorted(dict.fromkeys(selected))
+    if not fallback_to_all:
+        return []
+    epics_dir = workspace_root / "epics"
+    if not epics_dir.exists():
+        return []
+    return sorted({
+        match.group(1)
+        for child in epics_dir.iterdir()
+        if child.is_dir()
+        for match in [re.match(r"(E-\d{3})", child.name)]
+        if match
+    })
+
+
 _PLACEHOLDER_PATTERNS = [
     r"\[fill in\]",
     r"Goal Title",
@@ -2053,9 +2250,353 @@ def _rule_nfr_assessment_has_decision(
     )
 
 
+def _rule_all_source_requirements_present(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    req_ids = _all_requirement_ids(workspace_root)
+    referenced = _all_requirement_references_in_artifact(path)
+    missing = sorted(req_ids - referenced)
+    return _named_rule_result(
+        "all_source_requirements_present",
+        artifact_path,
+        len(missing) == 0,
+        f"all {len(req_ids)} canonical requirements are referenced"
+        if len(missing) == 0
+        else f"{len(missing)} canonical requirements are missing: {missing[:10]}",
+        severity="required",
+    )
+
+
+def _rule_no_unknown_requirement_references(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    req_ids = _all_requirement_ids(workspace_root)
+    referenced = _all_requirement_references_in_artifact(path)
+    unknown = sorted(referenced - req_ids)
+    return _named_rule_result(
+        "no_unknown_requirement_references",
+        artifact_path,
+        len(unknown) == 0,
+        "all referenced requirement IDs exist in atomic requirements"
+        if len(unknown) == 0
+        else f"unknown requirement references found: {unknown[:10]}",
+        severity="required",
+    )
+
+
+def _rule_requirement_title_consistency(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    canonical = _canonical_requirements(workspace_root)
+    artifact_pairs = _artifact_requirement_pairs(path)
+    mismatches: list[str] = []
+    for req_id, artifact_title in artifact_pairs.items():
+        canonical_req = canonical.get(req_id)
+        if canonical_req is None:
+            continue
+        if not artifact_title.strip():
+            mismatches.append(f"{req_id} has blank downstream title")
+            continue
+        if _normalized_title(artifact_title) != canonical_req["normalized_title"]:
+            mismatches.append(
+                f"{req_id} title mismatch: downstream='{artifact_title}' canonical='{canonical_req['title']}'"
+            )
+    return _named_rule_result(
+        "requirement_title_consistency",
+        artifact_path,
+        len(mismatches) == 0,
+        "downstream requirement titles match canonical titles"
+        if len(mismatches) == 0
+        else "; ".join(mismatches[:5]),
+        severity="required",
+    )
+
+
+def _rule_requirement_semantics_preserved(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    if not path.is_dir():
+        return _named_rule_result(
+            "requirement_semantics_preserved",
+            artifact_path,
+            True,
+            "semantic preservation is checked on epic/story directories only",
+            severity="required",
+        )
+
+    canonical = _canonical_requirements(workspace_root)
+    failures: list[str] = []
+
+    for epic_dir in sorted([d for d in path.iterdir() if d.is_dir() and d.name.startswith("E-")]):
+        stories_dir = epic_dir / "stories"
+        if not stories_dir.exists():
+            continue
+        for story_file in sorted(stories_dir.glob("F-*.md")):
+            if story_file.name.endswith(".prompt.md"):
+                continue
+            text = _read_text(story_file)
+            story_titles = _extract_requirement_titles_from_story(text)
+            semantic_text = "\n".join(
+                [
+                    _section_block(text, "## User Story"),
+                    _section_block(text, "## Business Context"),
+                    _section_block(text, "## Acceptance Criteria"),
+                ]
+            )
+            story_tokens = _keywords(semantic_text)
+            for req_id in story_titles:
+                canonical_req = canonical.get(req_id)
+                if canonical_req is None:
+                    continue
+                req_keywords = canonical_req["keywords"]
+                if not req_keywords:
+                    continue
+                overlap = req_keywords & story_tokens
+                minimum = 1 if len(req_keywords) < 4 else 2
+                if len(overlap) < minimum:
+                    failures.append(
+                        f"{epic_dir.name}/{story_file.name} lacks semantic overlap for {req_id}"
+                    )
+
+    return _named_rule_result(
+        "requirement_semantics_preserved",
+        artifact_path,
+        len(failures) == 0,
+        "story behavior preserves linked requirement semantics"
+        if len(failures) == 0
+        else "; ".join(failures[:5]),
+        severity="required",
+    )
+
+
+def _rule_open_questions_propagated(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    canonical = _canonical_requirements(workspace_root)
+    propagated_failures: list[str] = []
+
+    if path.is_dir():
+        story_text_by_req: dict[str, str] = {}
+        for epic_dir in sorted([d for d in path.iterdir() if d.is_dir() and d.name.startswith("E-")]):
+            stories_dir = epic_dir / "stories"
+            if not stories_dir.exists():
+                continue
+            for story_file in sorted(stories_dir.glob("F-*.md")):
+                if story_file.name.endswith(".prompt.md"):
+                    continue
+                text = _read_text(story_file)
+                for req_id in _extract_requirement_titles_from_story(text):
+                    story_text_by_req[req_id] = story_text_by_req.get(req_id, "") + "\n" + text
+
+        for req_id, requirement in canonical.items():
+            unresolved = " ".join([
+                v for v in [
+                    requirement.get("blocking_questions", ""),
+                    requirement.get("ambiguities", ""),
+                ] if v.strip().lower() not in ("", "none", "n/a", "—", "-")
+            ]).strip()
+            if not unresolved:
+                continue
+            story_text = story_text_by_req.get(req_id, "")
+            if not story_text:
+                continue
+            has_open_questions_section = "## Open Questions" in story_text
+            overlap = _keywords(unresolved) & _keywords(_section_block(story_text, "## Open Questions"))
+            if not has_open_questions_section or not overlap:
+                propagated_failures.append(f"{req_id} has unresolved questions not propagated to stories")
+    else:
+        text = _read_text(path)
+        for req_id, requirement in canonical.items():
+            unresolved = " ".join([
+                v for v in [
+                    requirement.get("blocking_questions", ""),
+                    requirement.get("ambiguities", ""),
+                ] if v.strip().lower() not in ("", "none", "n/a", "—", "-")
+            ]).strip()
+            if not unresolved:
+                continue
+            if req_id not in text:
+                continue
+            row_match = re.search(
+                rf"^\|\s*{re.escape(req_id)}\s*\|.*$",
+                text,
+                flags=re.MULTILINE,
+            )
+            row_text = row_match.group(0) if row_match else ""
+            overlap = _keywords(unresolved) & _keywords(row_text)
+            if not overlap:
+                propagated_failures.append(f"{req_id} unresolved questions are not surfaced in coverage report")
+
+    return _named_rule_result(
+        "open_questions_propagated",
+        artifact_path,
+        len(propagated_failures) == 0,
+        "open questions and ambiguities are propagated downstream"
+        if len(propagated_failures) == 0
+        else "; ".join(propagated_failures[:5]),
+        severity="required",
+    )
+
+
+def _rule_coverage_claim_matches_evidence(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    text = _read_text(path)
+    rows = _section_table_rows(text, "## Full Coverage Matrix")
+    matrix_rows = [
+        row for row in rows
+        if len(row) >= 9 and re.fullmatch(r"(?:FR|REQ|NFR|C)-\d{3}", row[0].strip())
+    ]
+    story_files = {
+        story_file.stem.split("-", 1)[0]
+        for story_file in (workspace_root / "epics").rglob("F-*.md")
+        if story_file.is_file() and not story_file.name.endswith(".prompt.md")
+    }
+    covered = 0
+    mismatches: list[str] = []
+    for row in matrix_rows:
+        req_id = row[0].strip()
+        story_id = row[5].strip()
+        status = row[8].strip()
+        if status == "Covered":
+            if story_id == "—" or story_id not in story_files:
+                mismatches.append(f"{req_id} marked Covered but story '{story_id}' is missing")
+            else:
+                covered += 1
+
+    declared_total_match = re.search(
+        r"\|\s*Total requirements \(from atomic-requirements\)\s*\|\s*(\d+)\s*\|",
+        text,
+    )
+    declared_covered_match = re.search(
+        r"\|\s*Covered by at least one story\s*\|\s*(\d+)\s*\|",
+        text,
+    )
+    declared_pct_match = re.search(
+        r"\|\s*Coverage percentage\s*\|\s*(\d+)%\s*\|",
+        text,
+    )
+    declared_total = int(declared_total_match.group(1)) if declared_total_match else len(matrix_rows)
+    declared_covered = int(declared_covered_match.group(1)) if declared_covered_match else covered
+    declared_pct = int(declared_pct_match.group(1)) if declared_pct_match else (covered * 100 // declared_total if declared_total else 100)
+    computed_pct = (covered * 100 // len(matrix_rows)) if matrix_rows else 100
+
+    passed = (
+        not mismatches
+        and declared_total == len(matrix_rows)
+        and declared_covered == covered
+        and declared_pct == computed_pct
+    )
+    detail = (
+        f"coverage summary matches evidence ({covered}/{len(matrix_rows)} covered, {computed_pct}%)"
+        if passed
+        else "; ".join(
+            mismatches[:3]
+            + [
+                f"declared total={declared_total} computed total={len(matrix_rows)}",
+                f"declared covered={declared_covered} computed covered={covered}",
+                f"declared pct={declared_pct}% computed pct={computed_pct}%",
+            ]
+        )
+    )
+    return _named_rule_result(
+        "coverage_claim_matches_evidence",
+        artifact_path,
+        passed,
+        detail,
+        severity="required",
+    )
+
+
+def _rule_selected_epics_have_implementation_contracts(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    selected = _selected_epic_ids(workspace_root)
+    missing = [
+        epic_id for epic_id in selected
+        if not any(
+            child.is_dir()
+            and child.name.startswith(epic_id)
+            and (child / "implementation-contract.md").exists()
+            for child in path.iterdir()
+        )
+    ]
+    return _named_rule_result(
+        "selected_epics_have_implementation_contracts",
+        artifact_path,
+        len(selected) > 0 and len(missing) == 0,
+        f"implementation contracts exist for selected epics: {selected}"
+        if selected and len(missing) == 0
+        else f"missing implementation contracts for epic(s): {missing or selected}",
+        severity="required",
+    )
+
+
+def _rule_selected_epics_have_coding_handoffs(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    selected = _selected_epic_ids(workspace_root)
+    missing = [
+        epic_id for epic_id in selected
+        if not any(
+            child.is_dir()
+            and child.name.startswith(epic_id)
+            and (child / "coding-handoff.md").exists()
+            for child in path.iterdir()
+        )
+    ]
+    return _named_rule_result(
+        "selected_epics_have_coding_handoffs",
+        artifact_path,
+        len(selected) > 0 and len(missing) == 0,
+        f"coding handoffs exist for selected epics: {selected}"
+        if selected and len(missing) == 0
+        else f"missing coding handoffs for epic(s): {missing or selected}",
+        severity="required",
+    )
+
+
 NAMED_RULES: dict[str, NamedRuleValidator] = {
     "requirement_has_id": _rule_requirement_has_id,
     "requirement_is_testable": _rule_requirement_is_testable,
+    "all_source_requirements_present": _rule_all_source_requirements_present,
+    "no_unknown_requirement_references": _rule_no_unknown_requirement_references,
+    "requirement_title_consistency": _rule_requirement_title_consistency,
+    "requirement_semantics_preserved": _rule_requirement_semantics_preserved,
+    "open_questions_propagated": _rule_open_questions_propagated,
+    "coverage_claim_matches_evidence": _rule_coverage_claim_matches_evidence,
     "architecture_lists_impacted_systems": _rule_architecture_lists_impacted_systems,
     "architecture_lists_constraints": _rule_architecture_lists_constraints,
     "architecture_lists_risks": _rule_architecture_lists_risks,
@@ -2064,6 +2605,8 @@ NAMED_RULES: dict[str, NamedRuleValidator] = {
     "nfr_assessment_has_ids": _rule_nfr_assessment_has_ids,
     "nfr_assessment_covers_core_domains": _rule_nfr_assessment_covers_core_domains,
     "nfr_assessment_has_decision": _rule_nfr_assessment_has_decision,
+    "selected_epics_have_implementation_contracts": _rule_selected_epics_have_implementation_contracts,
+    "selected_epics_have_coding_handoffs": _rule_selected_epics_have_coding_handoffs,
 }
 
 
@@ -2220,6 +2763,20 @@ def _validate_epic_folders_directory(path: Path, workspace_root: Path) -> list[d
                         else f"{label}: API Surface section missing OpenAPI YAML — must include ```yaml openapi spec when APIs are defined",
                     )
                 )
+
+        coding_handoff = epic_dir / "coding-handoff.md"
+        if coding_handoff.exists():
+            handoff_text = _read_text(coding_handoff)
+            handoff_lines = len([line for line in handoff_text.splitlines() if line.strip()])
+            checks.append(
+                _result(
+                    "coding_handoff_has_depth",
+                    label,
+                    handoff_lines >= 12,
+                    f"{label}/coding-handoff.md has {handoff_lines} lines of content" if handoff_lines >= 12
+                    else f"{label}/coding-handoff.md is too shallow - expected implementation-ready detail",
+                )
+            )
 
         epic_id = re.match(r"(E-\d{3})", label)
         epic_id_str = epic_id.group(1) if epic_id else None

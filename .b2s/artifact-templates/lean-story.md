@@ -36,10 +36,10 @@ As a {{actor}}, I want {{capability}}, so that {{outcome}}.
 
 ## Implementation Guidance
 
-Reference the epic's implementation contract for full details:
+Reference epic context first, and the epic's implementation contract when it exists:
 
-- **Entity:** {{entity name from ../implementation-contract.md}}
-- **API:** {{endpoint from ../implementation-contract.md}}
+- **Entity:** {{entity name from epic context or ../implementation-contract.md}}
+- **API:** {{endpoint from epic context or ../implementation-contract.md}}
 - **Status:** {{initial status on creation, if applicable}}
 - **Events:** {{events emitted by this story, if any}}
 - **Rules:** {{business rules that apply, if any}}

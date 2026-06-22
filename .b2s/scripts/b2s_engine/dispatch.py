@@ -243,6 +243,7 @@ def build_plan(workspace_root: Path) -> dict[str, Any]:
             "gate_id": gate.get("gate_id"),
             "gate_owner": gate.get("owner"),
             "artifact_path": gate.get("artifact_path"),
+            "review_summary": gate.get("review_summary"),
             "message": (
                 f"Waiting for {gate.get('owner', 'human')} to review "
                 f"artifact `{gate.get('artifact_path', '(unknown)')}`. "
@@ -399,6 +400,17 @@ def run(args: object) -> None:
         print(f"\n  Gate        : {plan.get('gate_id')}")
         print(f"  Owner       : {plan.get('gate_owner')}")
         print(f"  Artifact    : {plan.get('artifact_path')}")
+        summary = plan.get("review_summary") or {}
+        if summary:
+            print(f"\n  Review summary:")
+            print(f"    Total epics                    : {summary.get('total_epics', 0)}")
+            print(f"    Total stories                  : {summary.get('total_stories', 0)}")
+            print(f"    Stories with 2+ AC             : {summary.get('stories_with_2_plus_acceptance_criteria', 0)}")
+            print(f"    Stories with open questions    : {summary.get('stories_with_open_questions', 0)}")
+            print(f"    Not Ready stories              : {summary.get('not_ready_stories', 0)}")
+            print(f"    Unknown requirement refs       : {summary.get('unknown_requirement_references', 0)}")
+            print(f"    Requirement title mismatches   : {summary.get('requirement_title_mismatches', 0)}")
+            print(f"    Coverage/semantic warnings     : {summary.get('coverage_or_semantic_warnings', 0)}")
         print(f"\n  Run one of:")
         for cmd in plan["next_cli_commands"]:
             print(f"    {cmd}")

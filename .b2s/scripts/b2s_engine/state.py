@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from datetime import datetime, timezone
 import re
+from typing import Callable
 
 from b2s_engine import next_step, workspace
 
@@ -30,7 +32,13 @@ def _parse_routing_fields(workspace_root, state: dict) -> None:
     if execution_mode and execution_mode in {"Enterprise", "Enterprise+Modular", "Standard"}:
         state["execution_mode"] = execution_mode
     workflow_type_recommended = _markdown_row_value(text, "Recommended workflow type")
-    if workflow_type_recommended in {"enterprise-modular", "fast-path"}:
+    if workflow_type_recommended in {
+        "enterprise-modular",
+        "technical-spec-modular",
+        "agile-delivery-flow",
+        "agile-delivery-light-flow",
+        "fast-path",
+    }:
         state["workflow_type_recommended"] = workflow_type_recommended
 
 
@@ -141,6 +149,84 @@ def _candidate_gate_payload(action: dict, actions_by_id: dict, action_id: str) -
         "status": "waiting_human",
         "owner": action["human_gate"]["owner"],
     }
+
+
+def _epic_review_summary(workspace_root: Path, validation_result: dict | None = None) -> dict:
+    epics_dir = workspace_root / "epics"
+    summary = {
+        "total_epics": 0,
+        "total_stories": 0,
+        "stories_with_2_plus_acceptance_criteria": 0,
+        "stories_with_open_questions": 0,
+        "not_ready_stories": 0,
+        "unknown_requirement_references": 0,
+        "requirement_title_mismatches": 0,
+        "coverage_or_semantic_warnings": 0,
+    }
+    if not epics_dir.exists():
+        return summary
+
+    epic_dirs = sorted([d for d in epics_dir.iterdir() if d.is_dir() and d.name.startswith("E-")])
+    summary["total_epics"] = len(epic_dirs)
+
+    for epic_dir in epic_dirs:
+        epic_md = epic_dir / "epic.md"
+        if epic_md.exists():
+            epic_text = epic_md.read_text(encoding="utf-8")
+            summary["not_ready_stories"] += len(
+                re.findall(r"\|\s*F-\d{3}\.\d+\s*\|.*?\|\s*Not Ready\s*\|", epic_text, flags=re.MULTILINE)
+            )
+
+        stories_dir = epic_dir / "stories"
+        if not stories_dir.exists():
+            continue
+        story_files = sorted([f for f in stories_dir.glob("F-*.md") if not f.name.endswith(".prompt.md")])
+        summary["total_stories"] += len(story_files)
+        for story_file in story_files:
+            text = story_file.read_text(encoding="utf-8")
+            scenario_count = len(re.findall(r"^\s*Scenario:", text, flags=re.MULTILINE))
+            if scenario_count >= 2:
+                summary["stories_with_2_plus_acceptance_criteria"] += 1
+            if re.search(r"^\|\s*OQ-\d{3}\s*\|", text, flags=re.MULTILINE):
+                summary["stories_with_open_questions"] += 1
+
+    named_rule_results = list((validation_result or {}).get("named_rule_results", []) or [])
+    for item in named_rule_results:
+        if item.get("result") != "fail":
+            continue
+        rule_name = item.get("rule_name")
+        if rule_name == "no_unknown_requirement_references":
+            summary["unknown_requirement_references"] += 1
+        elif rule_name == "requirement_title_consistency":
+            summary["requirement_title_mismatches"] += 1
+        elif rule_name in {
+            "coverage_claim_matches_evidence",
+            "requirement_semantics_preserved",
+            "open_questions_propagated",
+        }:
+            summary["coverage_or_semantic_warnings"] += 1
+
+    return summary
+
+
+GateSummaryBuilder = Callable[[Path, dict | None], dict]
+
+
+GATE_SUMMARY_BUILDERS: dict[str, GateSummaryBuilder] = {
+    "epic-review": _epic_review_summary,
+}
+
+
+def _augment_gate_payload(
+    workspace_root: Path,
+    gate_state: dict,
+    validation_result: dict | None = None,
+) -> dict:
+    gate_id = gate_state.get("gate_id")
+    builder = GATE_SUMMARY_BUILDERS.get(gate_id)
+    if builder:
+        gate_state["review_summary"] = builder(workspace_root, validation_result)
+    return gate_state
 
 
 def _build_state_update_result(
@@ -258,6 +344,7 @@ def run(args: object) -> None:
             "status": "waiting_human",
             "owner": action["human_gate"]["owner"],
         }
+        gate_state = _augment_gate_payload(workspace_root, gate_state, validation_result)
         state["awaiting_human"] = True
         state["current_gate"] = gate_state
         state["blocked_reason"] = f"waiting for {action['human_gate']['owner']} review"
@@ -361,7 +448,10 @@ def repair_state(args: object) -> None:
                 gate_status = "waiting_human"
                 artifact_status = source_status
                 if current_gate is None:
-                    current_gate = _candidate_gate_payload(action, actions_by_id, action_id)
+                    current_gate = _augment_gate_payload(
+                        workspace_root,
+                        _candidate_gate_payload(action, actions_by_id, action_id),
+                    )
                 last_completed_action = action_id
 
             rebuilt_action_status[action_id] = source_status

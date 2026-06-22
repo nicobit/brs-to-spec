@@ -1,0 +1,10 @@
+{
+  "overall": "pass",
+  "selected_action": "validate-fr-coverage",
+  "selected_stage": "3-epic-elaboration",
+  "reason": "all prerequisites satisfied and required inputs are present",
+  "blocking_reason": null,
+  "ready_actions": [
+    "validate-fr-coverage"
+  ]
+}

@@ -287,6 +287,39 @@ def artifact_exists(workspace_root: Path, relative_path: str) -> bool:
     return artifact_path.exists()
 
 
+def _parse_elaboration_waves(workspace_root: Path) -> list[list[str]] | None:
+    """Parse elaboration-plan.md and return a list of waves, each a list of epic IDs.
+
+    Returns None if the elaboration plan does not exist or has no parseable wave table.
+    """
+    import re as _re
+    plan_path = workspace_root / "planning" / "elaboration-plan.md"
+    if not plan_path.exists():
+        return None
+    text = plan_path.read_text(encoding="utf-8")
+
+    in_table = False
+    waves: list[list[str]] = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("|") and "Wave" in stripped and "Epic" in stripped and "Rationale" in stripped:
+            in_table = True
+            continue
+        if in_table and stripped.startswith("|---"):
+            continue
+        if in_table and stripped.startswith("|"):
+            cells = [c.strip() for c in stripped.split("|")]
+            cells = [c for c in cells if c]
+            if len(cells) >= 2 and _re.search(r"[Ww]ave", cells[0]):
+                epic_ids = _re.findall(r"E-\d{3}", cells[1])
+                if epic_ids:
+                    waves.append(epic_ids)
+        elif in_table and not stripped.startswith("|"):
+            in_table = False
+
+    return waves if waves else None
+
+
 def extract_items_from_source(workspace_root: Path, source_path: str, pattern: str) -> list[str]:
     """Extract item IDs from a source file using a regex pattern."""
     import re as _re
@@ -302,6 +335,34 @@ def extract_items_from_source(workspace_root: Path, source_path: str, pattern: s
         if item_id not in seen:
             seen.add(item_id)
             ordered.append(item_id)
+    return ordered
+
+
+def order_items_by_wave(
+    workspace_root: Path,
+    items: list[str],
+) -> list[str]:
+    """Re-order items according to elaboration plan wave sequence.
+
+    Items appearing in earlier waves come first. Items not mentioned in
+    any wave are appended at the end in their original order.
+    If no elaboration plan exists, returns items unchanged.
+    """
+    waves = _parse_elaboration_waves(workspace_root)
+    if not waves:
+        return items
+
+    item_set = set(items)
+    ordered: list[str] = []
+    seen: set[str] = set()
+    for wave in waves:
+        for epic_id in wave:
+            if epic_id in item_set and epic_id not in seen:
+                ordered.append(epic_id)
+                seen.add(epic_id)
+    for item in items:
+        if item not in seen:
+            ordered.append(item)
     return ordered
 
 

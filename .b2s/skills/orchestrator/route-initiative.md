@@ -83,7 +83,20 @@ Recommend a workflow type based on these rules:
   - No regulatory or compliance requirements are present
   - No mention of multiple teams or parallel streams
 
-- Recommend `enterprise-modular` in all other cases.
+- Recommend `agile-delivery-light-flow` by default when the initiative needs
+  architecture-aware planning, epic/story decomposition, and traceability, but
+  does NOT clearly require full regulated-enterprise depth.
+
+- Recommend `agile-delivery-flow` when the initiative needs stronger domain
+  analysis, richer cross-artifact traceability, or separate testing/readiness
+  artifacts before implementation handoff.
+
+- Recommend `technical-spec-modular` when the initiative requires explicit
+  technical specification artifacts and contract-governed modular handoff.
+
+- Recommend `enterprise-modular` only when the initiative is clearly regulated,
+  highly coupled, multi-team, or requires the heaviest governance and quality
+  gate path.
 
 Write the recommendation and match status into the `## Workflow Type` section of the routing-decision.md output.
 If the recommended type does not match the current type, include the mismatch warning block from the template.

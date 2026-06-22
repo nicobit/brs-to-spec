@@ -24,11 +24,11 @@
 
 ## Full Coverage Matrix
 
-| REQ / FR | Requirement Title | Capability | Epic | Feature | Story | Status |
-|---|---|---|---|---|---|---|
-| FR-001 | {{title}} | CAP-NNN | E-NNN | F-NNN | F-NNN.N | Covered |
-| FR-002 | {{title}} | CAP-NNN | E-NNN | F-NNN | F-NNN.N | Covered |
-| FR-003 | {{title}} | — | — | — | — | **Not Covered** |
+| REQ / FR | Requirement Title | Capability | Epic | Feature | Story | Open Questions Propagated | Evidence | Status |
+|---|---|---|---|---|---|---|---|---|
+| REQ-001 | {{canonical title}} | CAP-NNN | E-NNN | F-NNN | F-NNN.N | Yes / No / N/A | {{story or traceability note}} | Covered |
+| REQ-002 | {{canonical title}} | CAP-NNN | E-NNN | F-NNN | F-NNN.N | Yes / No / N/A | {{story or traceability note}} | Covered |
+| REQ-003 | {{canonical title}} | — | — | — | — | No | {{why no story exists}} | **Not Covered** |
 
 ---
 
@@ -36,7 +36,7 @@
 
 | REQ / FR | Requirement Title | Reason | Recommended Action |
 |---|---|---|---|
-| FR-NNN | {{title}} | {{why not covered — out of scope, deferred, blocked, missing capability}} | {{what to do}} |
+| REQ-NNN | {{canonical title}} | {{why not covered - out of scope, deferred, blocked, missing capability}} | {{what to do}} |
 
 ---
 
@@ -63,4 +63,4 @@
 | {{description of coverage gap}} | {{what is at risk}} | {{how to resolve}} |
 
 ---
-*Every requirement from atomic-requirements.md must appear in this matrix. 100% coverage is the target. Gaps must be explained and have a recommended action. Set Status: Accepted only after review. Never self-accept.*
+*Every requirement from atomic-requirements.md must appear in this matrix. 100% coverage is the target. Gaps must be explained, traceable, and evidence-based. Set Status: Accepted only after review. Never self-accept.*

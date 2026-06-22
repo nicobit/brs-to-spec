@@ -1,0 +1,108 @@
+{
+  "overall": "pass",
+  "action_id": "create-epic-folders",
+  "required_inputs": [
+    {
+      "path": "planning/delivery-skeleton.md",
+      "exists": true,
+      "matches": [
+        "planning/delivery-skeleton.md"
+      ]
+    },
+    {
+      "path": "planning/elaboration-plan.md",
+      "exists": true,
+      "matches": [
+        "planning/elaboration-plan.md"
+      ]
+    },
+    {
+      "path": "requirements/atomic-requirements.md",
+      "exists": true,
+      "matches": [
+        "requirements/atomic-requirements.md"
+      ]
+    },
+    {
+      "path": "architecture/architecture-review.md",
+      "exists": true,
+      "matches": [
+        "architecture/architecture-review.md"
+      ]
+    },
+    {
+      "path": "architecture/architecture-rules.md",
+      "exists": true,
+      "matches": [
+        "architecture/architecture-rules.md"
+      ]
+    },
+    {
+      "path": "governance/delivery-constitution.md",
+      "exists": true,
+      "matches": [
+        "governance/delivery-constitution.md"
+      ]
+    },
+    {
+      "path": "input/brs.md",
+      "exists": true,
+      "matches": [
+        "input/brs.md"
+      ]
+    }
+  ],
+  "optional_inputs": [
+    {
+      "path": "input/brs/*.md",
+      "exists": false,
+      "matches": []
+    },
+    {
+      "path": "input/architecture.md",
+      "exists": true,
+      "matches": [
+        "input/architecture.md"
+      ]
+    }
+  ],
+  "policy_inputs": [],
+  "missing_required_inputs": [],
+  "missing_policy_inputs": [],
+  "prompt_placeholders": {
+    "required_inputs": [
+      "planning/delivery-skeleton.md",
+      "planning/elaboration-plan.md",
+      "requirements/atomic-requirements.md",
+      "architecture/architecture-review.md",
+      "architecture/architecture-rules.md",
+      "governance/delivery-constitution.md",
+      "input/brs.md"
+    ],
+    "optional_inputs": [
+      "input/brs/*.md",
+      "input/architecture.md"
+    ],
+    "resolved_required_inputs": [
+      "planning/delivery-skeleton.md",
+      "planning/elaboration-plan.md",
+      "requirements/atomic-requirements.md",
+      "architecture/architecture-review.md",
+      "architecture/architecture-rules.md",
+      "governance/delivery-constitution.md",
+      "input/brs.md"
+    ],
+    "resolved_optional_inputs": [
+      "input/architecture.md"
+    ],
+    "resolved_policy_inputs": [],
+    "primary_output": "epics/",
+    "secondary_outputs": [],
+    "artifact_template_ref": ".b2s/artifact-templates/epic-folder.md",
+    "prompt_family": "b2s",
+    "template_mode": "strict",
+    "current_item": null
+  },
+  "computed_inputs": [],
+  "read_evidence": []
+}

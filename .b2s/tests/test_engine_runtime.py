@@ -25,6 +25,7 @@ if str(SCRIPT_ROOT) not in sys.path:
 from b2s_engine import inputs as inputs_module  # noqa: E402
 from b2s_engine import validation as validation_module  # noqa: E402
 from b2s_engine import dispatch as dispatch_module  # noqa: E402
+from b2s_engine import state as state_module  # noqa: E402
 
 
 def run_cli(*args: str) -> subprocess.CompletedProcess[str]:
@@ -953,6 +954,481 @@ class EngineRuntimeTests(unittest.TestCase):
             evaluate_condition(condition, state_none_true, self.workspace_root, actions_by_id),
             "compound 'or' must fail when no sub-condition is true",
         )
+
+    def test_no_unknown_requirement_references_rule_flags_invented_ids(self) -> None:
+        (self.workspace_root / "requirements").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / "planning").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / "requirements" / "atomic-requirements.md").write_text(
+            textwrap.dedent(
+                """\
+                # Atomic Requirements
+
+                ### REQ-001 - Submit request
+                | Field | Value |
+                |---|---|
+                | Actor | Analyst |
+                | Business Object | Intake request |
+                | Trigger / Event | Submit action |
+                | Expected Outcome | Request is stored |
+                | Ambiguities | |
+                | Blocking Questions | |
+
+                #### Requirement Text
+                The analyst can submit an intake request.
+                """
+            ),
+            encoding="utf-8",
+        )
+        (self.workspace_root / "planning" / "fr-coverage.md").write_text(
+            textwrap.dedent(
+                """\
+                # Requirement Coverage Report
+
+                ## Full Coverage Matrix
+
+                | REQ / FR | Requirement Title | Capability | Epic | Feature | Story | Open Questions Propagated | Evidence | Status |
+                |---|---|---|---|---|---|---|---|---|
+                | REQ-001 | Submit request | CAP-001 | E-001 | F-001 | F-001.1 | N/A | story exists | Covered |
+                | REQ-999 | Invented requirement | CAP-001 | E-001 | F-001 | F-001.1 | N/A | invented | Covered |
+                """
+            ),
+            encoding="utf-8",
+        )
+
+        result = validation_module._rule_no_unknown_requirement_references(
+            self.workspace_root / "planning" / "fr-coverage.md",
+            self.workspace_root,
+            {},
+            "planning/fr-coverage.md",
+            [],
+        )
+        self.assertEqual(result["result"], "fail")
+        self.assertIn("REQ-999", result["detail"])
+
+    def test_epic_directory_validation_requires_contract(self) -> None:
+        (self.workspace_root / "planning").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / "epics" / "E-001-submit-request" / "stories").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / ".b2s" / "state").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / ".b2s" / "state" / "workflow-state.json").write_text(
+            json.dumps({"current_item": None}),
+            encoding="utf-8",
+        )
+        (self.workspace_root / "planning" / "delivery-skeleton.md").write_text(
+            textwrap.dedent(
+                """\
+                # Delivery Skeleton
+
+                ## Application Layers
+
+                | Layer | Present? | Components | Notes |
+                |---|---|---|---|
+                | Frontend | Yes | Portal | React |
+
+                ## Requirement Coverage
+
+                | REQ / FR | Feature | Epic | Status |
+                |---|---|---|---|
+                | REQ-001 | F-001 | E-001 | Covered |
+                """
+            ),
+            encoding="utf-8",
+        )
+        (self.workspace_root / "epics" / "E-001-submit-request" / "epic.md").write_text(
+            "# E-001 - Submit request\n",
+            encoding="utf-8",
+        )
+        (self.workspace_root / "epics" / "E-001-submit-request" / "stories" / "F-001.1-submit.md").write_text(
+            textwrap.dedent(
+                """\
+                # F-001.1 - Submit request
+
+                | Field | Value |
+                |---|---|
+                | Layers | Frontend |
+
+                ## User Story
+                As an analyst, I want to submit a request, so that intake can begin.
+
+                ## Business Context
+                This story enables the first business step.
+
+                ## Implementation Guidance
+                Use epic context for now.
+
+                ## Acceptance Criteria
+
+                ```gherkin
+                Scenario: happy path
+                  Given a valid request
+                  When the analyst submits it
+                  Then the request is accepted
+                ```
+
+                ```gherkin
+                Scenario: validation failure
+                  Given invalid data
+                  When the analyst submits it
+                  Then the request is rejected
+                ```
+
+                ## Test Expectations
+                Unit and integration coverage are required.
+                """
+            ),
+            encoding="utf-8",
+        )
+
+        checks = validation_module._validate_epic_folders_directory(
+            self.workspace_root / "epics",
+            self.workspace_root,
+        )
+        contract_check = next(check for check in checks if check["name"] == "epic_has_contract")
+        self.assertEqual(contract_check["result"], "fail")
+
+    def test_epic_directory_validation_passes_with_contract(self) -> None:
+        (self.workspace_root / "planning").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / "epics" / "E-001-submit-request" / "stories").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / ".b2s" / "state").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / ".b2s" / "state" / "workflow-state.json").write_text(
+            json.dumps({"current_item": None}),
+            encoding="utf-8",
+        )
+        (self.workspace_root / "planning" / "delivery-skeleton.md").write_text(
+            textwrap.dedent(
+                """\
+                # Delivery Skeleton
+
+                ## Application Layers
+
+                | Layer | Present? | Components | Notes |
+                |---|---|---|---|
+                | Frontend | Yes | Portal | React |
+
+                ## Requirement Coverage
+
+                | REQ / FR | Feature | Epic | Status |
+                |---|---|---|---|
+                | REQ-001 | F-001 | E-001 | Covered |
+                """
+            ),
+            encoding="utf-8",
+        )
+        (self.workspace_root / "epics" / "E-001-submit-request" / "epic.md").write_text(
+            "# E-001 - Submit request\n",
+            encoding="utf-8",
+        )
+        (self.workspace_root / "epics" / "E-001-submit-request" / "implementation-contract.md").write_text(
+            "# Implementation Contract\n\n## Data Entities\n\nApplication entity with ARN.\n",
+            encoding="utf-8",
+        )
+        (self.workspace_root / "epics" / "E-001-submit-request" / "stories" / "F-001.1-submit.md").write_text(
+            textwrap.dedent(
+                """\
+                # F-001.1 - Submit request
+
+                | Field | Value |
+                |---|---|
+                | Layers | Frontend |
+
+                ## User Story
+                As an analyst, I want to submit a request, so that intake can begin.
+
+                ## Business Context
+                This story enables the first business step.
+
+                ## Implementation Guidance
+                Use epic context for now.
+
+                ## Acceptance Criteria
+
+                ```gherkin
+                Scenario: happy path
+                  Given a valid request
+                  When the analyst submits it
+                  Then the request is accepted
+                ```
+
+                ```gherkin
+                Scenario: validation failure
+                  Given invalid data
+                  When the analyst submits it
+                  Then the request is rejected
+                ```
+
+                ## Test Expectations
+                Unit and integration coverage are required.
+                """
+            ),
+            encoding="utf-8",
+        )
+
+        checks = validation_module._validate_epic_folders_directory(
+            self.workspace_root / "epics",
+            self.workspace_root,
+        )
+        contract_check = next(check for check in checks if check["name"] == "epic_has_contract")
+        self.assertEqual(contract_check["result"], "pass")
+
+    def test_coverage_claim_matches_evidence_detects_missing_story_file(self) -> None:
+        (self.workspace_root / "planning").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / "epics" / "E-001-submit-request" / "stories").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / "planning" / "fr-coverage.md").write_text(
+            textwrap.dedent(
+                """\
+                # Requirement Coverage Report
+
+                ## Coverage Summary
+
+                | Metric | Value |
+                |---|---|
+                | Total requirements (from atomic-requirements) | 1 |
+                | Covered by at least one story | 1 |
+                | Not covered | 0 |
+                | Coverage percentage | 100% |
+
+                ## Full Coverage Matrix
+
+                | REQ / FR | Requirement Title | Capability | Epic | Feature | Story | Open Questions Propagated | Evidence | Status |
+                |---|---|---|---|---|---|---|---|---|
+                | REQ-001 | Submit request | CAP-001 | E-001 | F-001 | F-001.9 | N/A | missing story | Covered |
+                """
+            ),
+            encoding="utf-8",
+        )
+        (self.workspace_root / "epics" / "E-001-submit-request" / "stories" / "F-001.1-submit.md").write_text(
+            "# story\n",
+            encoding="utf-8",
+        )
+
+        result = validation_module._rule_coverage_claim_matches_evidence(
+            self.workspace_root / "planning" / "fr-coverage.md",
+            self.workspace_root,
+            {},
+            "planning/fr-coverage.md",
+            [],
+        )
+        self.assertEqual(result["result"], "fail")
+        self.assertIn("F-001.9", result["detail"])
+
+    def test_selected_epics_have_implementation_contracts_uses_selected_epics_file(self) -> None:
+        (self.workspace_root / "input").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / "epics" / "E-001-submit-request").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / "epics" / "E-002-track-status").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / "input" / "selected-epics.md").write_text(
+            "E-002\n",
+            encoding="utf-8",
+        )
+        (self.workspace_root / "epics" / "E-001-submit-request" / "implementation-contract.md").write_text(
+            "# contract 1\n",
+            encoding="utf-8",
+        )
+
+        result = validation_module._rule_selected_epics_have_implementation_contracts(
+            self.workspace_root / "epics",
+            self.workspace_root,
+            {},
+            "epics/",
+            [],
+        )
+        self.assertEqual(result["result"], "fail")
+        self.assertIn("E-002", result["detail"])
+
+        (self.workspace_root / "epics" / "E-002-track-status" / "implementation-contract.md").write_text(
+            "# contract 2\n",
+            encoding="utf-8",
+        )
+        result = validation_module._rule_selected_epics_have_implementation_contracts(
+            self.workspace_root / "epics",
+            self.workspace_root,
+            {},
+            "epics/",
+            [],
+        )
+        self.assertEqual(result["result"], "pass")
+
+    def test_selected_epics_have_coding_handoffs_uses_selected_epics_file(self) -> None:
+        (self.workspace_root / "input").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / "epics" / "E-001-submit-request").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / "epics" / "E-002-track-status").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / "input" / "selected-epics.md").write_text(
+            "E-001\nE-002\n",
+            encoding="utf-8",
+        )
+        (self.workspace_root / "epics" / "E-001-submit-request" / "coding-handoff.md").write_text(
+            "# handoff 1\n",
+            encoding="utf-8",
+        )
+
+        result = validation_module._rule_selected_epics_have_coding_handoffs(
+            self.workspace_root / "epics",
+            self.workspace_root,
+            {},
+            "epics/",
+            [],
+        )
+        self.assertEqual(result["result"], "fail")
+        self.assertIn("E-002", result["detail"])
+
+        (self.workspace_root / "epics" / "E-002-track-status" / "coding-handoff.md").write_text(
+            "# handoff 2\n",
+            encoding="utf-8",
+        )
+        result = validation_module._rule_selected_epics_have_coding_handoffs(
+            self.workspace_root / "epics",
+            self.workspace_root,
+            {},
+            "epics/",
+            [],
+        )
+        self.assertEqual(result["result"], "pass")
+
+    def test_parse_routing_fields_accepts_light_workflow_recommendation(self) -> None:
+        (self.workspace_root / "routing").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / "routing" / "routing-decision.md").write_text(
+            textwrap.dedent(
+                """\
+                # Routing Decision
+
+                | Field | Value |
+                |---|---|
+                | Delivery mode | OpenSpec |
+                | Execution mode | Standard |
+                | Recommended workflow type | agile-delivery-light-flow |
+                """
+            ),
+            encoding="utf-8",
+        )
+        state = {}
+        state_module._parse_routing_fields(self.workspace_root, state)
+        self.assertEqual(state.get("workflow_type_recommended"), "agile-delivery-light-flow")
+
+    def test_epic_review_summary_uses_validation_and_story_counts(self) -> None:
+        (self.workspace_root / "epics" / "E-001-submit-request" / "stories").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / "epics" / "E-001-submit-request" / "epic.md").write_text(
+            textwrap.dedent(
+                """\
+                # E-001 - Submit request
+
+                ## Stories
+
+                | Story ID | Title | Layers | Priority | Increment | Readiness |
+                |---|---|---|---|---|---|
+                | F-001.1 | Submit request | Frontend | Must | D1 | Ready |
+                | F-001.2 | Track request | Backend | Must | D1 | Not Ready |
+                """
+            ),
+            encoding="utf-8",
+        )
+        (self.workspace_root / "epics" / "E-001-submit-request" / "stories" / "F-001.1-submit.md").write_text(
+            textwrap.dedent(
+                """\
+                # F-001.1
+
+                ## Acceptance Criteria
+
+                ```gherkin
+                Scenario: happy path
+                  Given valid input
+                  When submitted
+                  Then accepted
+                ```
+
+                ```gherkin
+                Scenario: validation failure
+                  Given invalid input
+                  When submitted
+                  Then rejected
+                ```
+                """
+            ),
+            encoding="utf-8",
+        )
+        (self.workspace_root / "epics" / "E-001-submit-request" / "stories" / "F-001.2-track.md").write_text(
+            textwrap.dedent(
+                """\
+                # F-001.2
+
+                ## Acceptance Criteria
+
+                ```gherkin
+                Scenario: status shown
+                  Given a request exists
+                  When opened
+                  Then the status is shown
+                ```
+
+                ## Open Questions
+
+                | ID | Question | Impact |
+                |---|---|---|
+                | OQ-001 | Need status source | Blocks implementation |
+                """
+            ),
+            encoding="utf-8",
+        )
+        validation_result = {
+            "named_rule_results": [
+                {"result": "fail", "rule_name": "no_unknown_requirement_references"},
+                {"result": "fail", "rule_name": "requirement_title_consistency"},
+                {"result": "fail", "rule_name": "coverage_claim_matches_evidence"},
+                {"result": "fail", "rule_name": "requirement_semantics_preserved"},
+            ]
+        }
+
+        summary = state_module._epic_review_summary(self.workspace_root, validation_result)
+        self.assertEqual(summary["total_epics"], 1)
+        self.assertEqual(summary["total_stories"], 2)
+        self.assertEqual(summary["stories_with_2_plus_acceptance_criteria"], 1)
+        self.assertEqual(summary["stories_with_open_questions"], 1)
+        self.assertEqual(summary["not_ready_stories"], 1)
+        self.assertEqual(summary["unknown_requirement_references"], 1)
+        self.assertEqual(summary["requirement_title_mismatches"], 1)
+        self.assertEqual(summary["coverage_or_semantic_warnings"], 2)
+
+    def test_dispatch_gate_plan_includes_epic_review_summary(self) -> None:
+        gate_state = {
+            "gate_id": "epic-review",
+            "owner": "delivery-lead",
+            "artifact_path": "epics/",
+            "review_summary": {
+                "total_epics": 2,
+                "total_stories": 5,
+                "stories_with_2_plus_acceptance_criteria": 4,
+                "stories_with_open_questions": 1,
+                "not_ready_stories": 1,
+                "unknown_requirement_references": 1,
+                "requirement_title_mismatches": 2,
+                "coverage_or_semantic_warnings": 3,
+            },
+        }
+        state = {
+            "initiative_id": "I001",
+            "current_stage": "3-epic-elaboration",
+            "awaiting_human": True,
+            "current_gate": gate_state,
+        }
+        with mock.patch.object(dispatch_module.workspace, "load_state", return_value=state), mock.patch.object(
+            dispatch_module.workspace,
+            "load_stage_actions",
+            return_value=([], {}),
+        ), mock.patch.object(dispatch_module.workspace, "check_state_integrity", return_value=[]):
+            plan = dispatch_module.build_plan(self.workspace_root)
+        self.assertEqual(plan["status"], dispatch_module.STATUS_GATE)
+        self.assertEqual(plan["review_summary"]["total_epics"], 2)
+        self.assertEqual(plan["review_summary"]["requirement_title_mismatches"], 2)
+
+    def test_augment_gate_payload_uses_registered_summary_builder(self) -> None:
+        with mock.patch.dict(
+            state_module.GATE_SUMMARY_BUILDERS,
+            {"custom-gate": lambda workspace_root, validation_result: {"marker": "ok"}},
+            clear=False,
+        ):
+            gate_state = state_module._augment_gate_payload(
+                self.workspace_root,
+                {"gate_id": "custom-gate"},
+                {"named_rule_results": []},
+            )
+        self.assertEqual(gate_state["review_summary"], {"marker": "ok"})
 
     def test_blocked_by_stage_skips_condition_failing_actions(self) -> None:
         """blocked_by_stage must treat condition-failing actions as satisfied (same as stage_is_complete)."""

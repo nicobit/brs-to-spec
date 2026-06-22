@@ -16,6 +16,9 @@ When presenting the gate, you MUST surface:
 > - Stories with 2+ acceptance criteria: N
 > - Stories with open questions: N
 > - Not Ready stories: N
+> - Unknown requirement references: N
+> - Requirement title mismatches: N
+> - Coverage gaps or semantic drift warnings: N
 
 For each epic, summarise: title, wave, story count, and any blocking dependencies or open questions.
 

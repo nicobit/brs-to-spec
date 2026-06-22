@@ -1,0 +1,100 @@
+{
+  "status": "ready",
+  "initiative_id": "I011-N2",
+  "current_stage": "3-epic-elaboration",
+  "workflow_source": "local",
+  "message": "Ready to execute `validate-fr-coverage` - Validate requirement coverage. Load b2s skill prompt at `.b2s/skills/delivery-lead/validate-fr-coverage.md` and execute it, then run validate-artifact -> update-state -> dispatch-next.",
+  "action": {
+    "action_id": "validate-fr-coverage",
+    "title": "Validate requirement coverage",
+    "stage_id": "3-epic-elaboration",
+    "persona": "delivery-lead",
+    "prompt_family": "b2s",
+    "skill_ref": ".b2s/skills/delivery-lead/validate-fr-coverage.md",
+    "requested_skill_ref": ".b2s/skills/delivery-lead/validate-fr-coverage.md",
+    "fallback_skill_ref": null,
+    "fallback_used": false,
+    "skill_path": "C:\\Users\\nicol\\source\\brs-to-spec\\.b2s\\skills\\delivery-lead\\validate-fr-coverage.md",
+    "skill_exists": true,
+    "artifact_template_ref": ".b2s/artifact-templates/fr-coverage.md",
+    "output_paths": [
+      "planning/fr-coverage.md"
+    ],
+    "required_inputs": [
+      {
+        "path": "requirements/atomic-requirements.md",
+        "exists": true,
+        "matches": [
+          "requirements/atomic-requirements.md"
+        ]
+      },
+      {
+        "path": "planning/delivery-skeleton.md",
+        "exists": true,
+        "matches": [
+          "planning/delivery-skeleton.md"
+        ]
+      },
+      {
+        "path": "epics/",
+        "exists": true,
+        "matches": [
+          "epics/"
+        ]
+      }
+    ],
+    "optional_inputs": [],
+    "policy_inputs": [],
+    "missing_required_inputs": [],
+    "missing_policy_inputs": [],
+    "inputs_ready": true,
+    "prompt_placeholders": {
+      "required_inputs": [
+        "requirements/atomic-requirements.md",
+        "planning/delivery-skeleton.md",
+        "epics/"
+      ],
+      "optional_inputs": [],
+      "resolved_required_inputs": [
+        "requirements/atomic-requirements.md",
+        "planning/delivery-skeleton.md",
+        "epics/"
+      ],
+      "resolved_optional_inputs": [],
+      "resolved_policy_inputs": [],
+      "primary_output": "planning/fr-coverage.md",
+      "secondary_outputs": [],
+      "artifact_template_ref": ".b2s/artifact-templates/fr-coverage.md",
+      "prompt_family": "b2s",
+      "template_mode": "strict",
+      "current_item": null
+    },
+    "rendered_skill_text": "# Skill - Validate FR Coverage\n\n## Identity\n\n```text\nskill_id:    delivery-lead.validate-fr-coverage\npersona:     delivery-lead\naction_id:   validate-fr-coverage\nproduces:    planning/fr-coverage.md\n```\n\n## When this skill is used\n\nRun after epic story files are generated. This skill validates that every canonical requirement from `atomic-requirements.md` is covered by at least one story and that downstream traceability is semantically consistent.\n\n## Role for this task\n\nYou are a delivery lead performing a strict traceability review. You do not invent coverage. You report real coverage, real gaps, and real open questions.\n\n## Preconditions\n\nBefore starting, verify:\n\n- `requirements/atomic-requirements.md` exists and is readable\n- `planning/delivery-skeleton.md` exists and is readable\n- `epics/` exists with at least one story file\n\nIf a required input is missing, stop and report the blocker.\n\n## Hard constraints\n\n- Every requirement from `atomic-requirements.md` must appear in the coverage matrix\n- Do not mark a requirement as Covered unless the referenced story file exists and describes the same business behavior\n- Use canonical requirement titles from `atomic-requirements.md`\n- Flag unknown or invented requirement IDs\n- Surface unresolved questions and ambiguities instead of hiding them\n- Coverage metrics must be mathematically correct\n\n## Instructions\n\n### Step 1 - Read inputs fully\n\nRead every file listed in `- requirements/atomic-requirements.md\n- planning/delivery-skeleton.md\n- epics/` in full.\nRead all epic story files under `epics/*/stories/` in full.\nDo not start writing until all inputs are read completely.\n\n### Step 2 - Build the canonical source list\n\nFrom `requirements/atomic-requirements.md`, extract every requirement ID, canonical title, and any open questions or ambiguities.\n\n### Step 3 - Scan story evidence\n\nFor each story:\n- collect linked requirement IDs and titles\n- record the story ID, feature ID, epic ID, and story file path\n- verify the business behavior aligns to the linked requirement\n- capture whether unresolved questions are surfaced in the story\n\n### Step 4 - Build the coverage matrix\n\nFor each canonical requirement:\n- Status `Covered` only if at least one real story covers it\n- Status `Not Covered` if no story covers it\n- include canonical requirement title\n- include epic, feature, and story references\n- include a short evidence note\n- include whether open questions were propagated\n\n### Step 5 - Summarize gaps and risks\n\nReport:\n- total requirements\n- covered requirements\n- not covered requirements\n- coverage percentage\n- gaps caused by missing stories\n- mismatches caused by title drift, meaning drift, or unresolved questions\n\n## Output requirements\n\nWrite `planning/fr-coverage.md` using `.b2s/artifact-templates/fr-coverage.md`.\n\n## Done criteria\n\n- [ ] Every canonical requirement appears in the matrix\n- [ ] Covered rows point to real story files\n- [ ] Requirement titles use canonical titles\n- [ ] Unresolved questions are surfaced where relevant\n- [ ] Summary counts and percentage are accurate\n- [ ] No placeholder text remains\n\n## Stop conditions\n\n- If `requirements/atomic-requirements.md` is missing, stop and report the blocker\n- If no story files exist under `epics/`, stop and report the blocker\n\n## Notes for the staged engine\n\n- Do not mention event completion, result files, or dispatcher status\n- This prompt writes only the artifact\n- Validation and state updates are handled by the `.b2s` engine\n",
+    "has_human_gate": true,
+    "gate_owner": "delivery-lead"
+  },
+  "after_skill_commands": [
+    "python .b2s/scripts/b2s_cli.py validate-artifact --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I011-N2\"",
+    "python .b2s/scripts/b2s_cli.py update-state --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I011-N2\"",
+    "python .b2s/scripts/b2s_cli.py dispatch-next --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I011-N2\""
+  ],
+  "next_cli_commands": [
+    "python .b2s/scripts/b2s_cli.py validate-artifact --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I011-N2\"",
+    "python .b2s/scripts/b2s_cli.py update-state --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I011-N2\"",
+    "python .b2s/scripts/b2s_cli.py dispatch-next --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I011-N2\""
+  ],
+  "integrity_warnings": [
+    {
+      "action_id": "gate-architecture-review",
+      "status": "accepted",
+      "issue": "unlogged",
+      "detail": "action 'gate-architecture-review' is 'accepted' but has no verified engine log entry (artifacts exist on disk \u2014 status may have been set outside the engine)"
+    },
+    {
+      "action_id": "gate-elaboration-plan-review",
+      "status": "accepted",
+      "issue": "unlogged",
+      "detail": "action 'gate-elaboration-plan-review' is 'accepted' but has no verified engine log entry (artifacts exist on disk \u2014 status may have been set outside the engine)"
+    }
+  ]
+}

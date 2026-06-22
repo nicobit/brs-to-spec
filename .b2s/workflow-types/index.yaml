@@ -52,12 +52,12 @@ workflow_types:
 
   - id: agile-delivery-light-flow
     path: ".b2s/workflow-types/agile-delivery-light-flow"
-    description: "Lean progressive decomposition — half the artifacts of agile-delivery-flow. Keeps elaboration planning, story quality gates, BDD scenarios, and OpenSpec/Standalone handoff. Drops domain analysis, architecture impact, test strategy, readiness review, and dispatch."
+    description: "Lean progressive decomposition with planning-first output. Produces epic folders and traceability by default, then supports on-demand per-epic implementation prep and coding handoff."
     suitable_for:
       - "Architecture-aware progressive delivery with minimal overhead"
-      - "Initiatives that need story quality gates but not full domain analysis"
-      - "Teams that want elaboration planning without capability mapping"
-      - "Faster adoption with fewer artifacts while keeping quality gates"
+      - "Initiatives that need stronger traceability before coding handoff"
+      - "Teams that want elaboration planning without immediate implementation contracts"
+      - "Faster adoption with fewer artifacts while keeping review gates"
     delivery_modes:
       - OpenSpec
       - Standalone

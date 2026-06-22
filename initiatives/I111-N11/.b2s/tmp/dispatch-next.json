@@ -1,0 +1,163 @@
+{
+  "status": "ready",
+  "initiative_id": "I111-N11",
+  "current_stage": "3-epic-elaboration",
+  "workflow_source": "local",
+  "message": "Ready to execute `create-epic-folders` - Create epic folders with lean stories [item: E-003] (2/7 items done). Load b2s skill prompt at `.b2s/skills/delivery-lead/create-epic-folders.md` and execute it, then run validate-artifact -> update-state -> dispatch-next.",
+  "action": {
+    "action_id": "create-epic-folders",
+    "title": "Create epic folders with lean stories",
+    "stage_id": "3-epic-elaboration",
+    "persona": "delivery-lead",
+    "prompt_family": "b2s",
+    "skill_ref": ".b2s/skills/delivery-lead/create-epic-folders.md",
+    "requested_skill_ref": ".b2s/skills/delivery-lead/create-epic-folders.md",
+    "fallback_skill_ref": null,
+    "fallback_used": false,
+    "skill_path": "C:\\Users\\nicol\\source\\brs-to-spec\\.b2s\\skills\\delivery-lead\\create-epic-folders.md",
+    "skill_exists": true,
+    "artifact_template_ref": ".b2s/artifact-templates/epic-folder.md",
+    "output_paths": [
+      "epics/"
+    ],
+    "required_inputs": [
+      {
+        "path": "planning/delivery-skeleton.md",
+        "exists": true,
+        "matches": [
+          "planning/delivery-skeleton.md"
+        ]
+      },
+      {
+        "path": "planning/elaboration-plan.md",
+        "exists": true,
+        "matches": [
+          "planning/elaboration-plan.md"
+        ]
+      },
+      {
+        "path": "requirements/atomic-requirements.md",
+        "exists": true,
+        "matches": [
+          "requirements/atomic-requirements.md"
+        ]
+      },
+      {
+        "path": "architecture/architecture-review.md",
+        "exists": true,
+        "matches": [
+          "architecture/architecture-review.md"
+        ]
+      },
+      {
+        "path": "architecture/architecture-rules.md",
+        "exists": true,
+        "matches": [
+          "architecture/architecture-rules.md"
+        ]
+      },
+      {
+        "path": "governance/delivery-constitution.md",
+        "exists": true,
+        "matches": [
+          "governance/delivery-constitution.md"
+        ]
+      },
+      {
+        "path": "input/brs.md",
+        "exists": true,
+        "matches": [
+          "input/brs.md"
+        ]
+      }
+    ],
+    "optional_inputs": [
+      {
+        "path": "input/brs/*.md",
+        "exists": false,
+        "matches": []
+      },
+      {
+        "path": "input/architecture.md",
+        "exists": true,
+        "matches": [
+          "input/architecture.md"
+        ]
+      }
+    ],
+    "policy_inputs": [],
+    "missing_required_inputs": [],
+    "missing_policy_inputs": [],
+    "inputs_ready": true,
+    "prompt_placeholders": {
+      "required_inputs": [
+        "planning/delivery-skeleton.md",
+        "planning/elaboration-plan.md",
+        "requirements/atomic-requirements.md",
+        "architecture/architecture-review.md",
+        "architecture/architecture-rules.md",
+        "governance/delivery-constitution.md",
+        "input/brs.md"
+      ],
+      "optional_inputs": [
+        "input/brs/*.md",
+        "input/architecture.md"
+      ],
+      "resolved_required_inputs": [
+        "planning/delivery-skeleton.md",
+        "planning/elaboration-plan.md",
+        "requirements/atomic-requirements.md",
+        "architecture/architecture-review.md",
+        "architecture/architecture-rules.md",
+        "governance/delivery-constitution.md",
+        "input/brs.md"
+      ],
+      "resolved_optional_inputs": [
+        "input/architecture.md"
+      ],
+      "resolved_policy_inputs": [],
+      "primary_output": "epics/",
+      "secondary_outputs": [],
+      "artifact_template_ref": ".b2s/artifact-templates/epic-folder.md",
+      "prompt_family": "b2s",
+      "template_mode": "strict",
+      "current_item": null
+    },
+    "rendered_skill_text": "# Skill - Create Epic Folders\n\n## Identity\n\n```text\nskill_id:    delivery-lead.create-epic-folders\npersona:     delivery-lead\naction_id:   create-epic-folders\nproduces:    epics/\n```\n\n## When this skill is used\n\nRun after the elaboration plan is approved. This skill generates one epic folder per epic containing the epic overview and individual lean story files.\n\n## Role for this task\n\nYou are a senior delivery lead producing elaborated epic packages that are ready for planning review. This phase defines business scope, story slicing, traceability, story-level behavioral detail, and the implementation contract that defines the technical surface (data entities, API, events, business rules) for the epic.\n\n## Per-item execution\n\nThis action runs once per epic. The engine provides `None` \u2014 the epic ID to elaborate in this invocation.\n\nWhen `None` is provided:\n- Create ONLY the folder and files for that one epic\n- Do not create folders for other epics\n- The engine will call this action again for each remaining epic\n\nWhen `None` is NOT provided, create folders for ALL epics.\n\n## Preconditions\n\nBefore starting, verify that all files listed in `- planning/delivery-skeleton.md\n- planning/elaboration-plan.md\n- requirements/atomic-requirements.md\n- architecture/architecture-review.md\n- architecture/architecture-rules.md\n- governance/delivery-constitution.md\n- input/brs.md` exist and are readable.\n\nIf a required input is missing, stop and report the blocker.\n\n## Hard constraints\n\n- Create one folder per epic: `epics/E-NNN-<slug>/`\n- Each folder contains `epic.md`, `implementation-contract.md`, and `stories/` with story files\n- Every epic in the delivery skeleton must have a folder\n- Every story must trace to at least one requirement\n- Acceptance criteria MUST be in Given/When/Then Gherkin format with test type annotations\n- Each story must declare which application layers it touches\n- Each story must have `## Business Context`\n- Each story must have `## Implementation Guidance` referencing epic context and future implementation prep artifacts when available\n- Each story must have `## Test Expectations`\n- Every requirement mapped to this epic in the delivery skeleton must be covered by at least one story\n- Unresolved questions and ambiguities from the linked requirements must be carried into the relevant story `## Open Questions` section\n- Do not leave placeholder text\n\n## Instructions\n\n### Step 1 - Read inputs fully\n\nRead every file listed in `- planning/delivery-skeleton.md\n- planning/elaboration-plan.md\n- requirements/atomic-requirements.md\n- architecture/architecture-review.md\n- architecture/architecture-rules.md\n- governance/delivery-constitution.md\n- input/brs.md` in full.\nIf `- input/architecture.md` is not empty, read those files in full as well.\nDo not start writing until all inputs are read completely.\n\n### Step 2 - Extract scope for the current epic\n\nFrom `planning/delivery-skeleton.md`, extract the epic to elaborate:\n- epic title and objective\n- features\n- requirement IDs and titles mapped to this epic\n- dependencies\n- application layers\n\nFrom `planning/elaboration-plan.md`, extract the wave assignment and ordering rationale.\n\n### Step 3 - Create `epic.md`\n\nCreate `epics/E-NNN-<slug>/epic.md` using `.b2s/artifact-templates/epic-folder.md`.\n\nPopulate every section with specific initiative content:\n- business objective\n- explicit in-scope and out-of-scope boundaries\n- high-level acceptance criteria\n- source traceability using canonical requirement titles\n- impacted systems\n- dependencies and risks\n- foundation/setup needs\n- stories table\n\n### Step 4 - Create implementation contract\n\nCreate `epics/E-NNN-<slug>/implementation-contract.md` using `.b2s/artifact-templates/implementation-contract.md`.\n\nThis contract defines the technical surface for the epic. Include only relevant sections:\n- **Data Entities**: ER diagram, field tables, state machines for entities with lifecycle states\n- **API Surface**: OpenAPI schemas for endpoints this epic exposes or consumes\n- **Events**: domain and audit events with payload schemas\n- **Business Rules**: conditions and effects that affect implementation\n- **Non-Functional Constraints**: performance, security, or availability targets\n\nDerive content from the BRS, architecture review, architecture rules, and the requirements mapped to this epic. The stories will reference this contract for technical detail.\n\n### Step 5 - Create story files\n\nFor each story in this epic, create `epics/E-NNN-<slug>/stories/F-NNN.N-<slug>.md` using `.b2s/artifact-templates/lean-story.md`.\n\nEach story must include:\n1. Specific actor and business outcome\n2. `## Business Context` explaining why the behavior matters\n3. `## Linked Requirements` with canonical requirement IDs and titles\n4. `## Implementation Guidance` referencing `implementation-contract.md` for entities, API endpoints, events, and business rules\n5. Gherkin acceptance criteria with test type annotations\n6. `## Test Expectations`\n7. `## Out of Scope`\n8. `## Dependencies`\n9. `## Open Questions` carrying forward unresolved requirement ambiguities\n\n### Step 6 - Verify traceability\n\nBefore finishing, cross-check:\n- every requirement mapped to this epic is referenced by at least one story\n- every linked requirement title matches the canonical title in `requirements/atomic-requirements.md`\n- each story's business behavior still matches the linked requirement meaning\n- blocking open questions and ambiguities are present in the relevant story\n\n## Output requirements\n\nWrite to `epics/E-NNN-<slug>/` containing:\n- `epic.md`\n- `implementation-contract.md`\n- `stories/F-NNN.N-<slug>.md`\n\n## Done criteria\n\n- [ ] Epic folder exists with `epic.md`, `implementation-contract.md`, and `stories/`\n- [ ] Implementation contract has relevant sections populated (data entities, API, events, rules)\n- [ ] Stories reference the implementation contract in their Implementation Guidance\n- [ ] Every story has canonical requirement traceability\n- [ ] Every story has Gherkin acceptance criteria with test type annotations\n- [ ] Open questions are propagated to the right stories\n- [ ] Stories collectively cover all requirements for the epic\n- [ ] No placeholder text remains\n\n## Stop conditions\n\n- If `planning/delivery-skeleton.md` is missing, stop and report the blocker\n- If `requirements/atomic-requirements.md` is missing, stop and report the blocker\n\n## Notes for the staged engine\n\n- Do not mention event completion, result files, or dispatcher status\n- This prompt writes one epic folder per invocation when per-item mode is active\n- Validation and state updates are handled by the `.b2s` engine\n",
+    "has_human_gate": false,
+    "gate_owner": null
+  },
+  "after_skill_commands": [
+    "python .b2s/scripts/b2s_cli.py validate-artifact --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I111-N11\"",
+    "python .b2s/scripts/b2s_cli.py update-state --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I111-N11\"",
+    "python .b2s/scripts/b2s_cli.py dispatch-next --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I111-N11\""
+  ],
+  "next_cli_commands": [
+    "python .b2s/scripts/b2s_cli.py validate-artifact --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I111-N11\"",
+    "python .b2s/scripts/b2s_cli.py update-state --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I111-N11\"",
+    "python .b2s/scripts/b2s_cli.py dispatch-next --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I111-N11\""
+  ],
+  "current_item": "E-003",
+  "pending_items": [
+    "E-003",
+    "E-004",
+    "E-005",
+    "E-006",
+    "E-007"
+  ],
+  "total_items": 7,
+  "integrity_warnings": [
+    {
+      "action_id": "gate-architecture-review",
+      "status": "accepted",
+      "issue": "unlogged",
+      "detail": "action 'gate-architecture-review' is 'accepted' but has no verified engine log entry (artifacts exist on disk \u2014 status may have been set outside the engine)"
+    },
+    {
+      "action_id": "gate-elaboration-plan-review",
+      "status": "accepted",
+      "issue": "unlogged",
+      "detail": "action 'gate-elaboration-plan-review' is 'accepted' but has no verified engine log entry (artifacts exist on disk \u2014 status may have been set outside the engine)"
+    }
+  ]
+}
