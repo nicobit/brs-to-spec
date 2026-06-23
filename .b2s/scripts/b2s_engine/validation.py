@@ -2866,16 +2866,58 @@ def _validate_epic_folders_directory(path: Path, workspace_root: Path) -> list[d
                     len(re.findall(r"^\s*Scenario:", block, re.MULTILINE))
                     for block in gherkin_blocks
                 )
+
+                # Determine minimum scenarios based on story complexity
+                story_layers_match = re.search(r"\|\s*Layers?\s*\|\s*([^|]+)\|", text, re.IGNORECASE)
+                story_layer_count = 0
+                if story_layers_match:
+                    story_layer_count = len([
+                        l.strip() for l in re.split(r"[,/]", story_layers_match.group(1))
+                        if l.strip().lower() not in ("", "draft", "must", "should", "could")
+                    ])
+                story_req_count = len(set(re.findall(
+                    r"(?<![A-Za-z])(?:FR|REQ|NFR|C)-\d{3}", text
+                )))
+                has_integration = bool(re.search(r"(?i)integrat|external|adapter|circuit.breaker|timeout|fallback", text))
+                has_state_machine = bool(re.search(r"(?i)state.?machine|stateDiagram|status.*transition|→|->.*status", text))
+
+                if has_integration or has_state_machine:
+                    min_scenarios = 4
+                    complexity = "integration/state"
+                elif story_layer_count >= 2 or story_req_count >= 2:
+                    min_scenarios = 3
+                    complexity = "multi-layer/multi-req"
+                else:
+                    min_scenarios = 3
+                    complexity = "standard"
+
                 checks.append(
                     _result(
                         "story_has_minimum_ac",
                         slabel,
-                        scenario_count >= 2,
-                        f"{story_file.name}: {scenario_count} Gherkin scenarios (minimum 2: happy + negative)"
-                        if scenario_count >= 2
-                        else f"{story_file.name}: only {scenario_count} Gherkin scenario(s) — need at least 2 (happy path + negative/validation)",
+                        scenario_count >= min_scenarios,
+                        f"{story_file.name}: {scenario_count} Gherkin scenarios (minimum {min_scenarios} for {complexity})"
+                        if scenario_count >= min_scenarios
+                        else f"{story_file.name}: only {scenario_count} Gherkin scenario(s) — need at least {min_scenarios} for {complexity} story (happy path + negative + boundary/auth/integration)",
                     )
                 )
+
+                has_criticality = bool(re.search(r"\[critical\]|\[important\]|\[standard\]", text))
+                has_automation = bool(re.search(r"\[automate\]|\[manual\]|\[automate-later\]", text))
+                if scenario_count >= 2 and not (has_criticality and has_automation):
+                    missing_tags = []
+                    if not has_criticality:
+                        missing_tags.append("criticality ([critical]/[important]/[standard])")
+                    if not has_automation:
+                        missing_tags.append("automation ([automate]/[manual]/[automate-later])")
+                    checks.append(
+                        _result(
+                            "story_ac_has_tags",
+                            slabel,
+                            False,
+                            f"{story_file.name}: AC missing tags: {', '.join(missing_tags)}",
+                        )
+                    )
 
             all_story_layers: set[str] = set()
             for story_file in story_files:

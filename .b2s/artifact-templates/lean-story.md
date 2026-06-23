@@ -48,38 +48,82 @@ Reference epic context first, and the epic's implementation contract when it exi
 
 ## Acceptance Criteria
 
-Generate as many acceptance criteria as needed to fully describe the behaviour. Each criterion includes a test type annotation and a Gherkin scenario. Cover all applicable types: happy path, negative/validation, authorization, state transition, integration failure, audit/compliance.
+Generate ALL scenarios needed to fully specify the behaviour. Do NOT stop at 2 scenarios.
+Each criterion has: a numbered ID, descriptive title, test type annotation, criticality tag, automation recommendation, and a Gherkin scenario with concrete values.
 
-### AC-001 — {{criterion title}} `[unit]`
+**Required scenario types** — include every type that applies to this story:
+
+| Type | When to include | Example |
+|---|---|---|
+| Happy path | Always | Successful submission returns ARN |
+| Validation / negative | When the story accepts user or API input | Missing mandatory field returns 400 with field-level errors |
+| Authorization | When the story has role/permission requirements | Unauthorized user receives 403 |
+| Boundary | When the story involves thresholds, limits, or ranges | Loan amount at exactly £10,000 threshold |
+| Integration failure | When the story calls external services | Experian timeout triggers fallback to REFER_TO_UNDERWRITER |
+| State transition | When the story changes entity status | Application in DECLINED cannot be resubmitted |
+| Concurrency / idempotency | When duplicate or parallel requests are possible | Duplicate submission within 1 second returns same ARN |
+| Audit / compliance | When the story produces auditable events | State change emits audit event with actor and timestamp |
+
+**Criticality tags** (risk-based):
+- `[critical]` — must never fail in production; regression = incident. Always automate.
+- `[important]` — significant business impact if broken. Automate where practical.
+- `[standard]` — normal coverage. Automate if cost-effective.
+
+**Automation tags:**
+- `[automate]` — must be covered by automated tests (unit, integration, or e2e).
+- `[manual]` — better suited for manual or exploratory testing (UX, accessibility, visual).
+- `[automate-later]` — automate after initial delivery; acceptable as manual for MVP.
+
+### AC-001 — {{criterion title}} `[unit]` `[critical]` `[automate]`
+
+```gherkin
+Scenario: {{meaningful scenario name}}
+  Given {{precondition with concrete values}}
+  When {{action with specific input}}
+  Then {{observable outcome with specific expected value}}
+```
+
+### AC-002 — {{criterion title}} `[integration]` `[important]` `[automate]`
 
 ```gherkin
 Scenario: {{meaningful scenario name}}
   Given {{precondition}}
   When {{action}}
-  Then {{observable business outcome}}
+  Then {{observable outcome}}
 ```
 
-### AC-002 — {{criterion title}} `[integration]`
+### AC-003 — {{criterion title}} `[api]` `[critical]` `[automate]`
 
 ```gherkin
 Scenario: {{meaningful scenario name}}
   Given {{precondition}}
   When {{action}}
-  Then {{observable business outcome}}
+  Then {{observable outcome}}
 ```
 
-Test type annotations: `[unit]` for service logic, `[integration]` for external calls/adapters, `[api]` for HTTP endpoint contracts, `[e2e]` for user flows.
+### AC-004 — {{criterion title}} `[e2e]` `[standard]` `[automate-later]`
+
+```gherkin
+Scenario: {{meaningful scenario name}}
+  Given {{precondition}}
+  When {{action}}
+  Then {{observable outcome}}
+```
+
+A story with 1 layer and 1 requirement should have at least 3-4 scenarios.
+A story with 2+ layers or 2+ requirements should have at least 5-6 scenarios.
+A story involving external integrations or state machines should have 6+ scenarios.
 
 ---
 
 ## Test Expectations
 
-| Test Type | What to Test | Why |
-|---|---|---|
-| Unit | {{specific function/logic}} | {{business rule or validation}} |
-| Integration | {{external system interaction}} | {{adapter, API call, DB query}} |
-| API | {{endpoint contract}} | {{request/response schema, errors}} |
-| E2E | {{user flow}} | {{end-to-end business scenario}} |
+| Test Type | What to Test | Why | Automation |
+|---|---|---|---|
+| Unit | {{specific function/logic}} | {{business rule or validation}} | Must automate |
+| Integration | {{external system interaction}} | {{adapter, API call, DB query}} | Must automate |
+| API | {{endpoint contract}} | {{request/response schema, errors}} | Must automate |
+| E2E | {{user flow}} | {{end-to-end business scenario}} | Automate / Manual |
 
 ---
 
