@@ -119,6 +119,28 @@ def _scan_story_files(workspace_root: Path) -> list[dict[str, Any]]:
                         ids = re.findall(r"(?:FR|REQ|NFR|C)-\d{3}", line)
                         linked_reqs.extend(ids)
 
+            if not linked_reqs:
+                # Fallback: scan for requirement traceability sections or
+                # inline references (handles format drift from templates)
+                for heading in ("## Requirements", "## Linked REQs"):
+                    block = _section_block(text, heading)
+                    if block:
+                        linked_reqs.extend(re.findall(
+                            r"(?<![A-Za-z])(?:FR|REQ|NFR|C)-\d{3}", block
+                        ))
+                if not linked_reqs:
+                    # Last resort: scan lines that look like traceability
+                    for line in text.splitlines():
+                        stripped = line.strip()
+                        if re.match(r"(?i)(?:requirement|traceability|linked|covers)", stripped):
+                            linked_reqs.extend(re.findall(
+                                r"(?<![A-Za-z])(?:FR|REQ|NFR|C)-\d{3}", stripped
+                            ))
+                        elif stripped.startswith("-") and re.search(r"(?:FR|REQ|NFR|C)-\d{3}", stripped):
+                            ids = re.findall(r"(?<![A-Za-z])(?:FR|REQ|NFR|C)-\d{3}", stripped)
+                            if ids and len(stripped) < 120:
+                                linked_reqs.extend(ids)
+
             linked_reqs = list(dict.fromkeys(linked_reqs))
 
             has_open_questions = "## Open Questions" in text

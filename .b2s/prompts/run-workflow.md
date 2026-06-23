@@ -113,7 +113,24 @@ The CLI produces machine files. You read those files. That is the contract.
 
 17. Read `WORKSPACE_ROOT/.b2s/tmp/current-state-update.json` in full.
 
-18. If `awaiting_human: true` — present the artifact for review:
+18. **Advisory reviews (optional):**
+    a. Read `governance/delivery-constitution.md` and check `## Advisory Reviews`.
+       If "Advisory reviews enabled" is "No" or the section is absent, skip to step 19.
+    b. Read the "Enabled Personas" table to determine which personas are active.
+    c. Check whether the current action has `advisory_reviews: true` in `stage-actions.yaml`.
+       If not, skip to step 19.
+    d. For each enabled persona:
+       - Read the advisory review skill from `.b2s/skills/{persona}/advisory-review.md`.
+       - For `ui-ux-expert`: skip if no story in the current epic has `Frontend` in Layers.
+       - Read the primary output artifact and any required context files listed in the skill.
+       - Generate the findings table following the skill's output format.
+    e. Append all findings to the primary output artifact under `## Advisory Reviews`.
+       Each persona gets its own subsection. If a persona has no findings, write
+       `No {persona} findings.`
+    f. The advisory review section is informational. It does not trigger re-validation
+       and does not block the gate.
+
+19. If `awaiting_human: true` — present the artifact for review:
     a. Read the primary output artifact.
     b. Present a readable summary to the user.
     c. Ask: **approve** or **reject: reason**.
@@ -122,7 +139,7 @@ The CLI produces machine files. You read those files. That is the contract.
     f. On **reject**: run `python .b2s/scripts/b2s_cli.py reject-current-gate --workspace-root WORKSPACE_ROOT --reason "reason"`
     g. After running the gate command, read the output and continue or stop.
 
-19. Stop — report: action completed, artifact produced, `next_action` from state update.
+20. Stop — report: action completed, artifact produced, `next_action` from state update.
 
 ## Per-Item Iteration
 

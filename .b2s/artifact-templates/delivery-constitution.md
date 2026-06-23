@@ -134,4 +134,26 @@ Implementation must stop if:
 | Readiness review | 9-readiness-review | engineering-lead | Validate initiative is ready for AI implementation |
 
 ---
+
+## 14. Advisory Reviews
+
+Advisory reviews provide optional expert perspectives on artifacts before gate review. When enabled, each configured persona reviews the artifact through its specific lens (testability, infrastructure, security, architecture, UI) and produces structured findings. Findings are appended to the artifact but do not block the gate.
+
+| Setting | Value |
+|---|---|
+| Advisory reviews enabled | Yes / No |
+
+### Enabled Personas
+
+| Persona | Lens | Activates when |
+|---|---|---|
+| qa-analyst | Testability, edge cases, AC quality | Always (if enabled) |
+| devops-engineer | Infrastructure gaps, pipeline needs, enablers | Always (if enabled) |
+| security-reviewer | Auth, encryption, data boundaries | Always (if enabled) |
+| architect | Coupling, architecture rules, NFRs | Always (if enabled) |
+| ui-ux-expert | UI states, validation UX, navigation, accessibility | Epic has Frontend stories |
+
+To disable a specific persona, remove its row from the table above. To disable all advisory reviews, set "Advisory reviews enabled" to "No".
+
+---
 *This constitution governs all downstream phases. Every artifact must be validated against it. Set Status: Accepted only by human approval. Never self-accept.*

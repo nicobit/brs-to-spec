@@ -298,9 +298,10 @@ def run(args: object) -> None:
     iteration_mode = action.get("iteration_mode")
     current_item = state.get("current_item")
 
-    if iteration_mode == "per_item" and current_item:
-        item_key = f"{action_id}#{current_item}"
-        state.setdefault("action_item_status", {})[item_key] = artifact_status
+    if iteration_mode == "per_item":
+        if current_item:
+            item_key = f"{action_id}#{current_item}"
+            state.setdefault("action_item_status", {})[item_key] = artifact_status
 
         items = workspace.extract_items_from_source(
             workspace_root,

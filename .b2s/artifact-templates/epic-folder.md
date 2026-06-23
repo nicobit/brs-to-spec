@@ -84,4 +84,10 @@
 | S-NNN.N | {{title}} | Frontend / Backend / Infra / Integration | Must / Should / Could | D1 / D2 | Ready / Not Ready |
 
 ---
+
+## Advisory Reviews
+
+*This section is populated automatically by the advisory review step when enabled in the delivery constitution. Do not write this section manually. Each enabled persona appends its findings below.*
+
+---
 *Status: Draft — set to Accepted only after epic review gate. Never self-accept.*
