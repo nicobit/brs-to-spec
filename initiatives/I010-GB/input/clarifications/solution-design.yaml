@@ -1,0 +1,36 @@
+- id: SDQ-001
+  answer: "no"
+  answered_at: "2026-06-28"
+  answered_by: human
+  rationale: |
+    No test contracts or staging endpoints are available for Experian or DocuSign at this time.
+    Integration adapters will need to be validated using mocks or sandbox arrangements until contracts are provisioned.
+  owner: Procurement / IT
+  artefacts_to_update:
+    - architecture/solution-decisions.md
+    - architecture/impacted-systems.md
+
+- id: SDQ-002
+  answer: "mono repo"
+  answered_at: "2026-06-28"
+  answered_by: human
+  rationale: |
+    Repository-level mapping will be a mono-repo. Solution decisions should reference package/module boundaries
+    within the mono-repo rather than separate repository names.
+  owner: Engineering Lead
+  artefacts_to_update:
+    - architecture/solution-decisions.md
+    - architecture/technical-landscape.md
+    - input/repository-context.md
+
+- id: SDQ-003
+  answer: "single team"
+  answered_at: "2026-06-28"
+  answered_by: human
+  rationale: |
+    A single delivery team will own the newly proposed services (scoring pipeline and immutable audit store).
+    The team will be responsible for SLAs, POCs, and integration test coordination.
+  owner: Delivery Team
+  artefacts_to_update:
+    - architecture/solution-decisions.md
+    - architecture/technical-landscape.md

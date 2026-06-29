@@ -24,7 +24,19 @@
   "current_gate": null,
   "blocked_reason": null,
   "state_validated": true,
-  "last_updated": "2026-06-23T05:48:07.606591+00:00",
+  "last_updated": "2026-06-28T14:37:24.640558+00:00",
   "action_item_status": {},
-  "current_item": null
+  "current_item": null,
+  "action_lifecycle_phase": "inputs_collected",
+  "current_wave": 0,
+  "dynamic_goal": null,
+  "dynamic_macro_phase": null,
+  "dynamic_gap_backlog": [],
+  "dynamic_focus_area": null,
+  "dynamic_iteration_count": 0,
+  "dynamic_last_assessment": null,
+  "dynamic_last_selected_action": null,
+  "dynamic_stop_reason": null,
+  "dynamic_confidence": null,
+  "dynamic_repeat_gap_count": 0
 }

@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 import re
 from typing import Callable
 
-from b2s_engine import next_step, workspace
+from b2s_engine import dynamic_state, next_step, workspace
 
 
 def _timestamp() -> str:
@@ -135,13 +135,76 @@ def _artifact_status_from_previous(previous_state: dict, action: dict) -> str | 
     return None
 
 
-def _candidate_gate_payload(action: dict, actions_by_id: dict, action_id: str) -> dict | None:
+def _items_for_action(action: dict, state: dict, workspace_root) -> list[str]:
+    """Return items for the current wave (used for selecting the next item)."""
+    wave_idx = workspace.current_wave_index(state)
+    wave_items = workspace.items_for_wave(workspace_root, wave_idx)
+    if wave_items:
+        return wave_items
+    return workspace.extract_items_from_source(
+        workspace_root,
+        action["item_source"],
+        action["item_pattern"],
+    )
+
+
+def _all_items_for_action(action: dict, workspace_root) -> list[str]:
+    """Return all items across all waves (used for completeness checking)."""
+    all_wave = workspace.all_wave_items(workspace_root)
+    if all_wave:
+        return all_wave
+    return workspace.extract_items_from_source(
+        workspace_root,
+        action["item_source"],
+        action["item_pattern"],
+    )
+
+
+def _apply_gate_acceptance_to_action(
+    state: dict,
+    action: dict,
+    action_id: str,
+    accepted_status: str,
+    current_item: str | None,
+    workspace_root: Path,
+) -> None:
+    _apply_artifact_statuses(state, action, accepted_status)
+    if action.get("iteration_mode") == "per_item":
+        if current_item:
+            item_key = f"{action_id}#{current_item}"
+            state.setdefault("action_item_status", {})[item_key] = accepted_status
+        all_items = _all_items_for_action(action, workspace_root)
+        all_done = all(
+            state["action_item_status"].get(f"{action_id}#{item}") in workspace.ACTION_STATUSES_COMPLETE
+            for item in all_items
+        )
+        state["action_status"][action_id] = accepted_status if all_done else workspace.ACTION_STATUS_IN_PROGRESS
+    else:
+        state["action_status"][action_id] = accepted_status
+
+
+def _should_auto_accept_gate(gate_state: dict | None) -> bool:
+    if not gate_state:
+        return False
+    if gate_state.get("interaction_mode") != "collect_answers":
+        return False
+    summary = gate_state.get("review_summary") or {}
+    return bool(summary.get("no_blockers"))
+
+
+def _candidate_gate_payload(
+    action: dict,
+    actions_by_id: dict,
+    action_id: str,
+    current_item: str | None = None,
+) -> dict | None:
     gate_action_id = _gate_action_id_for(action, actions_by_id)
     if not gate_action_id:
         return None
     outputs = workspace.action_output_paths(action)
     artifact_path = outputs[0] if outputs else None
-    return {
+    human_gate = action.get("human_gate") or {}
+    gate_state = {
         "gate_id": action["human_gate"]["gate_id"],
         "action_id": gate_action_id,
         "source_action_id": action_id,
@@ -149,6 +212,22 @@ def _candidate_gate_payload(action: dict, actions_by_id: dict, action_id: str) -
         "status": "waiting_human",
         "owner": action["human_gate"]["owner"],
     }
+    if current_item:
+        gate_state["current_item"] = current_item
+    interaction_mode = human_gate.get("interaction_mode")
+    if interaction_mode:
+        gate_state["interaction_mode"] = interaction_mode
+    rerun_action = human_gate.get("rerun_action")
+    if rerun_action:
+        gate_state["rerun_action"] = rerun_action
+    clarification_file_pattern = human_gate.get("clarification_file")
+    if clarification_file_pattern:
+        gate_state["clarification_file"] = (
+            clarification_file_pattern.replace("{current_item}", current_item)
+            if current_item and "{current_item}" in clarification_file_pattern
+            else clarification_file_pattern
+        )
+    return gate_state
 
 
 def _epic_review_summary(workspace_root: Path, validation_result: dict | None = None) -> dict:
@@ -209,11 +288,98 @@ def _epic_review_summary(workspace_root: Path, validation_result: dict | None = 
     return summary
 
 
+def _epic_clarification_summary(workspace_root: Path, validation_result: dict | None = None) -> dict:
+    state = workspace.load_state(workspace_root)
+    current_item = state.get("current_item")
+    summary = {
+        "epic_id": current_item,
+        "question_count": 0,
+        "clarification_file": f"input/clarifications/{current_item}.yaml" if current_item else None,
+        "questions": [],
+        "no_blockers": False,
+    }
+    if not current_item:
+        return summary
+
+    epics_dir = workspace_root / "epics"
+    epic_dirs = sorted([d for d in epics_dir.iterdir() if d.is_dir() and d.name.startswith(current_item)]) if epics_dir.exists() else []
+    if not epic_dirs:
+        return summary
+    request_path = epic_dirs[0] / "clarification-request.md"
+    if not request_path.exists():
+        return summary
+
+    text = request_path.read_text(encoding="utf-8")
+    if "No blocking questions require clarification for this epic." in text:
+        summary["no_blockers"] = True
+        return summary
+
+    table_match = re.search(r"## Blocking Questions\s*\n((?:\|.*\n)+)", text)
+    if not table_match:
+        return summary
+
+    for row in table_match.group(1).splitlines():
+        cells = [c.strip() for c in row.split("|") if c.strip()]
+        if len(cells) != 6 or cells[0] == "ID" or cells[0].startswith("---"):
+            continue
+        summary["questions"].append({
+            "question_id": cells[0],
+            "route": cells[1],
+            "page": cells[2],
+            "prompt": cells[3],
+            "impact": cells[4],
+            "required_for": cells[5],
+        })
+    summary["question_count"] = len(summary["questions"])
+    return summary
+
+
+def _solution_design_clarification_summary(
+    workspace_root: Path,
+    validation_result: dict | None = None,
+) -> dict:
+    request_path = workspace_root / "architecture" / "solution-design-clarification-request.md"
+    summary = {
+        "question_count": 0,
+        "clarification_file": "input/clarifications/solution-design.yaml",
+        "questions": [],
+        "no_blockers": False,
+    }
+    if not request_path.exists():
+        return summary
+
+    text = request_path.read_text(encoding="utf-8")
+    if "No blocking solution design questions require clarification." in text:
+        summary["no_blockers"] = True
+        return summary
+
+    table_match = re.search(r"## Blocking Questions\s*\n((?:\|.*\n)+)", text)
+    if not table_match:
+        return summary
+
+    for row in table_match.group(1).splitlines():
+        cells = [c.strip() for c in row.split("|") if c.strip()]
+        if len(cells) != 6 or cells[0] == "ID" or cells[0].startswith("---"):
+            continue
+        summary["questions"].append({
+            "question_id": cells[0],
+            "component": cells[1],
+            "decision_area": cells[2],
+            "prompt": cells[3],
+            "impact": cells[4],
+            "required_for": cells[5],
+        })
+    summary["question_count"] = len(summary["questions"])
+    return summary
+
+
 GateSummaryBuilder = Callable[[Path, dict | None], dict]
 
 
 GATE_SUMMARY_BUILDERS: dict[str, GateSummaryBuilder] = {
     "epic-review": _epic_review_summary,
+    "epic-clarification": _epic_clarification_summary,
+    "solution-design-review": _solution_design_clarification_summary,
 }
 
 
@@ -254,6 +420,11 @@ def _build_state_update_result(
 def run(args: object) -> None:
     workspace_root = workspace.resolve_workspace_root(args.workspace_root)
     state = workspace.load_state(workspace_root)
+
+    phase_error = workspace.check_lifecycle_phase(state, workspace.LIFECYCLE_VALIDATED, "update-state")
+    if phase_error:
+        raise RuntimeError(phase_error)
+
     previous_state = {
         "current_stage": state.get("current_stage"),
         "next_action": state.get("next_action"),
@@ -266,6 +437,18 @@ def run(args: object) -> None:
     )
 
     gate_state = None
+
+    # Safety check: even if validation passed, verify the primary artifact exists on disk
+    if validation_result.get("overall") == "pass" and not _all_outputs_exist(action, workspace_root):
+        missing = [
+            ap for ap in workspace.action_output_paths(action)
+            if not workspace.artifact_exists(workspace_root, ap)
+        ]
+        validation_result["overall"] = "fail"
+        validation_result.setdefault("failures", []).append(
+            f"Primary artifact(s) missing from disk: {missing}"
+        )
+
     if validation_result.get("overall") != "pass":
         _apply_artifact_statuses(state, action, action["status_model"]["artifact_on_fail"])
         state["action_status"][action_id] = action["status_model"]["artifact_on_fail"]
@@ -273,6 +456,7 @@ def run(args: object) -> None:
         state["next_action"] = None
         state["blocked_reason"] = "; ".join(validation_result.get("failures", [])) or "artifact validation failed"
         state["last_updated"] = _timestamp()
+        workspace.advance_lifecycle_phase(state, workspace.LIFECYCLE_IDLE)
         workspace.save_state(workspace_root, state)
         result = _build_state_update_result(action_id, previous_state, state, gate_state)
         result["overall"] = "fail"
@@ -303,14 +487,11 @@ def run(args: object) -> None:
             item_key = f"{action_id}#{current_item}"
             state.setdefault("action_item_status", {})[item_key] = artifact_status
 
-        items = workspace.extract_items_from_source(
-            workspace_root,
-            action["item_source"],
-            action["item_pattern"],
-        )
+        all_items = _all_items_for_action(action, workspace_root)
+
         all_done = all(
             state["action_item_status"].get(f"{action_id}#{item}") in workspace.ACTION_STATUSES_COMPLETE
-            for item in items
+            for item in all_items
         )
 
         if all_done:
@@ -337,22 +518,62 @@ def run(args: object) -> None:
 
     gate_action_id = _gate_action_id_for(action, actions_by_id)
     if (action.get("human_gate") or {}).get("required") and gate_action_id:
+        human_gate = action.get("human_gate") or {}
         gate_state = {
-            "gate_id": action["human_gate"]["gate_id"],
+            "gate_id": human_gate["gate_id"],
             "action_id": gate_action_id,
             "source_action_id": action_id,
             "artifact_path": workspace.action_output_paths(action)[0] if workspace.action_output_paths(action) else None,
             "status": "waiting_human",
-            "owner": action["human_gate"]["owner"],
+            "owner": human_gate["owner"],
         }
+        if current_item:
+            gate_state["current_item"] = current_item
+        if human_gate.get("interaction_mode"):
+            gate_state["interaction_mode"] = human_gate["interaction_mode"]
+        if human_gate.get("rerun_action"):
+            gate_state["rerun_action"] = human_gate["rerun_action"]
+        clarification_file = human_gate.get("clarification_file")
+        if clarification_file:
+            gate_state["clarification_file"] = (
+                clarification_file.replace("{current_item}", current_item)
+                if current_item and "{current_item}" in clarification_file
+                else clarification_file
+            )
         gate_state = _augment_gate_payload(workspace_root, gate_state, validation_result)
-        state["awaiting_human"] = True
-        state["current_gate"] = gate_state
-        state["blocked_reason"] = f"waiting for {action['human_gate']['owner']} review"
-        state["action_status"][gate_action_id] = "waiting_human"
+        if _should_auto_accept_gate(gate_state):
+            accepted_status = action["status_model"]["artifact_on_gate_accept"]
+            _apply_gate_acceptance_to_action(
+                state,
+                action,
+                action_id,
+                accepted_status,
+                current_item,
+                workspace_root,
+            )
+            state["awaiting_human"] = False
+            state["current_gate"] = None
+            state["blocked_reason"] = None
+            state["action_status"][gate_action_id] = "accepted"
+            state["last_completed_action"] = gate_action_id
+            gate_state = None
+        else:
+            state["awaiting_human"] = True
+            state["current_gate"] = gate_state
+            state["blocked_reason"] = f"waiting for {human_gate['owner']} review"
+            state["action_status"][gate_action_id] = "waiting_human"
     else:
         state["awaiting_human"] = False
         state["current_gate"] = None
+
+    if dynamic_state.should_return_to_dynamic_assessment(
+        state,
+        action_id,
+        awaiting_human=state.get("awaiting_human", False),
+    ):
+        dynamic_state.reset_dynamic_orchestration_cycle(state, actions_by_id)
+        state["current_stage"] = "0-dynamic-assessment"
+        state["dynamic_stop_reason"] = None
 
     if not state.get("awaiting_human"):
         preview = next_step.select_next_action(workspace_root, state)
@@ -360,6 +581,7 @@ def run(args: object) -> None:
         if preview.get("overall") == "fail":
             state["blocked_reason"] = preview.get("blocking_reason")
 
+    workspace.advance_lifecycle_phase(state, workspace.LIFECYCLE_IDLE)
     workspace.save_state(workspace_root, state)
     result = _build_state_update_result(action_id, previous_state, state, gate_state)
     workspace.save_json_file(
@@ -376,6 +598,238 @@ def run(args: object) -> None:
             "next_action": result.get("next_action"),
         },
     )
+
+def finalize_action(args: object) -> None:
+    """Validate the current artifact and, if it passes, update workflow state.
+
+    Combines ``validate-artifact`` + ``update-state`` into a single command so
+    the orchestrating LLM only needs to call one CLI command after generating
+    an artifact.  On validation failure the command returns the failure details
+    without updating state — the LLM should fix the artifact and call
+    ``finalize-action`` again.
+    """
+    from b2s_engine import validation as validation_module
+
+    workspace_root = workspace.resolve_workspace_root(args.workspace_root)
+    state = workspace.load_state(workspace_root)
+    action_id = workspace.read_action_id_from_state_or_args(state, getattr(args, "action_id", None))
+
+    current_phase = state.get("action_lifecycle_phase", workspace.LIFECYCLE_IDLE)
+    if current_phase == workspace.LIFECYCLE_VALIDATED:
+        workspace.advance_lifecycle_phase(state, workspace.LIFECYCLE_DISPATCHED)
+        workspace.save_state(workspace_root, state)
+
+    phase_error = workspace.check_lifecycle_phase(state, workspace.LIFECYCLE_DISPATCHED, "finalize-action")
+    if phase_error:
+        raise RuntimeError(phase_error)
+
+    validation_result = validation_module.validate_action(workspace_root, state, action_id)
+
+    workspace.advance_lifecycle_phase(state, workspace.LIFECYCLE_VALIDATED)
+    workspace.save_state(workspace_root, state)
+
+    workspace.append_execution_log(
+        workspace_root,
+        command="validate-artifact",
+        overall=validation_result["overall"],
+        action_id=action_id,
+        details={
+            "artifact_path": validation_result["artifact_path"],
+            "failure_count": len(validation_result["failures"]),
+            "failures": validation_result["failures"],
+        },
+    )
+
+    workspace.save_yaml_file(
+        workspace.resolve_output_path("validate-artifact", workspace_root, None),
+        validation_result,
+    )
+
+    if validation_result["overall"] != "pass":
+        result = {
+            "status": "validation_failed",
+            "action_id": action_id,
+            "validation": {
+                "overall": "fail",
+                "failure_count": len(validation_result["failures"]),
+                "failures": validation_result["failures"],
+                "advisories": validation_result["advisories"],
+            },
+            "state_update": None,
+            "gate": None,
+            "continue": False,
+        }
+        out_path = workspace.resolve_output_path("finalize-action", workspace_root, getattr(args, "output", None))
+        workspace.save_json_file(out_path, result)
+        print(f"\n[finalize-action] validation FAILED — {len(validation_result['failures'])} failure(s)")
+        for f in validation_result["failures"]:
+            print(f"  • {f}")
+        print("\nFix the artifact and run finalize-action again.")
+        return
+
+    previous_state = {
+        "current_stage": state.get("current_stage"),
+        "next_action": state.get("next_action"),
+    }
+    _, actions_by_id = workspace.load_stage_actions(workspace_root)
+    action = actions_by_id[action_id]
+
+    gate_state = None
+    artifact_status = action["status_model"]["artifact_on_pass"]
+    _apply_artifact_statuses(state, action, artifact_status)
+
+    iteration_mode = action.get("iteration_mode")
+    current_item = state.get("current_item")
+
+    if iteration_mode == "per_item":
+        if current_item:
+            item_key = f"{action_id}#{current_item}"
+            state.setdefault("action_item_status", {})[item_key] = artifact_status
+
+        all_items = _all_items_for_action(action, workspace_root)
+        all_done = all(
+            state["action_item_status"].get(f"{action_id}#{item}") in workspace.ACTION_STATUSES_COMPLETE
+            for item in all_items
+        )
+
+        if all_done:
+            state["action_status"][action_id] = artifact_status
+            state["last_completed_action"] = action_id
+        else:
+            state["action_status"][action_id] = workspace.ACTION_STATUS_IN_PROGRESS
+        state["current_item"] = None
+    else:
+        state["action_status"][action_id] = artifact_status
+        state["last_completed_action"] = action_id
+
+    state["active_action"] = None
+    state["next_action"] = None
+    state["blocked_reason"] = None
+    state["last_updated"] = _timestamp()
+    state["state_validated"] = True
+
+    for key, value in (action.get("on_pass", {}).get("update_state") or {}).items():
+        state[key] = value
+
+    _parse_routing_fields(workspace_root, state)
+    _parse_readiness_fields(workspace_root, state)
+
+    gate_action_id = _gate_action_id_for(action, actions_by_id)
+    if (action.get("human_gate") or {}).get("required") and gate_action_id:
+        human_gate = action.get("human_gate") or {}
+        gate_state = {
+            "gate_id": human_gate["gate_id"],
+            "action_id": gate_action_id,
+            "source_action_id": action_id,
+            "artifact_path": workspace.action_output_paths(action)[0] if workspace.action_output_paths(action) else None,
+            "status": "waiting_human",
+            "owner": human_gate["owner"],
+        }
+        if current_item:
+            gate_state["current_item"] = current_item
+        if human_gate.get("interaction_mode"):
+            gate_state["interaction_mode"] = human_gate["interaction_mode"]
+        if human_gate.get("rerun_action"):
+            gate_state["rerun_action"] = human_gate["rerun_action"]
+        clarification_file = human_gate.get("clarification_file")
+        if clarification_file:
+            gate_state["clarification_file"] = (
+                clarification_file.replace("{current_item}", current_item)
+                if current_item and "{current_item}" in clarification_file
+                else clarification_file
+            )
+        gate_state = _augment_gate_payload(workspace_root, gate_state, validation_result)
+        if _should_auto_accept_gate(gate_state):
+            accepted_status = action["status_model"]["artifact_on_gate_accept"]
+            _apply_gate_acceptance_to_action(
+                state, action, action_id, accepted_status, current_item, workspace_root,
+            )
+            state["awaiting_human"] = False
+            state["current_gate"] = None
+            state["blocked_reason"] = None
+            state["action_status"][gate_action_id] = "accepted"
+            state["last_completed_action"] = gate_action_id
+            gate_state = None
+        else:
+            state["awaiting_human"] = True
+            state["current_gate"] = gate_state
+            state["blocked_reason"] = f"waiting for {human_gate['owner']} review"
+            state["action_status"][gate_action_id] = "waiting_human"
+    else:
+        state["awaiting_human"] = False
+        state["current_gate"] = None
+
+    if dynamic_state.should_return_to_dynamic_assessment(
+        state, action_id, awaiting_human=state.get("awaiting_human", False),
+    ):
+        dynamic_state.reset_dynamic_orchestration_cycle(state, actions_by_id)
+        state["current_stage"] = "0-dynamic-assessment"
+        state["dynamic_stop_reason"] = None
+
+    if not state.get("awaiting_human"):
+        preview = next_step.select_next_action(workspace_root, state)
+        state["next_action"] = preview.get("selected_action")
+        if preview.get("overall") == "fail":
+            state["blocked_reason"] = preview.get("blocking_reason")
+
+    workspace.advance_lifecycle_phase(state, workspace.LIFECYCLE_IDLE)
+    workspace.save_state(workspace_root, state)
+
+    per_item_boundary = False
+    if iteration_mode == "per_item":
+        items = _items_for_action(action, state, workspace_root)
+        remaining = [
+            item for item in items
+            if state.get("action_item_status", {}).get(f"{action_id}#{item}") not in workspace.ACTION_STATUSES_COMPLETE
+        ]
+        per_item_boundary = len(remaining) > 0
+
+    result = {
+        "status": "gate_pending" if state.get("awaiting_human") else (
+            "complete" if state.get("next_action") is None else "continue"
+        ),
+        "action_id": action_id,
+        "validation": {
+            "overall": "pass",
+            "failure_count": 0,
+            "failures": [],
+            "advisories": validation_result["advisories"],
+        },
+        "state_update": {
+            "action_id": action_id,
+            "next_action": state.get("next_action"),
+            "current_stage": state.get("current_stage"),
+        },
+        "gate": gate_state,
+        "continue": not state.get("awaiting_human") and state.get("next_action") is not None,
+        "per_item_boundary": per_item_boundary,
+    }
+
+    out_path = workspace.resolve_output_path("finalize-action", workspace_root, getattr(args, "output", None))
+    workspace.save_json_file(out_path, result)
+
+    workspace.append_execution_log(
+        workspace_root,
+        command="update-state",
+        overall="pass",
+        action_id=action_id,
+        details={
+            "gate_state": gate_state,
+            "next_action": state.get("next_action"),
+        },
+    )
+
+    status = result["status"]
+    print(f"\n[finalize-action] {status}")
+    if status == "gate_pending":
+        print(f"  Gate: {gate_state.get('gate_id')} — waiting for {gate_state.get('owner')}")
+    elif status == "continue":
+        print(f"  Next action: {state.get('next_action')}")
+    elif status == "complete":
+        print("  Workflow complete — no further actions.")
+    if per_item_boundary:
+        print(f"  Per-item boundary: more items remain for {action_id}.")
+
 
 def repair_state(args: object) -> None:
     workspace_root = workspace.resolve_workspace_root(args.workspace_root)
@@ -451,7 +905,7 @@ def repair_state(args: object) -> None:
                 if current_gate is None:
                     current_gate = _augment_gate_payload(
                         workspace_root,
-                        _candidate_gate_payload(action, actions_by_id, action_id),
+                        _candidate_gate_payload(action, actions_by_id, action_id, state.get("current_item")),
                     )
                 last_completed_action = action_id
 
@@ -491,6 +945,7 @@ def repair_state(args: object) -> None:
 
     state["state_validated"] = True
     state["last_updated"] = _timestamp()
+    workspace.advance_lifecycle_phase(state, workspace.LIFECYCLE_IDLE)
     workspace.save_state(workspace_root, state)
     workspace.save_json_file(
         workspace.resolve_output_path("repair-state", workspace_root, args.output),

@@ -23,9 +23,12 @@ if str(SCRIPT_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPT_ROOT))
 
 from b2s_engine import inputs as inputs_module  # noqa: E402
+from b2s_engine import coverage as coverage_module  # noqa: E402
 from b2s_engine import validation as validation_module  # noqa: E402
 from b2s_engine import dispatch as dispatch_module  # noqa: E402
 from b2s_engine import state as state_module  # noqa: E402
+from b2s_engine import next_step  # noqa: E402
+from b2s_engine import workspace as workspace_module  # noqa: E402
 
 
 def run_cli(*args: str) -> subprocess.CompletedProcess[str]:
@@ -326,6 +329,197 @@ class EngineRuntimeTests(unittest.TestCase):
         }
         with self.assertRaisesRegex(FileNotFoundError, "family 'bmad'"):
             dispatch_module._resolve_skill_prompt(action, self.workspace_root, {})
+
+    def test_b2s_frontend_condition_ignores_template_placeholder_ui_text(self) -> None:
+        (self.workspace_root / "architecture").mkdir()
+        (self.workspace_root / "architecture" / "technical-landscape.md").write_text(
+            (REPO_ROOT / ".b2s" / "artifact-templates" / "technical-landscape.md").read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+        result = next_step.evaluate_condition(
+            "architecture/technical-landscape.md contains frontend",
+            {"action_status": {}},
+            self.workspace_root,
+            {},
+        )
+        self.assertFalse(result)
+
+    def test_b2s_frontend_condition_passes_for_structured_ui_repository(self) -> None:
+        (self.workspace_root / "architecture").mkdir()
+        (self.workspace_root / "architecture" / "technical-landscape.md").write_text(
+            textwrap.dedent(
+                """\
+                # Technical Landscape
+
+                ## Repositories
+
+                | Name | Status | Type | Technology | Responsibilities | Deployment Target |
+                |---|---|---|---|---|---|
+                | applicant-portal | existing | ui | React | customer submission UI | Static Web Apps |
+                """
+            ),
+            encoding="utf-8",
+        )
+        result = next_step.evaluate_condition(
+            "architecture/technical-landscape.md contains frontend",
+            {"action_status": {}},
+            self.workspace_root,
+            {},
+        )
+        self.assertTrue(result)
+
+    def test_next_step_persists_dynamic_selector_metadata_in_state(self) -> None:
+        workspace_module.ensure_runtime_layout(self.workspace_root)
+        workflow_dir = self.workspace_root / ".b2s" / "workflow"
+        workflow_dir.mkdir(parents=True, exist_ok=True)
+        dynamic_workflow_root = REPO_ROOT / ".b2s" / "workflow-types" / "b2s-dynamic"
+        shutil.copyfile(
+            dynamic_workflow_root / "stage-actions.yaml",
+            workflow_dir / "stage-actions.yaml",
+        )
+        shutil.copyfile(
+            dynamic_workflow_root / "workflow-definition.yaml",
+            workflow_dir / "workflow-definition.yaml",
+        )
+
+        state = self.read_json(".b2s/state/workflow-state.json")
+        state["workflow_type"] = "b2s-dynamic"
+        state["current_stage"] = "1-dynamic-selection"
+        state["action_status"] = {
+            "assess-dynamic-gaps": "accepted",
+        }
+        (self.workspace_root / ".b2s" / "state" / "workflow-state.json").write_text(
+            json.dumps(state, indent=2),
+            encoding="utf-8",
+        )
+
+        (self.workspace_root / "orchestration").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / "orchestration" / "dynamic-gap-assessment.md").write_text(
+            textwrap.dedent(
+                """\
+                # Dynamic Gap Assessment
+
+                ## Macro Phase
+
+                | Field | Value |
+                |---|---|
+                | Current macro phase | planning-and-epic-shaping |
+                | Assessment confidence | medium |
+                | Iteration count | 4 |
+
+                ## Ranked Gaps
+
+                | Gap ID | Category | Severity | Summary | Evidence | Suggested Actions |
+                |---|---|---|---|---|---|
+                | DYN-GAP-021 | planning_gap | high | Delivery plan missing | no planning artifacts yet | create-delivery-skeleton, create-elaboration-plan |
+                """
+            ),
+            encoding="utf-8",
+        )
+
+        run_cli("next-step", "--workspace-root", str(self.workspace_root))
+
+        next_step_result = self.read_json(".b2s/state/next-step.json")
+        updated_state = self.read_json(".b2s/state/workflow-state.json")
+
+        self.assertEqual(next_step_result["selected_action"], "select-dynamic-next-action")
+        self.assertEqual(next_step_result["selected_stage"], "1-dynamic-selection")
+        self.assertEqual(updated_state["dynamic_macro_phase"], "planning-and-epic-shaping")
+        self.assertEqual(updated_state["dynamic_confidence"], "medium")
+        self.assertEqual(updated_state["dynamic_focus_area"], None)
+        self.assertEqual(updated_state["dynamic_goal"], None)
+        self.assertEqual(updated_state["dynamic_last_selected_action"], "select-dynamic-next-action")
+        self.assertEqual(updated_state["dynamic_iteration_count"], 1)
+        self.assertEqual(updated_state["dynamic_last_assessment"]["selected_action"], "select-dynamic-next-action")
+        self.assertEqual(updated_state["dynamic_last_assessment"]["gap_id"], None)
+        self.assertEqual(len(updated_state["dynamic_gap_backlog"]), 1)
+
+    def test_next_step_bootstraps_dynamic_workspace_without_assessment_artifact(self) -> None:
+        workspace_module.ensure_runtime_layout(self.workspace_root)
+        workflow_dir = self.workspace_root / ".b2s" / "workflow"
+        workflow_dir.mkdir(parents=True, exist_ok=True)
+        dynamic_workflow_root = REPO_ROOT / ".b2s" / "workflow-types" / "b2s-dynamic"
+        shutil.copyfile(
+            dynamic_workflow_root / "stage-actions.yaml",
+            workflow_dir / "stage-actions.yaml",
+        )
+        shutil.copyfile(
+            dynamic_workflow_root / "workflow-definition.yaml",
+            workflow_dir / "workflow-definition.yaml",
+        )
+
+        state = self.read_json(".b2s/state/workflow-state.json")
+        state["workflow_type"] = "b2s-dynamic"
+        state["current_stage"] = "1-dynamic-selection"
+        (self.workspace_root / ".b2s" / "state" / "workflow-state.json").write_text(
+            json.dumps(state, indent=2),
+            encoding="utf-8",
+        )
+
+        run_cli("next-step", "--workspace-root", str(self.workspace_root))
+
+        next_step_result = self.read_json(".b2s/state/next-step.json")
+        updated_state = self.read_json(".b2s/state/workflow-state.json")
+
+        self.assertEqual(next_step_result["overall"], "pass")
+        self.assertEqual(next_step_result["selected_action"], "assess-dynamic-gaps")
+        self.assertEqual(next_step_result["selected_stage"], "0-dynamic-assessment")
+        self.assertEqual(updated_state["current_stage"], "0-dynamic-assessment")
+        self.assertEqual(updated_state["next_action"], "assess-dynamic-gaps")
+        self.assertEqual(updated_state["dynamic_last_selected_action"], "assess-dynamic-gaps")
+
+    def test_should_auto_accept_clarification_gate_when_no_blockers(self) -> None:
+        gate_state = {
+            "interaction_mode": "collect_answers",
+            "review_summary": {
+                "question_count": 0,
+                "no_blockers": True,
+            },
+        }
+        self.assertTrue(state_module._should_auto_accept_gate(gate_state))
+
+    def test_per_item_gate_acceptance_marks_current_item_and_promotes_when_all_done(self) -> None:
+        (self.workspace_root / "planning").mkdir()
+        (self.workspace_root / "planning" / "delivery-skeleton.md").write_text(
+            textwrap.dedent(
+                """\
+                ### E-001
+                ### E-002
+                """
+            ),
+            encoding="utf-8",
+        )
+        state = {
+            "action_status": {},
+            "action_item_status": {
+                "resolve-epic-open-questions#E-002": "accepted",
+            },
+        }
+        action = {
+            "action_id": "resolve-epic-open-questions",
+            "item_source": "planning/delivery-skeleton.md",
+            "item_pattern": "^###\\s+(E-\\d{3})",
+            "iteration_mode": "per_item",
+            "status_model": {
+                "artifact_on_gate_accept": "accepted",
+            },
+        }
+        actions_by_id = {
+            "resolve-epic-open-questions": action,
+        }
+        from b2s_engine import gates as gates_module
+        gates_module._apply_gate_acceptance_to_source_action(
+            self.workspace_root,
+            state,
+            "resolve-epic-open-questions",
+            actions_by_id,
+            "E-001",
+        )
+        self.assertEqual(
+            state["action_item_status"]["resolve-epic-open-questions#E-001"],
+            "accepted",
+        )
+        self.assertEqual(state["action_status"]["resolve-epic-open-questions"], "accepted")
 
     def test_action_summary_renders_business_intake_prompt_with_resolved_placeholders(self) -> None:
         (self.workspace_root / "routing").mkdir()
@@ -1126,18 +1320,67 @@ class EngineRuntimeTests(unittest.TestCase):
                 """\
                 # S-001.1 - Submit request
 
+                ## Metadata
+
                 | Field | Value |
                 |---|---|
-                | Layers | Frontend |
+                | Story ID | S-001.1 |
+                | Story Type | frontend-form |
+                | Epic | E-001 - Submit request |
+                | Actor | Analyst |
+                | Layers | frontend |
+                | Priority | Must |
+                | Increment | D1 |
+                | Status | Draft |
 
                 ## User Story
+
                 As an analyst, I want to submit a request, so that intake can begin.
 
                 ## Business Context
-                This story enables the first business step.
+
+                This story enables the first business step. It captures the initial request for downstream processing.
+
+                ## Linked Requirements
+
+                | ID | Requirement |
+                |---|---|
+                | REQ-001 | Submit request |
+
+                ## Requirements Implemented
+
+                - REQ-001
+
+                ## Requirements Referenced
+
+                - FR-003
+
+                ## In Scope
+
+                - Render submission flow
+                - Validate request details before submission
 
                 ## Implementation Guidance
-                Use epic context for now.
+
+                - **Entity:** Application
+                - **API:** POST /requests
+                - **Status:** Draft
+                - **Events:** request.submitted
+                - **Rules:** Validation must run before submit
+
+                ## Dependency Contracts
+
+                | Dependency | Type | Contract Consumed | Why It Matters |
+                |---|---|---|---|
+                | S-001.2 | Story | POST /requests returns 201 with requestId | Confirmation depends on backend acceptance |
+
+                ## UI Behaviour
+
+                - **Page:** Submit request /submit
+                - **Components affected:** form
+                - **Fields:** requestAmount with positive-number validation
+                - **States:** loading -> spinner | error -> inline errors | success -> confirmation
+                - **Flow:** submit form -> validate -> show confirmation
 
                 ## Acceptance Criteria
 
@@ -1155,8 +1398,96 @@ class EngineRuntimeTests(unittest.TestCase):
                   Then the request is rejected
                 ```
 
+                ```gherkin
+                Scenario: keyboard submission
+                  Given the form is complete
+                  When the analyst submits using the keyboard
+                  Then the request is accepted
+                ```
+
                 ## Test Expectations
-                Unit and integration coverage are required.
+
+                | Test Type | What to Test | Why | Automation |
+                |---|---|---|---|
+                | Unit | amount validator | invalid requests are blocked | Must automate |
+                | E2E | submission flow | analyst can submit a request | Automate |
+
+                ## Required Tests
+
+                - Unit: amount validator rejects invalid values
+                - E2E: submission flow succeeds
+                - Accessibility: keyboard submission works
+
+                ## Out of Scope
+
+                - Backend persistence
+
+                ## Dependencies
+
+                | Dependency | Type | Blocking? |
+                |---|---|---|
+                | S-001.2 | Story | Yes |
+
+                ## Open Questions
+
+                | ID | Question | Impact |
+                |---|---|---|
+                | OQ-001 | None identified | No blocker |
+                """
+            ),
+            encoding="utf-8",
+        )
+        (self.workspace_root / "epics" / "E-001-submit-request" / "stories" / "S-001.1-submit.agent.yaml").write_text(
+            textwrap.dedent(
+                """\
+                story_id: S-001.1
+                title: "Submit request"
+                story_type: "frontend-form"
+                layer: "frontend"
+                requirements_implemented:
+                  - REQ-001
+                requirements_referenced:
+                  - FR-003
+                depends_on:
+                  - story_id: "S-001.2"
+                    reason: "Confirmation depends on backend acceptance"
+                    consumes_contract:
+                      type: "api"
+                      summary: "POST /requests returns 201 with requestId"
+                blocks: []
+                in_scope:
+                  - "Render submission flow"
+                out_of_scope:
+                  - "Backend persistence"
+                implementation_contract:
+                  touched_components:
+                    - "Applicant Portal"
+                  touched_files_or_areas:
+                    - "submit form"
+                  data_inputs:
+                    - name: "requestAmount"
+                      type: "number"
+                      required: true
+                      validation: "positive value"
+                  operations:
+                    - type: "ui action"
+                      target: "/submit"
+                      expected_result: "Request is submitted"
+                  success_behavior:
+                    - "Show confirmation"
+                  error_handling:
+                    - "Show inline validation errors"
+                required_tests:
+                  unit:
+                    - "Amount validator rejects invalid values"
+                  integration: []
+                  api: []
+                  e2e:
+                    - "Submission flow succeeds"
+                  accessibility:
+                    - "Keyboard submission works"
+                done_evidence:
+                  - "Acceptance criteria mapped to automated tests"
                 """
             ),
             encoding="utf-8",
@@ -1168,6 +1499,204 @@ class EngineRuntimeTests(unittest.TestCase):
         )
         contract_check = next(check for check in checks if check["name"] == "epic_has_contract")
         self.assertEqual(contract_check["result"], "pass")
+        agent_check = next(check for check in checks if check["name"] == "story_agent_contract_required_tests_present")
+        self.assertEqual(agent_check["result"], "pass")
+
+    def test_epic_directory_validation_fails_for_invalid_agent_contract_content(self) -> None:
+        (self.workspace_root / "planning").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / "epics" / "E-001-submit-request" / "stories").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / ".b2s" / "state").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / ".b2s" / "state" / "workflow-state.json").write_text(
+            json.dumps({"current_item": None}),
+            encoding="utf-8",
+        )
+        (self.workspace_root / "planning" / "delivery-skeleton.md").write_text(
+            textwrap.dedent(
+                """\
+                # Delivery Skeleton
+
+                ## Application Layers
+
+                | Layer | Present? | Components | Notes |
+                |---|---|---|---|
+                | Backend | Yes | API | FastAPI |
+
+                ## Requirement Coverage
+
+                | REQ / FR | Feature | Epic | Status |
+                |---|---|---|---|
+                | FR-001 | F-001 | E-001 | Covered |
+                """
+            ),
+            encoding="utf-8",
+        )
+        (self.workspace_root / "epics" / "E-001-submit-request" / "epic.md").write_text(
+            "# E-001 - Submit request\n",
+            encoding="utf-8",
+        )
+        (self.workspace_root / "epics" / "E-001-submit-request" / "implementation-contract.md").write_text(
+            "# Implementation Contract\n\n## API Surface\n\nPOST endpoint.\n",
+            encoding="utf-8",
+        )
+        (self.workspace_root / "epics" / "E-001-submit-request" / "stories" / "S-001.1-submit.md").write_text(
+            textwrap.dedent(
+                """\
+                # S-001.1 - Submit request
+
+                ## Metadata
+
+                | Field | Value |
+                |---|---|
+                | Story ID | S-001.1 |
+                | Story Type | backend-endpoint |
+                | Epic | E-001 - Submit request |
+                | Actor | API owner |
+                | Layers | backend |
+                | Priority | Must |
+                | Increment | D1 |
+                | Status | Draft |
+
+                ## User Story
+
+                As an API owner, I want to accept a request, so that intake can begin.
+
+                ## Business Context
+
+                This story accepts incoming requests. It starts the intake flow.
+
+                ## Linked Requirements
+
+                | ID | Requirement |
+                |---|---|
+                | FR-001 | Submit request |
+
+                ## Requirements Implemented
+
+                - FR-001
+
+                ## Requirements Referenced
+
+                - FR-003
+
+                ## In Scope
+
+                - Accept request payload
+
+                ## Implementation Guidance
+
+                - **Entity:** Application
+                - **API:** POST /requests
+                - **Status:** Draft
+                - **Events:** request.submitted
+                - **Rules:** Validate request
+
+                ## Dependency Contracts
+
+                | Dependency | Type | Contract Consumed | Why It Matters |
+                |---|---|---|---|
+                | Database | External | stored request record | Request must persist |
+
+                ## Acceptance Criteria
+
+                ```gherkin
+                Scenario: happy path
+                  Given a valid request
+                  When the API accepts it
+                  Then the request is stored
+                ```
+
+                ```gherkin
+                Scenario: invalid request
+                  Given an invalid request
+                  When the API accepts it
+                  Then the request is rejected
+                ```
+
+                ```gherkin
+                Scenario: duplicate request
+                  Given the same request twice
+                  When the API accepts it
+                  Then the duplicate is handled safely
+                ```
+
+                ## Test Expectations
+
+                | Test Type | What to Test | Why | Automation |
+                |---|---|---|---|
+                | API | request contract | API correctness | Must automate |
+
+                ## Required Tests
+
+                - API: request contract test
+
+                ## Out of Scope
+
+                - Frontend rendering
+
+                ## Dependencies
+
+                | Dependency | Type | Blocking? |
+                |---|---|---|
+                | Database | External | Yes |
+
+                ## Open Questions
+
+                | ID | Question | Impact |
+                |---|---|---|
+                | OQ-001 | None identified | No blocker |
+                """
+            ),
+            encoding="utf-8",
+        )
+        (self.workspace_root / "epics" / "E-001-submit-request" / "stories" / "S-001.1-submit.agent.yaml").write_text(
+            textwrap.dedent(
+                """\
+                story_id: S-001.1
+                title: "Submit request"
+                story_type: "backend-endpoint"
+                layer: "backend"
+                requirements_implemented: []
+                requirements_referenced:
+                  - FR-001
+                  - FR-001
+                depends_on:
+                  - story_id: ""
+                    reason: ""
+                    consumes_contract: {}
+                blocks: []
+                in_scope: []
+                out_of_scope: []
+                implementation_contract:
+                  touched_components: []
+                  touched_files_or_areas: []
+                  data_inputs: []
+                  operations: []
+                  success_behavior: []
+                  error_handling: []
+                required_tests:
+                  unit: []
+                  integration: []
+                  api: []
+                  e2e: []
+                  accessibility: []
+                done_evidence: []
+                """
+            ),
+            encoding="utf-8",
+        )
+
+        checks = validation_module._validate_epic_folders_directory(
+            self.workspace_root / "epics",
+            self.workspace_root,
+        )
+        failed = {
+            check["name"]: check["result"]
+            for check in checks
+            if check["target"].endswith("S-001.1-submit.md/S-001.1-submit.agent.yaml")
+        }
+        self.assertEqual(failed["story_agent_contract_requirements_implemented_valid"], "fail")
+        self.assertEqual(failed["story_agent_contract_in_scope_present"], "fail")
+        self.assertEqual(failed["story_agent_contract_required_tests_present"], "fail")
 
     def test_coverage_claim_matches_evidence_detects_missing_story_file(self) -> None:
         (self.workspace_root / "planning").mkdir(parents=True, exist_ok=True)
@@ -1281,6 +1810,294 @@ class EngineRuntimeTests(unittest.TestCase):
             [],
         )
         self.assertEqual(result["result"], "pass")
+
+    def test_story_agent_contract_semantic_equivalence_passes_for_matching_pair(self) -> None:
+        stories_dir = self.workspace_root / "epics" / "E-001-submit-request" / "stories"
+        stories_dir.mkdir(parents=True, exist_ok=True)
+        (stories_dir / "S-001.1-submit.md").write_text(
+            textwrap.dedent(
+                """\
+                # S-001.1 - Submit request
+
+                ## Metadata
+
+                | Field | Value |
+                |---|---|
+                | Story Type | frontend-form |
+
+                ## Requirements Implemented
+
+                - REQ-001
+
+                ## Requirements Referenced
+
+                - FR-003
+
+                ## Implementation Guidance
+
+                - **API:** POST /requests
+
+                ## Dependency Contracts
+
+                | Dependency | Type | Contract Consumed | Why It Matters |
+                |---|---|---|---|
+                | S-001.2 | Story | POST /requests returns 201 | Confirmation depends on backend acceptance |
+
+                ## UI Behaviour
+
+                - **Page:** Submit request /submit
+
+                ## Dependencies
+
+                | Dependency | Type | Blocking? |
+                |---|---|---|
+                | S-001.2 | Story | Yes |
+                """
+            ),
+            encoding="utf-8",
+        )
+        (stories_dir / "S-001.1-submit.agent.yaml").write_text(
+            textwrap.dedent(
+                """\
+                story_id: S-001.1
+                title: "Submit request"
+                story_type: "frontend-form"
+                layer: "frontend"
+                requirements_implemented:
+                  - REQ-001
+                requirements_referenced:
+                  - FR-003
+                depends_on:
+                  - story_id: "S-001.2"
+                    reason: "Confirmation depends on backend acceptance"
+                    consumes_contract:
+                      type: "api"
+                      summary: "POST /requests returns 201"
+                implementation_contract:
+                  operations:
+                    - type: "api call"
+                      target: "POST /requests"
+                    - type: "ui action"
+                      target: "/submit"
+                """
+            ),
+            encoding="utf-8",
+        )
+
+        result = validation_module._rule_story_agent_contract_semantic_equivalence(
+            self.workspace_root / "epics",
+            self.workspace_root,
+            {},
+            "epics/",
+            [],
+        )
+        self.assertEqual(result["result"], "pass")
+
+    def test_story_agent_contract_semantic_equivalence_fails_for_mismatched_pair(self) -> None:
+        stories_dir = self.workspace_root / "epics" / "E-001-submit-request" / "stories"
+        stories_dir.mkdir(parents=True, exist_ok=True)
+        (stories_dir / "S-001.1-submit.md").write_text(
+            textwrap.dedent(
+                """\
+                # S-001.1 - Submit request
+
+                ## Metadata
+
+                | Field | Value |
+                |---|---|
+                | Story Type | backend-endpoint |
+
+                ## Requirements Implemented
+
+                - FR-001
+                - FR-002
+
+                ## Requirements Referenced
+
+                - FR-003
+
+                ## Implementation Guidance
+
+                - **API:** POST /requests
+
+                ## Dependencies
+
+                | Dependency | Type | Blocking? |
+                |---|---|---|
+                | S-001.4 | Story | Yes |
+                """
+            ),
+            encoding="utf-8",
+        )
+        (stories_dir / "S-001.1-submit.agent.yaml").write_text(
+            textwrap.dedent(
+                """\
+                story_id: S-001.1
+                title: "Submit request adapter"
+                story_type: "frontend-form"
+                layer: "frontend"
+                requirements_implemented:
+                  - FR-001
+                requirements_referenced:
+                  - FR-004
+                depends_on:
+                  - story_id: "S-001.2"
+                    reason: "Different dependency"
+                    consumes_contract:
+                      type: "api"
+                      summary: "POST /requests returns 201"
+                implementation_contract:
+                  operations:
+                    - type: "api call"
+                      target: "POST /other"
+                """
+            ),
+            encoding="utf-8",
+        )
+
+        result = validation_module._rule_story_agent_contract_semantic_equivalence(
+            self.workspace_root / "epics",
+            self.workspace_root,
+            {},
+            "epics/",
+            [],
+        )
+        self.assertEqual(result["result"], "fail")
+        self.assertIn("requirements_implemented", result["detail"])
+        self.assertIn("requirements_referenced", result["detail"])
+        self.assertIn("dependencies", result["detail"])
+        self.assertIn("operations missing from markdown context", result["detail"])
+
+    def test_compute_coverage_distinguishes_covered_referenced_spike_and_deferred(self) -> None:
+        (self.workspace_root / "requirements").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / "planning").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / "epics" / "E-001-intake" / "stories").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / "requirements" / "atomic-requirements.md").write_text(
+            textwrap.dedent(
+                """\
+                # Atomic Requirements
+
+                ### FR-001 - Submit request
+                Text
+
+                ### FR-002 - Perform bureau spike
+                Text
+
+                ### FR-003 - Show dashboard status
+                Text
+
+                ### FR-004 - Experian adapter
+                Text
+                """
+            ),
+            encoding="utf-8",
+        )
+        (self.workspace_root / "planning" / "delivery-skeleton.md").write_text(
+            textwrap.dedent(
+                """\
+                # Delivery Skeleton
+
+                ## Requirement Coverage
+
+                | REQ / FR | Feature | Epic | Status |
+                |---|---|---|---|
+                | FR-001 | F-001 | E-001 | Covered |
+                | FR-002 | F-002 | E-001 | Covered |
+                | FR-003 | F-003 | E-001 | Covered |
+                | FR-004 | F-004 | E-002 | Deferred - Wave 2 because external vendor onboarding is pending |
+                """
+            ),
+            encoding="utf-8",
+        )
+        (self.workspace_root / "epics" / "E-001-intake" / "stories" / "S-001.1-submit.md").write_text(
+            textwrap.dedent(
+                """\
+                # S-001.1 - Submit request
+
+                ## Metadata
+
+                | Field | Value |
+                |---|---|
+                | Story Type | backend-endpoint |
+
+                ## Requirements Implemented
+
+                - FR-001
+
+                ## Requirements Referenced
+
+                - FR-003
+                """
+            ),
+            encoding="utf-8",
+        )
+        (self.workspace_root / "epics" / "E-001-intake" / "stories" / "S-001.2-bureau-spike.md").write_text(
+            textwrap.dedent(
+                """\
+                # S-001.2 - Bureau spike
+
+                ## Metadata
+
+                | Field | Value |
+                |---|---|
+                | Story Type | spike |
+
+                ## Requirements Implemented
+
+                - FR-002
+                """
+            ),
+            encoding="utf-8",
+        )
+
+        result = coverage_module.compute_coverage(self.workspace_root)
+        rows = {row["req_id"]: row for row in result["coverage_matrix"]}
+
+        self.assertEqual(rows["FR-001"]["status"], "Covered")
+        self.assertEqual(rows["FR-002"]["status"], "Spike Only")
+        self.assertEqual(rows["FR-003"]["status"], "Referenced Only")
+        self.assertEqual(rows["FR-004"]["status"], "Deferred")
+        self.assertEqual(result["generated_coverage"]["covered"], 1)
+        self.assertEqual(result["generated_coverage"]["weak_coverage_count"], 2)
+        self.assertEqual(result["summary"]["deferred_wave_count"], 1)
+        self.assertEqual(result["suggested_fixes"][0]["action"], "needs_non_spike_implementation_story")
+
+    def test_coverage_classifications_acceptable_fails_for_weak_or_unjustified_deferred_coverage(self) -> None:
+        (self.workspace_root / ".b2s" / "tmp").mkdir(parents=True, exist_ok=True)
+        (self.workspace_root / ".b2s" / "tmp" / "computed-coverage.json").write_text(
+            json.dumps(
+                {
+                    "coverage_matrix": [
+                        {
+                            "req_id": "FR-001",
+                            "title": "Submit request",
+                            "scope": "in_scope",
+                            "status": "Referenced Only",
+                            "evidence": "Only referenced in epics/E-001/stories/S-001.1.md",
+                        },
+                        {
+                            "req_id": "FR-002",
+                            "title": "Experian adapter",
+                            "scope": "deferred_wave",
+                            "status": "Deferred",
+                            "evidence": "Deferred to E-002",
+                        },
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        result = validation_module._rule_coverage_classifications_acceptable(
+            self.workspace_root / "planning" / "fr-coverage.md",
+            self.workspace_root,
+            {},
+            "planning/fr-coverage.md",
+            [],
+        )
+        self.assertEqual(result["result"], "fail")
+        self.assertIn("Referenced Only", result["detail"])
+        self.assertIn("deferred without explicit rationale", result["detail"])
 
     def test_parse_routing_fields_accepts_light_workflow_recommendation(self) -> None:
         (self.workspace_root / "routing").mkdir(parents=True, exist_ok=True)
@@ -2042,6 +2859,111 @@ class ValidationProfileUnitTests(unittest.TestCase):
                 [],
             )
             self.assertTrue(all(result["result"] == "pass" for result in results))
+
+    def test_atomic_requirements_source_first_ids_pass_required_rules_when_summary_rule_is_optional(self) -> None:
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp)
+            (workspace_root / "input").mkdir(parents=True)
+            (workspace_root / "input" / "brs.md").write_text(
+                textwrap.dedent(
+                    """\
+                    # BRS
+
+                    ## Business objectives
+                    | ID | Objective |
+                    |---|---|
+                    | OBJ-001 | Improve intake speed |
+
+                    ## Functional requirements
+                    **FR-001** - Allow intake submission.
+
+                    ## Non-functional requirements
+                    | ID | Requirement |
+                    |---|---|
+                    | NFR-001 | Encrypt applicant data |
+                    """
+                ),
+                encoding="utf-8",
+            )
+
+            artifact = workspace_root / "atomic-requirements.md"
+            artifact.write_text(
+                textwrap.dedent(
+                    """\
+                    # Atomic Requirements
+
+                    ## Summary
+
+                    | Metric | Value |
+                    |---|---|
+                    | Total requirements | 99 |
+                    | Business objectives | 1 |
+                    | Functional | 1 |
+                    | Non-functional | 1 |
+                    | Constraints | 1 |
+
+                    ## Source Inventory
+
+                    | Source ID | Type | Title / Summary | Preserved In |
+                    |---|---|---|---|
+                    | OBJ-001 | Objective | Improve intake speed | OBJ-001 |
+                    | FR-001 | Functional | Allow intake submission | FR-001 |
+                    | NFR-001 | Non-functional | Encrypt applicant data | NFR-001 |
+                    | C-001 | Constraint | Data must remain in region | C-001 |
+
+                    ## Requirement Catalogue
+
+                    ### OBJ-001 - Improve intake speed
+
+                    **Source:** Business objectives | **Actor:** Product Owner | **Deps:** None
+
+                    THE SYSTEM SHALL reduce intake turnaround time.
+
+                    ### FR-001 - Allow intake submission
+
+                    **Source:** Functional requirements | **Actor:** Analyst | **Deps:** None
+
+                    WHEN an analyst submits an intake request,
+                    THE SYSTEM SHALL store the request and return a confirmation.
+
+                    ### NFR-001 - Encrypt applicant data
+
+                    **Source:** Non-functional requirements | **Actor:** Platform | **Deps:** FR-001
+
+                    THE SYSTEM SHALL encrypt applicant data at rest.
+
+                    ### C-001 - Regional data residency
+
+                    **Source:** Constraints | **Actor:** Platform | **Deps:** None
+
+                    THE SYSTEM SHALL keep applicant data in the approved region.
+                    """
+                ),
+                encoding="utf-8",
+            )
+
+            action = self._make_action(
+                action_id="create-atomic-requirements",
+                outputs={"primary": "requirements/atomic-requirements.md", "secondary": []},
+                validation_rules={
+                    "required": ["requirement_has_id", "source_brs_ids_preserved"],
+                    "optional": ["atomic_requirements_summary_matches_catalog"],
+                },
+            )
+            results = validation_module._run_named_validation_rules(
+                action,
+                artifact,
+                workspace_root,
+                "requirements/atomic-requirements.md",
+                [],
+            )
+
+            by_rule = {result["rule_name"]: result for result in results}
+            self.assertEqual(by_rule["requirement_has_id"]["result"], "pass")
+            self.assertEqual(by_rule["source_brs_ids_preserved"]["result"], "pass")
+            self.assertEqual(by_rule["atomic_requirements_summary_matches_catalog"]["result"], "fail")
+            self.assertEqual(by_rule["atomic_requirements_summary_matches_catalog"]["severity"], "optional")
 
 
 if __name__ == "__main__":

@@ -11,7 +11,7 @@ produces:    architecture/architecture-review.md
 
 ## When this skill is used
 
-Run this after business intake is accepted and routing is known. It produces the initiative-specific architecture authority used by downstream planning and readiness work.
+Run this after atomic requirements are created. It produces the initiative-specific architecture authority used by downstream planning and readiness work.
 
 ## Role for this task
 
@@ -19,14 +19,11 @@ You are a senior architect performing an initiative-specific architecture review
 
 ## Preconditions
 
-Before starting, verify:
-- at least one BRS source file is readable
-- `input/architecture.md` is readable if present
-- `business-intake/business-intake-summary.md` exists
-- `routing/routing-decision.md` exists
+Before starting, verify that all files listed in `{resolved_required_inputs}` exist and are readable.
 
 Optional context:
-- `business-analysis/business-rules.md`
+- `input/architecture.md`
+- `domain/business-rules.md`
 
 If `input/architecture.md` is missing, proceed with a BRS-driven review and flag the weaker basis explicitly.
 

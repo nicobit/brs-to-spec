@@ -28,8 +28,8 @@
 | Factor | Weight | Rationale |
 |---|---|---|
 | Business priority (Must > Should > Could) | High | {{rationale}} |
-| Architecture risk (from architecture-risks) | High | {{rationale}} |
-| Cross-cutting concerns (from architecture-impact-map) | Medium | {{rationale}} |
+| Architecture risk (from architecture-review) | High | {{rationale}} |
+| Cross-cutting concerns (from impacted-systems / solution-decisions) | Medium | {{rationale}} |
 | Dependency count (blocking others) | Medium | {{rationale}} |
 | Standalone capability (can deliver independently) | Low | {{rationale}} |
 
@@ -55,7 +55,7 @@
 
 | Epic | Depends On | Depended On By | Cross-Cutting Concerns | Architecture Risk |
 |---|---|---|---|---|
-| E-NNN | None / E-NNN | E-NNN | {{concerns from impact map}} | RISK-NNN / None |
+| E-NNN | None / E-NNN | E-NNN | {{concerns from impacted-systems}} | High / Medium / Low / None |
 
 ---
 

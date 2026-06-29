@@ -1,0 +1,17 @@
+{
+  "overall": "pass",
+  "action_id": "assess-dynamic-gaps",
+  "previous_state_summary": {
+    "current_stage": "0-dynamic-assessment",
+    "next_action": "assess-dynamic-gaps"
+  },
+  "applied_changes": {
+    "current_stage": "0-dynamic-assessment",
+    "artifact_status": {
+      "requirements/atomic-requirements.md": "ai_validated",
+      "orchestration/dynamic-gap-assessment.md": "ai_validated"
+    }
+  },
+  "next_action": "create-atomic-requirements",
+  "gate_state": null
+}

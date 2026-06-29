@@ -1,0 +1,58 @@
+story_id: S-NNN.N
+title: "{{Story Title}}"
+story_type: "{{frontend-form | frontend-page | backend-endpoint | event-consumer | schema-migration | generic}}"
+layer: "{{frontend | backend | infrastructure | integration}}"
+
+requirements_implemented:
+  - FR-NNN
+
+requirements_referenced: []
+
+depends_on:
+  - story_id: "{{S-NNN.N or external contract id}}"
+    reason: "{{why this dependency exists}}"
+    consumes_contract:
+      type: "{{api | event | schema | ui | external}}"
+      summary: "{{minimal contract needed by this story}}"
+
+blocks: []
+
+in_scope:
+  - "{{concrete behavior this story must implement}}"
+
+out_of_scope:
+  - "{{explicitly excluded behavior}}"
+
+implementation_contract:
+  touched_components:
+    - "{{component / service / page / module}}"
+  touched_files_or_areas:
+    - "{{repo area, path family, or component boundary when known}}"
+  data_inputs:
+    - name: "{{field or input name}}"
+      type: "{{text | number | date | object | event field}}"
+      required: true
+      validation: "{{concrete validation or rule}}"
+  operations:
+    - type: "{{ui action | api call | event handling | migration}}"
+      target: "{{route, endpoint, event, schema object}}"
+      expected_result: "{{observable result}}"
+  success_behavior:
+    - "{{observable success outcome}}"
+  error_handling:
+    - "{{observable error behavior}}"
+
+required_tests:
+  unit:
+    - "{{specific unit test obligation}}"
+  integration:
+    - "{{specific integration test obligation}}"
+  api:
+    - "{{specific API contract test obligation}}"
+  e2e:
+    - "{{specific end-to-end test obligation}}"
+  accessibility:
+    - "{{specific accessibility assertion when relevant}}"
+
+done_evidence:
+  - "{{artifact or proof that confirms story completion}}"

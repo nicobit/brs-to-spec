@@ -1,0 +1,44 @@
+story_id: S-003.0
+title: "Compliance e2e POC"
+story_type: "spike"
+layer: "integration"
+
+requirements_implemented:
+  - FR-012
+  - FR-014
+
+requirements_referenced:
+  - FR-013
+  - FR-015
+  - FR-016
+  - FR-017
+  - FR-018
+
+depends_on:
+  - story_id: S-002.0
+    reason: "Requires scoring.result events and explainability artifacts produced by scoring pipeline"
+    consumed_contract_summary: "scoring.result event with explainability reference"
+
+in_scope:
+  - "Synthetic AML failure -> create compliance case -> route to underwriter queue with explainability artifacts"
+
+out_of_scope:
+  - "Manual underwriter actions beyond queue visibility"
+
+implementation_contract:
+  touched_components:
+    - "AML connector"
+    - "Underwriter case API"
+  operations:
+    - type: "integration"
+      target: "aml.screen -> case.create"
+      expected_result: "case present in underwriter queue with explainability artifacts"
+
+required_tests:
+  integration:
+    - "Synthetic AML fail leads to case in queue"
+  unit:
+    - "Case creation input validation"
+
+done_evidence:
+  - "Compliance case created and queue record contains explainability artifact reference"

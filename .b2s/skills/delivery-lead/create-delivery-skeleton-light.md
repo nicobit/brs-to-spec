@@ -68,6 +68,17 @@ Document the layers in the skeleton under a `## Application Layers` section:
 
 Each layer that is present MUST be covered by at least one epic or feature. Do NOT collapse frontend into backend API stories — a form submission is NOT the same as a POST endpoint.
 
+### Step 2c - Incorporate solution decisions (when available)
+
+If `architecture/solution-decisions.md` exists in `{resolved_optional_inputs}`:
+
+1. Read the Repository Summary table — it lists every repository (new and existing) and the decisions targeting each.
+2. Note which requirements are linked to `create-new` decisions. Ensure those requirements are assigned to an epic — do not leave new-component decisions orphaned.
+3. Flag any epic that will need infrastructure or scaffolding stories during elaboration (because it contains requirements linked to `create-new` decisions).
+4. Do NOT assign repositories at the epic level — repository assignment happens at the story level during epic elaboration, since a single story can touch multiple repositories.
+
+If `architecture/solution-decisions.md` does NOT exist, skip this step.
+
 ### Step 3 - Define epics
 
 Group related requirements into epics. Each epic should represent a major business capability or delivery milestone.
@@ -114,6 +125,7 @@ Write `planning/delivery-skeleton.md` using `.b2s/artifact-templates/delivery-sk
 - [ ] Epic dependencies are documented
 - [ ] Risk levels are derived from architecture review
 - [ ] No story IDs, story counts, or story detail included
+- [ ] If solution decisions exist, no `create-new` decision is left without an owning epic
 - [ ] File is compact
 - [ ] No placeholder text remains
 

@@ -1,0 +1,28 @@
+{
+  "status": "complete",
+  "initiative_id": "I093-I3",
+  "current_stage": "3-epic-elaboration",
+  "message": "All workflow actions are complete. No further steps required.",
+  "next_cli_commands": [],
+  "action": null,
+  "integrity_warnings": [
+    {
+      "action_id": "gate-architecture-review",
+      "status": "accepted",
+      "issue": "unlogged",
+      "detail": "action 'gate-architecture-review' is 'accepted' but has no verified engine log entry (artifacts exist on disk \u2014 status may have been set outside the engine)"
+    },
+    {
+      "action_id": "gate-elaboration-plan-review",
+      "status": "accepted",
+      "issue": "unlogged",
+      "detail": "action 'gate-elaboration-plan-review' is 'accepted' but has no verified engine log entry (artifacts exist on disk \u2014 status may have been set outside the engine)"
+    },
+    {
+      "action_id": "gate-epic-review",
+      "status": "accepted",
+      "issue": "unlogged",
+      "detail": "action 'gate-epic-review' is 'accepted' but has no verified engine log entry (artifacts exist on disk \u2014 status may have been set outside the engine)"
+    }
+  ]
+}

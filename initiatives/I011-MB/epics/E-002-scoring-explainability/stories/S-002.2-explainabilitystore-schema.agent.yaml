@@ -1,0 +1,60 @@
+story_id: S-002.2
+title: "ExplainabilityStore schema and persistence"
+story_type: "generic"
+layer: "infrastructure"
+
+requirements_implemented:
+  - C-004
+  - FR-010
+
+requirements_referenced:
+  - FR-007
+
+depends_on:
+  - story_id: S-002.1
+    reason: receives explainability write requests from scoring service
+    consumes_contract:
+      type: "event"
+      summary: "application.scored -> explainability write"
+
+blocks: []
+
+in_scope:
+  - "Design and implement explainability trace persistence APIs"
+
+out_of_scope:
+  - "Archival beyond retention enforcement"
+
+implementation_contract:
+  touched_components:
+    - "ExplainabilityStore"
+  touched_files_or_areas:
+    - "services/explainability/"
+  data_inputs:
+    - name: "explainability_payload"
+      type: "object"
+      required: true
+      validation: "JSON schema as per explainability spec"
+  operations:
+    - type: "api"
+      target: "/api/v1/explainability"
+      expected_result: "persist trace and return explainability_ref"
+  success_behavior:
+    - "Return explainability_ref for persisted trace"
+  error_handling:
+    - "On storage failure, return 500 and record audit event"
+
+required_tests:
+  unit:
+    - "schema validation"
+  integration:
+    - "persistence round-trip"
+  api:
+    - "write/read contract tests"
+  e2e:
+    - "scoring->persist->read"
+  accessibility:
+    - "Not applicable"
+
+done_evidence:
+  - "ExplainabilityStore API and schema docs"

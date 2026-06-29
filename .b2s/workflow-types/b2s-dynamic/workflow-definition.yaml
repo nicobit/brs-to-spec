@@ -1,0 +1,44 @@
+version: 1
+framework: b2s
+description: >
+  Experimental dynamic workflow scaffold for loop-based BRS-to-spec orchestration.
+  This definition establishes isolated dynamic orchestration stages without
+  changing shared engine behavior for other workflow types.
+
+constraints:
+  single_active_action: true
+  max_active_actions: 1
+  state_files_orchestrator_only: true
+
+stages:
+  - id: "0-dynamic-assessment"
+    name: "Dynamic assessment"
+    description: "Assess current initiative artifacts and identify the most important unresolved gaps."
+    execution_mode: serial
+    actions:
+      - assess-dynamic-gaps
+    next_stages:
+      - id: "1-dynamic-selection"
+        condition: always
+
+  - id: "1-dynamic-selection"
+    name: "Dynamic selection"
+    description: "Select the next best specialist action based on the current gap assessment."
+    execution_mode: serial
+    actions:
+      - select-dynamic-next-action
+    next_stages:
+      - id: "2-dynamic-stop-review"
+        condition: always
+
+  - id: "2-dynamic-stop-review"
+    name: "Dynamic stop review"
+    description: "Evaluate whether to continue, pause for clarification, or stop the loop."
+    execution_mode: serial
+    actions:
+      - evaluate-dynamic-stop-condition
+    next_stages: []
+
+human_triggered_actions:
+  - create-brs
+  - spec-correction

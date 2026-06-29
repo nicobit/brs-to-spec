@@ -11,24 +11,38 @@
 
 ---
 
-## Coverage Summary
+## Planned Coverage Summary
 
 | Metric | Value |
 |---|---|
 | Total requirements (from atomic-requirements) | N |
-| Covered by at least one story | N |
+| Assigned to an epic in delivery skeleton | N |
+| Unassigned | N |
+| Planned coverage | N% |
+
+---
+
+## Generated Coverage Summary
+
+| Metric | Value |
+|---|---|
+| In-scope requirements (elaborated epics) | N |
+| Covered by implementation stories | N |
+| Weak coverage only (referenced or spike) | N |
 | Not covered | N |
-| Coverage percentage | N% |
+| Generated coverage | N% |
+| Deferred to later waves | N |
 
 ---
 
 ## Full Coverage Matrix
 
-| REQ / FR | Requirement Title | Capability | Epic | Feature | Story | Open Questions Propagated | Evidence | Status |
+| REQ / FR | Requirement Title | Epic | Feature | Story | Open Questions Propagated | Elaboration Status | Evidence | Status |
 |---|---|---|---|---|---|---|---|---|
-| REQ-001 | {{canonical title}} | CAP-NNN | E-NNN | F-NNN | S-NNN.N | Yes / No / N/A | {{story or traceability note}} | Covered |
-| REQ-002 | {{canonical title}} | CAP-NNN | E-NNN | F-NNN | S-NNN.N | Yes / No / N/A | {{story or traceability note}} | Covered |
-| REQ-003 | {{canonical title}} | — | — | — | — | No | {{why no story exists}} | **Not Covered** |
+| REQ-001 | {{canonical title}} | E-NNN | F-NNN | S-NNN.N | Yes / No / N/A | elaborated | {{story or traceability note}} | Covered |
+| REQ-002 | {{canonical title}} | E-NNN | F-NNN | S-NNN.N | Yes | elaborated | {{only referenced in story or only in spike story}} | Referenced Only / Spike Only |
+| REQ-003 | {{canonical title}} | E-NNN | — | — | N/A | planned | {{Deferred to E-NNN: explicit rationale}} | Deferred |
+| REQ-004 | {{canonical title}} | — | — | — | No | unassigned | {{why no story exists}} | **Not Covered** |
 
 ---
 
@@ -36,7 +50,7 @@
 
 | REQ / FR | Requirement Title | Reason | Recommended Action |
 |---|---|---|---|
-| REQ-NNN | {{canonical title}} | {{why not covered - out of scope, deferred, blocked, missing capability}} | {{what to do}} |
+| REQ-NNN | {{canonical title}} | {{why not covered - weak coverage, out of scope, deferred, blocked, missing capability}} | {{what to do}} |
 
 ---
 

@@ -1,0 +1,31 @@
+id: S-001.6.agent
+story_id: S-001.6
+title: "Integration: Experian / Email provider adapters"
+story_type: generic
+layer: integration
+requirements_implemented:
+  - FR-003
+requirements_referenced:
+  - FR-004
+in_scope:
+  - Implement Experian and email adapter contracts
+out_of_scope:
+  - Vendor onboarding
+depends_on:
+  - story_id: S-001.2
+    reason: receives requests initiated by the UI
+    consumed_contract: epics/E-001-intake-submission/implementation-contract.md
+implementation_contract:
+  path: external/experian-contract
+  version: 1
+  touched_components:
+    - Experian adapter
+    - Email adapter
+  operations:
+    - type: integration
+      target: Experian lookup
+required_tests:
+  unit:
+    - adapter unit tests
+  integration:
+    - Experian contract integration

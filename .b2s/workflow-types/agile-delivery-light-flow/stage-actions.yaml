@@ -74,7 +74,9 @@ actions:
     validation_rules:
       required:
         - "requirement_has_id"
-      optional: []
+        - "source_brs_ids_preserved"
+      optional:
+        - "atomic_requirements_summary_matches_catalog"
     validation_profile: catalog
     artifact_criticality: critical
     blocked_by_stage:
@@ -403,6 +405,8 @@ actions:
         - "planning/delivery-skeleton.md"
         - "epics/"
       optional: []
+    computed_inputs:
+      - coverage
     outputs:
       primary: "planning/fr-coverage.md"
       secondary: []

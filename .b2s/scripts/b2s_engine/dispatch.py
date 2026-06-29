@@ -38,6 +38,7 @@ SUPPORTED_PROMPT_PLACEHOLDERS = {
     "prompt_family",
     "template_mode",
     "current_item",
+    "item_folder",
 }
 
 
@@ -116,6 +117,7 @@ def _resolve_skill_prompt(action: dict[str, Any], workspace_root: Path, prompt_p
 def _collect_inputs(action: dict[str, Any], workspace_root: Path, current_item: str | None = None) -> dict[str, Any]:
     """Resolve required and optional inputs for an action."""
     collected = inputs_module.collect_action_inputs(action, workspace_root, current_item=current_item)
+    computed_inputs = inputs_module.generate_computed_inputs(action, workspace_root, current_item=current_item)
     return {
         "required_inputs": collected["required_inputs"],
         "optional_inputs": collected["optional_inputs"],
@@ -124,11 +126,12 @@ def _collect_inputs(action: dict[str, Any], workspace_root: Path, current_item: 
         "missing_policy_inputs": collected["missing_policy_inputs"],
         "inputs_ready": collected["overall"] == "pass",
         "prompt_placeholders": collected["prompt_placeholders"],
+        "computed_inputs": computed_inputs,
     }
 
 
-def _action_summary(action: dict[str, Any], workspace_root: Path) -> dict[str, Any]:
-    collected = _collect_inputs(action, workspace_root)
+def _action_summary(action: dict[str, Any], workspace_root: Path, current_item: str | None = None) -> dict[str, Any]:
+    collected = _collect_inputs(action, workspace_root, current_item=current_item)
     skill = _resolve_skill_prompt(action, workspace_root, collected["prompt_placeholders"])
     output_paths = workspace.action_output_paths(action)
     return {
@@ -152,6 +155,7 @@ def _action_summary(action: dict[str, Any], workspace_root: Path) -> dict[str, A
         "missing_policy_inputs": collected["missing_policy_inputs"],
         "inputs_ready": collected["inputs_ready"],
         "prompt_placeholders": collected["prompt_placeholders"],
+        "computed_inputs": collected["computed_inputs"],
         "rendered_skill_text": skill["rendered_skill_text"],
         "has_human_gate": bool((action.get("human_gate") or {}).get("required")),
         "gate_owner": (action.get("human_gate") or {}).get("owner"),
@@ -190,6 +194,26 @@ def _check_gate_receipt(workspace_root: Path, current_state: dict[str, Any]) -> 
             f"`approve-current-gate`."
         )
     return None
+
+
+def _clarification_wait_message(gate: dict[str, Any], current_state: dict[str, Any]) -> str:
+    clarification_file = gate.get("clarification_file")
+    rerun_action = gate.get("rerun_action")
+    gate_id = gate.get("gate_id")
+    if gate_id == "epic-clarification":
+        current_item = gate.get("current_item") or current_state.get("current_item", "(unknown)")
+        return (
+            f"Waiting for {gate.get('owner', 'human')} to provide clarification answers "
+            f"for epic `{current_item}`. "
+            f"Record answers in `{clarification_file or 'input/clarifications/<epic>.yaml'}` "
+            f"then approve the gate to rerun `{rerun_action or 'create-epic-shells'}`."
+        )
+    return (
+        f"Waiting for {gate.get('owner', 'human')} to provide clarification answers "
+        f"for solution design blockers. Record answers in "
+        f"`{clarification_file or 'input/clarifications/solution-design.yaml'}` "
+        f"then approve the gate to rerun `{rerun_action or 'create-solution-decisions'}`."
+    )
 
 
 def build_plan(workspace_root: Path) -> dict[str, Any]:
@@ -236,6 +260,19 @@ def build_plan(workspace_root: Path) -> dict[str, Any]:
     # --- gate check ---
     if current_state.get("awaiting_human"):
         gate = current_state.get("current_gate") or {}
+        interaction_mode = gate.get("interaction_mode")
+        next_commands = [
+            f"python .b2s/scripts/b2s_cli.py approve-current-gate --workspace-root <path>",
+            f"python .b2s/scripts/b2s_cli.py reject-current-gate --workspace-root <path>",
+        ]
+        if interaction_mode == "collect_answers":
+            message = _clarification_wait_message(gate, current_state)
+        else:
+            message = (
+                f"Waiting for {gate.get('owner', 'human')} to review "
+                f"artifact `{gate.get('artifact_path', '(unknown)')}`. "
+                "Run `approve-current-gate` or `reject-current-gate` to continue."
+            )
         plan = {
             "status": STATUS_GATE,
             "initiative_id": current_state.get("initiative_id"),
@@ -244,15 +281,10 @@ def build_plan(workspace_root: Path) -> dict[str, Any]:
             "gate_owner": gate.get("owner"),
             "artifact_path": gate.get("artifact_path"),
             "review_summary": gate.get("review_summary"),
-            "message": (
-                f"Waiting for {gate.get('owner', 'human')} to review "
-                f"artifact `{gate.get('artifact_path', '(unknown)')}`. "
-                "Run `approve-current-gate` or `reject-current-gate` to continue."
-            ),
-            "next_cli_commands": [
-                f"python .b2s/scripts/b2s_cli.py approve-current-gate --workspace-root <path>",
-                f"python .b2s/scripts/b2s_cli.py reject-current-gate --workspace-root <path>",
-            ],
+            "interaction_mode": interaction_mode,
+            "clarification_file": gate.get("clarification_file"),
+            "message": message,
+            "next_cli_commands": next_commands,
             "action": None,
         }
         if integrity_issues:
@@ -273,6 +305,10 @@ def build_plan(workspace_root: Path) -> dict[str, Any]:
         current_state["blocked_reason"] = selection["blocking_reason"]
     else:
         current_state["blocked_reason"] = None
+    if selection["selected_action"]:
+        workspace.advance_lifecycle_phase(current_state, workspace.LIFECYCLE_DISPATCHED)
+    else:
+        workspace.advance_lifecycle_phase(current_state, workspace.LIFECYCLE_IDLE)
     workspace.save_state(workspace_root, current_state)
     workspace.append_execution_log(
         workspace_root,
@@ -328,7 +364,11 @@ def build_plan(workspace_root: Path) -> dict[str, Any]:
         current_state["current_item"] = current_item
         workspace.save_state(workspace_root, current_state)
 
-    summary = _action_summary(action, workspace_root)
+    summary = _action_summary(action, workspace_root, current_item=current_item)
+
+    workspace.advance_lifecycle_phase(current_state, workspace.LIFECYCLE_INPUTS_COLLECTED)
+    workspace.save_state(workspace_root, current_state)
+
     workspace_str = str(workspace_root)
 
     after_skill_commands = [
@@ -400,17 +440,25 @@ def run(args: object) -> None:
         print(f"\n  Gate        : {plan.get('gate_id')}")
         print(f"  Owner       : {plan.get('gate_owner')}")
         print(f"  Artifact    : {plan.get('artifact_path')}")
+        if plan.get("interaction_mode") == "collect_answers":
+            print(f"  Clarify via : {plan.get('clarification_file')}")
         summary = plan.get("review_summary") or {}
         if summary:
             print(f"\n  Review summary:")
-            print(f"    Total epics                    : {summary.get('total_epics', 0)}")
-            print(f"    Total stories                  : {summary.get('total_stories', 0)}")
-            print(f"    Stories with 2+ AC             : {summary.get('stories_with_2_plus_acceptance_criteria', 0)}")
-            print(f"    Stories with open questions    : {summary.get('stories_with_open_questions', 0)}")
-            print(f"    Not Ready stories              : {summary.get('not_ready_stories', 0)}")
-            print(f"    Unknown requirement refs       : {summary.get('unknown_requirement_references', 0)}")
-            print(f"    Requirement title mismatches   : {summary.get('requirement_title_mismatches', 0)}")
-            print(f"    Coverage/semantic warnings     : {summary.get('coverage_or_semantic_warnings', 0)}")
+            if plan.get("interaction_mode") == "collect_answers":
+                if plan.get("gate_id") == "epic-clarification":
+                    print(f"    Epic ID                        : {summary.get('epic_id')}")
+                print(f"    Blocking questions             : {summary.get('question_count', 0)}")
+                print(f"    No blockers                    : {summary.get('no_blockers', False)}")
+            else:
+                print(f"    Total epics                    : {summary.get('total_epics', 0)}")
+                print(f"    Total stories                  : {summary.get('total_stories', 0)}")
+                print(f"    Stories with 2+ AC             : {summary.get('stories_with_2_plus_acceptance_criteria', 0)}")
+                print(f"    Stories with open questions    : {summary.get('stories_with_open_questions', 0)}")
+                print(f"    Not Ready stories              : {summary.get('not_ready_stories', 0)}")
+                print(f"    Unknown requirement refs       : {summary.get('unknown_requirement_references', 0)}")
+                print(f"    Requirement title mismatches   : {summary.get('requirement_title_mismatches', 0)}")
+                print(f"    Coverage/semantic warnings     : {summary.get('coverage_or_semantic_warnings', 0)}")
         print(f"\n  Run one of:")
         for cmd in plan["next_cli_commands"]:
             print(f"    {cmd}")

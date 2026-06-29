@@ -1,0 +1,63 @@
+overall: pass
+action_id: assess-dynamic-gaps
+artifact_path: orchestration/dynamic-gap-assessment.md
+checks:
+- name: file_exists
+  target: orchestration/dynamic-gap-assessment.md
+  result: pass
+  detail: artifact exists
+- name: validation_dispatch
+  target: dynamic-gap-assessment.md
+  result: pass
+  detail: 'template: orchestration/dynamic-gap-assessment.md'
+- name: non_empty_file
+  target: dynamic-gap-assessment.md
+  result: pass
+  detail: artifact has content
+- name: tmpl_section_summary
+  target: dynamic-gap-assessment.md
+  result: pass
+  detail: '## Summary section present'
+- name: tmpl_section_macro_phase
+  target: dynamic-gap-assessment.md
+  result: pass
+  detail: '## Macro Phase section present'
+- name: tmpl_section_ranked_gaps
+  target: dynamic-gap-assessment.md
+  result: pass
+  detail: '## Ranked Gaps section present'
+- name: tmpl_section_recommended_focus
+  target: dynamic-gap-assessment.md
+  result: pass
+  detail: '## Recommended Focus section present'
+- name: tmpl_section_notes
+  target: dynamic-gap-assessment.md
+  result: pass
+  detail: '## Notes section present'
+- name: tmpl_has_tables
+  target: dynamic-gap-assessment.md
+  result: pass
+  detail: artifact contains at least one table
+- name: tmpl_table_populated_macro_phase
+  target: dynamic-gap-assessment.md
+  result: pass
+  detail: '''## Macro Phase'' has content (table rows: 4, prose lines: 0)'
+- name: tmpl_table_populated_ranked_gaps
+  target: dynamic-gap-assessment.md
+  result: pass
+  detail: '''## Ranked Gaps'' has content (table rows: 6, prose lines: 0)'
+- name: tmpl_content_depth
+  target: dynamic-gap-assessment.md
+  result: pass
+  detail: artifact has 22 lines (minimum 20)
+- name: tmpl_placeholders_absent
+  target: dynamic-gap-assessment.md
+  result: pass
+  detail: no known placeholder markers found
+- name: validation_audit
+  target: orchestration/dynamic-gap-assessment.md
+  result: pass
+  detail: validation coverage is acceptable (dispatch=template, downstream_consumers=2)
+named_rule_results: []
+failures: []
+advisories: []

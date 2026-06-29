@@ -1,0 +1,192 @@
+{
+  "status": "ready",
+  "initiative_id": "I010-GB",
+  "current_stage": "5-coding-handoff",
+  "workflow_source": "local",
+  "message": "Ready to execute `create-epic-coding-handoffs` - Create coding handoffs for selected epics. Load b2s skill prompt at `.b2s/skills/engineering-lead/create-epic-coding-handoffs.md` and execute it, then run validate-artifact -> update-state -> dispatch-next.",
+  "action": {
+    "action_id": "create-epic-coding-handoffs",
+    "title": "Create coding handoffs for selected epics",
+    "stage_id": "5-coding-handoff",
+    "persona": "engineering-lead",
+    "prompt_family": "b2s",
+    "skill_ref": ".b2s/skills/engineering-lead/create-epic-coding-handoffs.md",
+    "requested_skill_ref": ".b2s/skills/engineering-lead/create-epic-coding-handoffs.md",
+    "fallback_skill_ref": null,
+    "fallback_used": false,
+    "skill_path": "C:\\Users\\nicol\\source\\brs-to-spec\\.b2s\\skills\\engineering-lead\\create-epic-coding-handoffs.md",
+    "skill_exists": true,
+    "artifact_template_ref": ".b2s/artifact-templates/epic-coding-handoff.md",
+    "output_paths": [
+      "epics/"
+    ],
+    "required_inputs": [
+      {
+        "path": "epics/",
+        "exists": true,
+        "matches": [
+          "epics/"
+        ]
+      },
+      {
+        "path": "planning/delivery-skeleton.md",
+        "exists": true,
+        "matches": [
+          "planning/delivery-skeleton.md"
+        ]
+      },
+      {
+        "path": "planning/fr-coverage.md",
+        "exists": true,
+        "matches": [
+          "planning/fr-coverage.md"
+        ]
+      },
+      {
+        "path": "requirements/atomic-requirements.md",
+        "exists": true,
+        "matches": [
+          "requirements/atomic-requirements.md"
+        ]
+      },
+      {
+        "path": "architecture/solution-decisions.md",
+        "exists": true,
+        "matches": [
+          "architecture/solution-decisions.md"
+        ]
+      },
+      {
+        "path": "architecture/impacted-systems.md",
+        "exists": true,
+        "matches": [
+          "architecture/impacted-systems.md"
+        ]
+      }
+    ],
+    "optional_inputs": [
+      {
+        "path": "input/selected-epics.md",
+        "exists": false,
+        "matches": []
+      },
+      {
+        "path": "architecture/architecture-review.md",
+        "exists": true,
+        "matches": [
+          "architecture/architecture-review.md"
+        ]
+      },
+      {
+        "path": "architecture/architecture-rules.md",
+        "exists": true,
+        "matches": [
+          "architecture/architecture-rules.md"
+        ]
+      },
+      {
+        "path": "architecture/ui-specification.md",
+        "exists": true,
+        "matches": [
+          "architecture/ui-specification.md"
+        ]
+      },
+      {
+        "path": "input/brs.md",
+        "exists": true,
+        "matches": [
+          "input/brs.md"
+        ]
+      }
+    ],
+    "policy_inputs": [],
+    "missing_required_inputs": [],
+    "missing_policy_inputs": [],
+    "inputs_ready": true,
+    "prompt_placeholders": {
+      "required_inputs": [
+        "epics/",
+        "planning/delivery-skeleton.md",
+        "planning/fr-coverage.md",
+        "requirements/atomic-requirements.md",
+        "architecture/solution-decisions.md",
+        "architecture/impacted-systems.md"
+      ],
+      "optional_inputs": [
+        "input/selected-epics.md",
+        "architecture/architecture-review.md",
+        "architecture/architecture-rules.md",
+        "architecture/ui-specification.md",
+        "input/brs.md"
+      ],
+      "resolved_required_inputs": [
+        "epics/",
+        "planning/delivery-skeleton.md",
+        "planning/fr-coverage.md",
+        "requirements/atomic-requirements.md",
+        "architecture/solution-decisions.md",
+        "architecture/impacted-systems.md"
+      ],
+      "resolved_optional_inputs": [
+        "architecture/architecture-review.md",
+        "architecture/architecture-rules.md",
+        "architecture/ui-specification.md",
+        "input/brs.md"
+      ],
+      "resolved_policy_inputs": [],
+      "primary_output": "epics/",
+      "secondary_outputs": [],
+      "artifact_template_ref": ".b2s/artifact-templates/epic-coding-handoff.md",
+      "prompt_family": "b2s",
+      "template_mode": "strict",
+      "current_item": null,
+      "item_folder": null
+    },
+    "computed_inputs": [],
+    "rendered_skill_text": "# Skill - Create Epic Coding Handoffs\n\n## Identity\n\n```text\nskill_id:    engineering-lead.create-epic-coding-handoffs\npersona:     engineering-lead\naction_id:   create-epic-coding-handoffs\nproduces:    epics/\n```\n\n## When this skill is used\n\nRun after implementation contracts exist for the selected epics. This is the final AI-coding handoff: the document a coding agent reads to build working software.\n\n## Role for this task\n\nYou are an engineering lead producing self-contained coding packages. The coding agent that reads your output should be able to implement the epic from this ONE document alone, without reading any other file.\n\n## Epic selection\n\nIf `input/selected-epics.md` exists, generate handoffs only for the `E-NNN` IDs listed there.\nIf it does not exist, generate handoffs for all epic folders that already contain `implementation-contract.md`.\n\n## Preconditions\n\nBefore starting, verify that all files listed in `- epics/\n- planning/delivery-skeleton.md\n- planning/fr-coverage.md\n- requirements/atomic-requirements.md\n- architecture/solution-decisions.md\n- architecture/impacted-systems.md` exist and are readable.\n\n**Coding readiness check:** Before generating the handoff, verify that the epic's implementation contract has no open design questions tagged as blocking implementation start. If blocking questions remain, stop and report them instead of generating the handoff. The validator will enforce this via the `epic_coding_readiness` rule.\n\n## Hard constraints\n\n- The coding handoff MUST be self-contained - include all content inline, do not write \"see implementation-contract.md\" or \"refer to story files\"\n- Copy the full data model (ER diagram + field table) from `implementation-contract.md` into the handoff\n- Copy the full OpenAPI spec from `implementation-contract.md` into the handoff\n- Copy ALL acceptance criteria from every story into the handoff - do not summarize or skip any Gherkin scenario\n- When a story agent contract exists, inline its scope boundaries, consumed contracts, and required tests into the story handoff section\n- Include business rules, events, and constraints inline\n- Specify story execution order with dependency rationale\n- Include concrete test requirements traceable to specific AC\n- Do not leave placeholder text\n- Do not invent requirements not present in the stories or contract\n- UI content included in the coding handoff is an inline delivery copy of the epic implementation contract and story set, not a new source of UI truth\n- Do not originate new routes, page behavior, fields, validation rules, or state behavior in this handoff\n- If a page remains `partial` or `blocked`, preserve that status and its blocking dependencies explicitly\n- Do not silently resolve or normalize unresolved UI blockers for the convenience of the coding agent\n\n## Instructions\n\n### Step 1 - Read all inputs\n\nRead the following for each selected epic:\n- `Noneepic.md`\n- `Noneimplementation-contract.md`\n- Every story file in `Nonestories/`\n- Every paired story agent contract in `Nonestories/*.agent.yaml` when present\n- `architecture/architecture-rules.md`\n- `requirements/atomic-requirements.md` (for BRS context on linked requirements)\n- `input/brs.md` (for original domain language and edge cases)\n- `architecture/solution-decisions.md` (if available - for repository and deployment context)\n- `architecture/impacted-systems.md` (if available - for system impact context)\n\nDo not start writing until all files are read completely.\n\n### Step 1b - Extract repository and deployment context (when available)\n\nIf `architecture/solution-decisions.md` exists, or stories already contain `## Technical Scope` sections:\n\n1. Find all decisions (SD-NNN) targeting this epic.\n2. Build a **Component Map** - every component this epic touches, with:\n   - Repository name (or \"monorepo\" if single-repo)\n   - Component type (api / ui / db / worker / integration / infrastructure)\n   - Technology stack (e.g., .NET 8, React/Next.js, Azure SQL)\n   - Deployment target (e.g., Azure App Service, Container Apps, Static Web Apps)\n   - New or existing\n3. Include this as **Section 0 - Component and Repository Map** at the top of the coding handoff.\n4. In Step 8, copy each story's `## Technical Scope` inline when present.\n5. If there is only one repository, the Component Map still applies - group by component type within the single repo.\n\nIf no solution decisions or technical scope exist, omit Section 0.\n\nIf stories do NOT have `## Technical Scope` but `input/architecture.md` is available, derive the component map from the architecture document.\n\n### Step 2 - Write Implementation Objective\n\nSummarize what this epic delivers and why. Reference the business value from `epic.md` and the original BRS.\n\n### Step 3 - Write Scope\n\n**In Scope:** list every concrete deliverable from the stories.\n**Out of Scope:** list everything that is NOT in the stories but a developer might assume is included. Be specific.\n**Constraints:** extract architecture rules, NFR targets, and security constraints that apply to this epic.\n\n### Step 4 - Inline the Data Model\n\nCopy the ER diagram and field definitions from `implementation-contract.md` into Section 3. Include:\n- Every entity with all fields, types, required flag, and validation rules\n- State machines if the entity has lifecycle states\n- Field constraints from the BRS\n\nDo NOT summarize - include the full model.\n\n### Step 5 - Inline the API Specification\n\nCopy the OpenAPI spec from `implementation-contract.md` into Section 4. Include:\n- Every endpoint with full request/response schemas\n- All error responses (400, 403, 404, 422, 500)\n- Required vs optional fields\n\nDo NOT summarize - include the full spec.\n\n### Step 5b - Inline UI Specification (when applicable)\n\nIf `implementation-contract.md` has a `## UI Surface` section, copy it into Section 5 of the handoff. Include:\n- Every page with route, layout, and component arrangement\n- Specification status and blocking dependencies for each page\n- Form fields with types, validation rules, and defaults\n- Data binding to API endpoints with Contract Mode\n- States: loading, error, success behaviors\n- User flows: step-by-step navigation\n\nPages with specification status `partial` or `blocked` must be clearly marked in the handoff. The coding agent must not treat these pages as ready to implement - they require resolution of their blocking dependencies first. Include the blocking open questions so the coding agent knows what is unresolved.\nDo not originate new UI facts here - this section must remain an inline delivery copy of scoped upstream truth.\n\nIf the epic has no frontend pages, omit Section 5 entirely.\n\n### Step 6 - Inline Events and Business Rules\n\nCopy events table and business rules table from `implementation-contract.md`. Include event payload schemas.\n\n### Step 7 - Determine Story Execution Order\n\nRead all stories and their dependencies. Produce an execution order:\n- foundation stories first\n- then stories that depend on the foundation\n- integration stories after core logic\n- UI stories that consume the API last\n\n### Step 8 - Inline ALL Acceptance Criteria\n\nFor EACH story, in execution order:\n- Write the story type\n- Write implemented requirements and referenced requirements\n- Write the user story statement\n- Write in-scope and out-of-scope summary\n- Write implementation guidance (entity, API, events, rules - referencing the sections above)\n- Inline dependency contracts from the paired `.agent.yaml` when present\n- Copy EVERY acceptance criterion with its full Gherkin scenario\n- Include test type, criticality, and automation tags\n- Do NOT skip any scenario - the coding agent will implement exactly what is specified\n\n### Step 9 - Write Test Requirements\n\nFor each test type (unit, integration, API contract, E2E):\n- List specific tests to write\n- Trace each test to a specific AC\n- Include criticality level\n- When a story agent contract exists, copy its required tests into a story-specific test obligations table\n\n### Step 10 - Document Risks and Open Questions\n\nCopy unresolved risks and open questions from stories and the implementation contract. For each, state what breaks if unresolved.\n\n### Step 11 - Write Definition of Done\n\nInclude the standard checklist from the template. Add epic-specific items if needed.\n\n## Output requirements\n\nWrite `Nonecoding-handoff.md` using `.b2s/artifact-templates/epic-coding-handoff.md`.\n\nThe output must be a complete, standalone coding package. A coding agent reading only this file should know:\n- what to build\n- how it should behave\n- what NOT to build\n- what order to build it\n- how to verify it works\n- what constraints apply\n\n## Done criteria\n\n- [ ] Every selected epic has `coding-handoff.md`\n- [ ] Data model is inline with full field definitions\n- [ ] API spec is inline with full OpenAPI\n- [ ] ALL acceptance criteria from ALL stories are present\n- [ ] Story execution order is specified with rationale\n- [ ] Test requirements are traceable to specific AC\n- [ ] Risks and open questions are explicit\n- [ ] No placeholder text remains\n- [ ] No references to external files - everything is inline\n- [ ] If solution decisions or technical scope exist, Section 0 (Component and Repository Map) is present\n- [ ] If stories have Technical Scope, each story section in the handoff includes the concrete work per component\n- [ ] If story agent contracts exist, each story section includes their scope boundaries and dependency contracts\n\n## Stop conditions\n\n- If `implementation-contract.md` does not exist for a selected epic, skip that epic and report it\n- If no story files exist for a selected epic, skip that epic and report it\n\n## Notes for the staged engine\n\n- Do not mention event completion, result files, or dispatcher status\n- Validation and state updates are handled by the `.b2s` engine\n",
+    "has_human_gate": false,
+    "gate_owner": null
+  },
+  "after_skill_commands": [
+    "python .b2s/scripts/b2s_cli.py validate-artifact --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I010-GB\"",
+    "python .b2s/scripts/b2s_cli.py update-state --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I010-GB\"",
+    "python .b2s/scripts/b2s_cli.py dispatch-next --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I010-GB\""
+  ],
+  "next_cli_commands": [
+    "python .b2s/scripts/b2s_cli.py validate-artifact --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I010-GB\"",
+    "python .b2s/scripts/b2s_cli.py update-state --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I010-GB\"",
+    "python .b2s/scripts/b2s_cli.py dispatch-next --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I010-GB\""
+  ],
+  "integrity_warnings": [
+    {
+      "action_id": "gate-architecture-review",
+      "status": "accepted",
+      "issue": "unlogged",
+      "detail": "action 'gate-architecture-review' is 'accepted' but has no verified engine log entry (artifacts exist on disk \u2014 status may have been set outside the engine)"
+    },
+    {
+      "action_id": "gate-solution-design-review",
+      "status": "accepted",
+      "issue": "unlogged",
+      "detail": "action 'gate-solution-design-review' is 'accepted' but has no verified engine log entry (artifacts exist on disk \u2014 status may have been set outside the engine)"
+    },
+    {
+      "action_id": "gate-elaboration-plan-review",
+      "status": "accepted",
+      "issue": "unlogged",
+      "detail": "action 'gate-elaboration-plan-review' is 'accepted' but has no verified engine log entry (artifacts exist on disk \u2014 status may have been set outside the engine)"
+    },
+    {
+      "action_id": "gate-epic-clarification",
+      "status": "accepted",
+      "issue": "unlogged",
+      "detail": "action 'gate-epic-clarification' is 'accepted' but has no verified engine log entry (artifacts exist on disk \u2014 status may have been set outside the engine)"
+    },
+    {
+      "action_id": "gate-epic-review",
+      "status": "accepted",
+      "issue": "unlogged",
+      "detail": "action 'gate-epic-review' is 'accepted' but has no verified engine log entry (artifacts exist on disk \u2014 status may have been set outside the engine)"
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+id: S-001.4
+title: "Status lookup API"
+story_id: S-001.4
+story_type: backend-endpoint
+layer: backend
+requirements_implemented:
+  - FR-005
+requirements_referenced:
+  - NFR-004
+in_scope:
+  - GET /api/intake/status lookup by arn and dob
+out_of_scope:
+  - UI rendering
+depends_on: []
+implementation_contract:
+  api:
+    - path: /api/intake/status
+      method: GET
+      operationId: lookupStatus
+  touched_components:
+    - Intake API service
+  operations:
+    - type: api
+      target: GET /api/intake/status
+  api_contract:
+    - OpenAPI conformance
+required_tests:
+  unit:
+    - lookup logic
+  integration:
+    - database lookup and response schema
+  api_contract:
+    lookupStatus:
+      - responses: [200, 404]
+      - body_contains: status
+  api:
+    - contract

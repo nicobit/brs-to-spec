@@ -1,0 +1,30 @@
+id: S-001.5.agent
+story_id: S-001.5
+title: "Infrastructure: Provision intake service and storage"
+story_type: generic
+layer: infrastructure
+requirements_implemented:
+  - FR-006
+  - NFR-001
+  - NFR-003
+requirements_referenced:
+  - NFR-002
+in_scope:
+  - Provision compute, storage, CI/CD pipeline
+out_of_scope:
+  - Application feature work
+depends_on: []
+implementation_contract:
+  path: infra/shared-templates
+  version: 1
+  touched_components:
+    - IaC templates
+    - Storage account
+  operations:
+    - type: infra
+      target: provision resources
+required_tests:
+  integration:
+    - pipeline smoke deploy
+  smoke:
+    - pipeline smoke deploy

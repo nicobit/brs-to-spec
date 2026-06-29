@@ -42,7 +42,7 @@ Do not start writing until all inputs are read completely.
 
 ### Step 2 - Extract epic list and dependency information
 
-From `delivery-skeleton.md`, extract all epics with their features, story counts, and priority breakdown (Must/Should/Could). From `architecture-impact-map.md`, extract which epics have cross-cutting system impacts or shared component dependencies. From `architecture-risks.md`, extract which epics carry the most risk.
+From `delivery-skeleton.md`, extract all epics with their features, story counts, and priority breakdown (Must/Should/Could). From `architecture/architecture-review.md`, extract risk levels and quality attribute concerns per feature area. From `architecture/impacted-systems.md` (if available), extract which epics have cross-cutting system impacts or shared component dependencies.
 
 ### Step 3 - Analyse inter-epic dependencies
 
@@ -50,7 +50,7 @@ For each epic, determine:
 1. Which other epics it depends on (shared data models, shared APIs, shared infrastructure components, upstream events)
 2. Which other epics depend on it (downstream consumers)
 3. Whether it has cross-cutting architectural concerns (touches the same components as other epics)
-4. Its risk level from architecture-risks.md
+4. Its risk level from the architecture review
 
 ### Step 4 - Propose wave ordering
 

@@ -1,0 +1,70 @@
+epic_id: E-001
+status:
+  resolution_mode: full
+  last_updated: 2026-06-28
+source_context:
+  implementation_contract: epics/E-001-intake-submission/implementation-contract.md
+  ui_specification: architecture/ui-specification.md
+answers:
+  - question_id: UIQ-001
+    route: /api/intake/submit
+    page: Application Form (/applications/new)
+    topic: Intake API contract
+    answer: |
+      Request JSON (application/json):
+        {
+          "full_name": "string",            # required
+          "dob": "YYYY-MM-DD",              # required, date
+          "ni_number": "string",            # required
+          "annual_income": number,            # required
+          "loan_amount": number,              # required, 1000..50000
+          "repayment_term_months": integer,   # required, 12..84
+          "loan_purpose": "string"           # optional, enum
+        }
+
+      Success (201 Created):
+        {
+          "arn": "APP-xxxxxxxxxxxx"
+        }
+
+      Error (400 Bad Request):
+        {
+          "errors": [
+            { "field": "loan_amount", "message": "must be between 1000 and 50000" }
+          ]
+        }
+
+    impact: UI data bindings and story acceptance criteria; required to finalise form contracts
+    resolved_by: delivery-lead
+    resolved_at: 2026-06-28
+    artefacts_to_update:
+      - epics/E-001-intake-submission/implementation-contract.md
+      - epics/E-001-intake-submission/clarification-request.md
+
+  - question_id: UIQ-002
+    route: /api/intake/status
+    page: Status Lookup (/applications/status)
+    topic: Status lookup parameters and response schema
+    answer: |
+      Query parameters (required):
+        - arn (string)   # required
+        - dob (YYYY-MM-DD)   # required
+
+      Success (200 OK):
+        {
+          "arn": "APP-xxxxxxxxxxxx",
+          "status": "submitted|scoring|pending|approved|declined",
+          "last_update": "2026-06-28T12:34:56Z",
+          "decision_reason": "string (optional)"
+        }
+
+      If only ARN is provided without DOB, the API returns 400 Bad Request.
+
+    impact: Required for status page stories and contract tests
+    resolved_by: delivery-lead
+    resolved_at: 2026-06-28
+    artefacts_to_update:
+      - epics/E-001-intake-submission/implementation-contract.md
+      - architecture/ui-specification.md
+
+unresolved: []

@@ -137,6 +137,49 @@ components:
 
 ---
 
+## UI Surface
+
+*Include only if this epic delivers user-facing pages. Derive from `architecture/ui-specification.md`, scoped to pages owned by this epic.*
+
+This section is a scoped extract from `architecture/ui-specification.md`.
+
+Rules:
+- Do not originate new initiative-level UI truth here.
+- Preserve `Specification Status`, `Blocking Dependencies`, and `Contract Mode` from the source UI specification unless explicit clarification resolves them.
+- If epic-local clarification changes a UI fact, reference the originating `UIQ-*` or clarification answer in `## Open Design Questions`.
+
+### Pages Owned by This Epic
+
+| Page | Route | Application | Specification Status | Blocking Dependencies | Linked FRs |
+|---|---|---|---|---|---|
+| {{page name}} | {{/route}} | {{app name}} | {{confirmed/inferred/partial/blocked}} | {{UIQ-NNN, GAP-NNN or "none"}} | {{FR-NNN}} |
+
+*Pages with status `partial` or `blocked` have unresolved dependencies. These must be resolved before the page enters active story generation. Carry blocking open questions into the `## Open Design Questions` section below.*
+
+### Page: {{Page Name}}
+
+**Layout:** {{component arrangement}}
+**Specification status:** {{confirmed/inferred/partial/blocked}}
+**Blocking dependencies:** {{UIQ-NNN, GAP-NNN or "none"}}
+
+**Form fields** (if applicable):
+
+| Field | Type | Required | Validation | Source |
+|---|---|---|---|---|
+| {{field}} | {{text/select/date/currency}} | {{Yes/No}} | {{concrete rule}} | {{FR-NNN}} |
+
+**Data binding:**
+
+| Component | Endpoint | Method | Contract Mode | Notes |
+|---|---|---|---|---|
+| {{form/table}} | {{/api/v1/...}} | {{POST/GET}} | {{confirmed/partial/mock/unknown}} | {{what is sent/shown}} |
+
+**States:** loading → {{behavior}} | error → {{behavior}} | success → {{behavior}}
+
+**User flow:** {{step-by-step: user action → system response → navigation}}
+
+---
+
 ## Non-Functional Constraints
 
 *Include only constraints that affect implementation for this epic.*

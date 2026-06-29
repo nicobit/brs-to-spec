@@ -21,5 +21,17 @@
   "current_gate": null,
   "blocked_reason": null,
   "state_validated": false,
+  "dynamic_goal": null,
+  "dynamic_macro_phase": null,
+  "dynamic_gap_backlog": [],
+  "dynamic_focus_area": null,
+  "dynamic_iteration_count": 0,
+  "dynamic_last_assessment": null,
+  "dynamic_last_selected_action": null,
+  "dynamic_stop_reason": null,
+  "dynamic_confidence": null,
+  "dynamic_repeat_gap_count": 0,
+  "current_wave": 0,
+  "action_lifecycle_phase": "idle",
   "last_updated": null
 }

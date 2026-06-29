@@ -53,6 +53,10 @@ Pass / Fail
 
 {{What information is needed to resolve failures.}}
 
+#### AI Readiness Gaps
+
+{{If AI-safe to implement fails, identify whether the problem is ambiguous ownership, hidden dependency, vague tests, missing contract detail, or broken references.}}
+
 #### Suggested Rewrite
 
 {{Specific suggestions for fixing a failed story, if applicable.}}

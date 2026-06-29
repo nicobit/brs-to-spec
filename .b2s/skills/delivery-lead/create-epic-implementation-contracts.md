@@ -49,9 +49,24 @@ For each selected epic:
 - list data fields, state values, APIs, events, business rules, and non-functional constraints
 - collect unresolved design questions that still block coding
 
+### Step 2b - Incorporate solution decisions (when available)
+
+If `architecture/solution-decisions.md` exists in `{resolved_optional_inputs}`:
+
+1. Find all decisions (SD-NNN) targeting this epic's requirements.
+2. Use them as the starting point for the contract sections:
+   - **Data Entities**: use `create-new` and `alter-existing` data decisions to define entities, fields, and migration approach — do not invent a different schema.
+   - **API Surface**: use API decisions to define endpoints, protocol, and versioning — if the decision says `create-new` on a specific service, the OpenAPI spec must target that service.
+   - **Events**: derive domain events from the decision's integration and service boundaries.
+3. Include a `## Solution Decision Traceability` section at the end listing each SD-NNN that applies to this epic and how it is reflected in the contract.
+
+If `architecture/solution-decisions.md` does NOT exist, derive all contract content from the BRS and architecture inputs as before.
+
 ### Step 3 - Write the contract
 
-Create `epics/E-NNN-<slug>/implementation-contract.md` using `.b2s/artifact-templates/implementation-contract.md`.
+Create `{item_folder}implementation-contract.md` using `.b2s/artifact-templates/implementation-contract.md`.
+
+When `{item_folder}` is provided by the engine, use it as the exact folder path. Never construct the folder path manually from the epic ID.
 
 Include only relevant sections:
 - `## Data Entities`
@@ -67,6 +82,8 @@ Include only relevant sections:
 - [ ] Contract sections are evidence-based and relevant
 - [ ] Canonical requirement traceability is preserved
 - [ ] Open design questions are explicit
+- [ ] If solution decisions exist, contract sections are consistent with the decisions
+- [ ] If solution decisions exist, SD-NNN traceability section is present
 - [ ] No placeholder text remains
 
 ## Notes for the staged engine

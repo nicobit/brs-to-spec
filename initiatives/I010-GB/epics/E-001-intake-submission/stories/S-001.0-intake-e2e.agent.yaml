@@ -1,0 +1,40 @@
+id: S-001.0
+title: "Intake: end-to-end POC"
+story_id: S-001.0
+story_type: generic
+spike: true
+spike_justification: "End-to-end POC requiring research across backend, integrations and mocks; kept as a spike for investigation and design decisions."
+layer: backend
+requirements_implemented:
+  - FR-001
+requirements_referenced:
+  - NFR-001
+  - NFR-004
+in_scope:
+  - End-to-end submission flow using mock scoring and email providers
+  - ARN generation and publication of application.submitted event
+out_of_scope:
+  - Third-party vendor integration in production
+depends_on: []
+implementation_contract:
+  touched_components:
+    - Intake API service
+  operations:
+    - type: spike
+      target: End-to-end submission POC (uses mocks; does not claim exclusive API ownership)
+required_tests:
+  unit:
+    - Validation and ARN generation
+  integration:
+    - Event publication and mock consumer receipt
+  e2e:
+    - End-to-end POC with mocks
+  api_contract:
+    - OpenAPI conformance
+    - Response schema validation
+mocks:
+  scoring_consumer: true
+  email_provider: true
+traces:
+  - event: application.submitted
+    expected_fields: [arn, applicant_id, submitted_at]

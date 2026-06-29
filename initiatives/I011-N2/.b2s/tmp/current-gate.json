@@ -1,7 +1,0 @@
-{
-  "overall": "pass",
-  "gate_id": "elaboration-plan-review",
-  "artifact_path": "planning/elaboration-plan.md",
-  "decision": "approved",
-  "blocking_reason": null
-}

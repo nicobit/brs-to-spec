@@ -16,6 +16,7 @@
 | Metric | Value |
 |---|---|
 | Total requirements | N |
+| Business objectives | N |
 | Functional | N |
 | Non-functional | N |
 | Data | N |
@@ -23,56 +24,80 @@
 | Security | N |
 | Operational | N |
 | Reporting | N |
+| Constraints | N |
 | Blocking questions | N |
+
+---
+
+## Source Inventory
+
+| Source ID | Type | Title / Summary | Preserved In |
+|---|---|---|---|
+| OBJ-001 | Objective | {{Business objective summary}} | OBJ-001 |
+| FR-001 | Functional | {{Original BRS functional requirement title}} | FR-001 |
+| NFR-001 | Non-functional | {{Original BRS non-functional requirement title}} | NFR-001 |
+| C-001 | Constraint | {{Constraint summary}} | C-001 |
 
 ---
 
 ## Requirement Catalogue
 
-### REQ-001 — {{Requirement Title}}
+### FR-001 - {{Short title}}
 
-| Field | Value |
-|---|---|
-| Type | Functional / Non-functional / Data / Integration / Security / Operational / Reporting |
-| Source Section | {{BRS section reference}} |
-| Actor | {{business actor or system}} |
-| Business Object | {{primary business object}} |
-| Trigger / Event | {{what initiates this requirement}} |
-| Expected Outcome | {{observable result}} |
-| Dependencies | {{other REQ-NNN or external dependency}} |
-| Ambiguities | {{unclear aspects, if any}} |
-| Assumptions | {{assumptions made, if any}} |
-| Blocking Questions | {{questions that must be resolved before implementation}} |
+**Source:** {{BRS section}} | **Actor:** {{actor}} | **Deps:** {{FR-NNN or None}}
 
-#### Requirement Text
+WHEN {{trigger}},
+THE SYSTEM SHALL {{behaviour with concrete values from BRS}}.
 
-{{Atomic, testable requirement statement. One requirement per entry. Do not merge unrelated requirements.}}
+IF {{error/edge condition}},
+THEN THE SYSTEM SHALL {{fallback behaviour}}.
 
-#### Notes
+> **Ambiguities:** {{if any, otherwise omit this line}}
+> **Blocking:** {{if any, otherwise omit this line}}
 
-{{Additional context from the BRS, if needed.}}
+---
+
+## Source ID Mapping
+
+| Source ID | Optional REQ Alias | Mapping Type | Notes |
+|---|---|---|---|
+| FR-001 | {{REQ-001 or blank}} | Direct / Grouped / Deferred / Alias omitted | {{Why this source ID maps here}} |
+| NFR-001 | {{REQ-00N or blank}} | Direct / Grouped / Deferred / Alias omitted | {{Why this source ID maps here}} |
+| OBJ-001 | {{REQ-00N or blank}} | Context / Grouped / Deferred / Alias omitted | {{How the objective is preserved}} |
+| C-001 | {{REQ-00N or blank}} | Direct / Constraint / Deferred / Alias omitted | {{How the constraint is preserved}} |
 
 ---
 
 ## Open Questions
 
-| OQ-NNN | Question | Source REQ | Blocking? | Owner | Status |
+| ID | Question | Source ID | Blocking? | Owner | Status |
 |---|---|---|---|---|---|
-| OQ-001 | | REQ-NNN | Yes / No | | Open |
+| OQ-001 | | FR-NNN / NFR-NNN / OBJ-NNN / C-NNN | Yes / No | | Open / Proposed answer from architecture input |
 
 ---
 
 ## Assumptions
 
-| ASM-NNN | Assumption | Source REQ | Risk if Wrong | Validation Approach | Status |
+| ID | Assumption | Source ID | Risk if Wrong | Validation Approach | Status |
 |---|---|---|---|---|---|
-| ASM-001 | | REQ-NNN | | | Open |
+| ASM-001 | | FR-NNN / NFR-NNN / OBJ-NNN / C-NNN | | | Open |
 
 ---
 
 ## Traceability Notes
 
-{{Notes on BRS coverage, gaps, or sections that produced no requirements.}}
+{{Notes on BRS coverage, optional REQ aliases, grouped mappings, deferred items, or sections that produced no implementation-ready requirement. Silent loss is not allowed.}}
+
+## Loss Check
+
+| Check | Result | Notes |
+|---|---|---|
+| Every `FR-` from BRS preserved | Yes / No | |
+| Every `NFR-` from BRS preserved | Yes / No | |
+| Every `OBJ-` from BRS preserved | Yes / No | |
+| Every explicit constraint preserved | Yes / No | |
+| Every optional `REQ-` alias has source mapping | Yes / No | |
+| Any intentionally deferred item explained | Yes / No | |
 
 ---
 *Set Status: Accepted only after human review. Never self-accept.*

@@ -1,0 +1,509 @@
+overall: fail
+action_id: create-epic-stories
+artifact_path: epics/
+checks:
+- name: file_exists
+  target: epics/
+  result: pass
+  detail: artifact exists
+- name: validation_dispatch
+  target: epics
+  result: pass
+  detail: 'dedicated: epics/'
+- name: non_empty_directory
+  target: epics
+  result: pass
+  detail: directory contains generated artifacts
+- name: has_epic_subdirectories
+  target: epics
+  result: pass
+  detail: epics/ contains 1 epic subdirectories
+- name: epic_has_overview
+  target: E-001-intake-submission
+  result: pass
+  detail: E-001-intake-submission/epic.md present
+- name: epic_has_contract
+  target: E-001-intake-submission
+  result: pass
+  detail: E-001-intake-submission/implementation-contract.md present
+- name: contract_has_depth
+  target: E-001-intake-submission
+  result: pass
+  detail: 'E-001-intake-submission/implementation-contract.md: 200 lines of content'
+- name: contract_has_sections
+  target: E-001-intake-submission
+  result: pass
+  detail: 'E-001-intake-submission/implementation-contract.md: has implementation
+    sections (data=True, api=True, events=True)'
+- name: contract_data_has_er_diagram
+  target: E-001-intake-submission
+  result: pass
+  detail: 'E-001-intake-submission: Data Entities section has Mermaid ER diagram'
+- name: contract_api_has_openapi
+  target: E-001-intake-submission
+  result: pass
+  detail: 'E-001-intake-submission: API Surface section has OpenAPI YAML spec'
+- name: epic_stories_cover_requirements
+  target: E-001-intake-submission
+  result: fail
+  detail: 'E-001-intake-submission: stories missing 1 requirements from skeleton:
+    [''FR-027'']'
+- name: stories_match_feature_count
+  target: E-001-intake-submission
+  result: pass
+  detail: 'E-001-intake-submission: 3 stories for 3 features'
+- name: epic_has_stories_dir
+  target: E-001-intake-submission
+  result: pass
+  detail: E-001-intake-submission/stories/ directory present
+- name: epic_has_story_files
+  target: E-001-intake-submission
+  result: pass
+  detail: E-001-intake-submission/stories/ has 3 story file(s)
+- name: story_has_gherkin_ac
+  target: E-001-intake-submission/S-001.0-intake-e2e.md
+  result: pass
+  detail: 'S-001.0-intake-e2e.md: has Gherkin AC'
+- name: story_has_minimum_ac
+  target: E-001-intake-submission/S-001.0-intake-e2e.md
+  result: pass
+  detail: 'S-001.0-intake-e2e.md: 4 Gherkin scenarios (minimum 4 for integration/state)'
+- name: story_has_gherkin_ac
+  target: E-001-intake-submission/S-001.2-intake-api-submit.md
+  result: pass
+  detail: 'S-001.2-intake-api-submit.md: has Gherkin AC'
+- name: story_has_minimum_ac
+  target: E-001-intake-submission/S-001.2-intake-api-submit.md
+  result: pass
+  detail: 'S-001.2-intake-api-submit.md: 4 Gherkin scenarios (minimum 4 for integration/state)'
+- name: story_has_gherkin_ac
+  target: E-001-intake-submission/S-001.4-status-lookup.md
+  result: pass
+  detail: 'S-001.4-status-lookup.md: has Gherkin AC'
+- name: story_has_minimum_ac
+  target: E-001-intake-submission/S-001.4-status-lookup.md
+  result: pass
+  detail: 'S-001.4-status-lookup.md: 4 Gherkin scenarios (minimum 4 for integration/state)'
+- name: story_has_layers
+  target: E-001-intake-submission/S-001.0-intake-e2e.md
+  result: pass
+  detail: 'S-001.0-intake-e2e.md: layers declared'
+- name: story_has_story_type
+  target: E-001-intake-submission/S-001.0-intake-e2e.md
+  result: pass
+  detail: 'S-001.0-intake-e2e.md: story type declared as ''spike'''
+- name: story_has_requirements_implemented
+  target: E-001-intake-submission/S-001.0-intake-e2e.md
+  result: pass
+  detail: 'S-001.0-intake-e2e.md: has Requirements Implemented section'
+- name: story_has_requirements_referenced
+  target: E-001-intake-submission/S-001.0-intake-e2e.md
+  result: pass
+  detail: 'S-001.0-intake-e2e.md: has Requirements Referenced section'
+- name: story_has_in_scope
+  target: E-001-intake-submission/S-001.0-intake-e2e.md
+  result: pass
+  detail: 'S-001.0-intake-e2e.md: has In Scope section'
+- name: story_invest_small
+  target: E-001-intake-submission/S-001.0-intake-e2e.md
+  result: fail
+  detail: "S-001.0-intake-e2e.md: covers 7 requirements \u2014 likely too large (INVEST:\
+    \ Small). Consider splitting."
+- name: story_invest_valuable
+  target: E-001-intake-submission/S-001.0-intake-e2e.md
+  result: pass
+  detail: 'S-001.0-intake-e2e.md: has Business Context section (INVEST: Valuable)'
+- name: story_has_user_story
+  target: E-001-intake-submission/S-001.0-intake-e2e.md
+  result: pass
+  detail: 'S-001.0-intake-e2e.md: has User Story section with description'
+- name: story_has_layers
+  target: E-001-intake-submission/S-001.2-intake-api-submit.md
+  result: pass
+  detail: 'S-001.2-intake-api-submit.md: layers declared'
+- name: story_has_story_type
+  target: E-001-intake-submission/S-001.2-intake-api-submit.md
+  result: pass
+  detail: 'S-001.2-intake-api-submit.md: story type declared as ''backend-endpoint'''
+- name: story_has_requirements_implemented
+  target: E-001-intake-submission/S-001.2-intake-api-submit.md
+  result: pass
+  detail: 'S-001.2-intake-api-submit.md: has Requirements Implemented section'
+- name: story_has_requirements_referenced
+  target: E-001-intake-submission/S-001.2-intake-api-submit.md
+  result: pass
+  detail: 'S-001.2-intake-api-submit.md: has Requirements Referenced section'
+- name: story_has_in_scope
+  target: E-001-intake-submission/S-001.2-intake-api-submit.md
+  result: pass
+  detail: 'S-001.2-intake-api-submit.md: has In Scope section'
+- name: story_invest_valuable
+  target: E-001-intake-submission/S-001.2-intake-api-submit.md
+  result: pass
+  detail: 'S-001.2-intake-api-submit.md: has Business Context section (INVEST: Valuable)'
+- name: story_has_user_story
+  target: E-001-intake-submission/S-001.2-intake-api-submit.md
+  result: pass
+  detail: 'S-001.2-intake-api-submit.md: has User Story section with description'
+- name: story_has_layers
+  target: E-001-intake-submission/S-001.4-status-lookup.md
+  result: pass
+  detail: 'S-001.4-status-lookup.md: layers declared'
+- name: story_has_story_type
+  target: E-001-intake-submission/S-001.4-status-lookup.md
+  result: pass
+  detail: 'S-001.4-status-lookup.md: story type declared as ''backend-endpoint'''
+- name: story_has_requirements_implemented
+  target: E-001-intake-submission/S-001.4-status-lookup.md
+  result: pass
+  detail: 'S-001.4-status-lookup.md: has Requirements Implemented section'
+- name: story_has_requirements_referenced
+  target: E-001-intake-submission/S-001.4-status-lookup.md
+  result: pass
+  detail: 'S-001.4-status-lookup.md: has Requirements Referenced section'
+- name: story_has_in_scope
+  target: E-001-intake-submission/S-001.4-status-lookup.md
+  result: pass
+  detail: 'S-001.4-status-lookup.md: has In Scope section'
+- name: story_invest_valuable
+  target: E-001-intake-submission/S-001.4-status-lookup.md
+  result: pass
+  detail: 'S-001.4-status-lookup.md: has Business Context section (INVEST: Valuable)'
+- name: story_has_user_story
+  target: E-001-intake-submission/S-001.4-status-lookup.md
+  result: pass
+  detail: 'S-001.4-status-lookup.md: has User Story section with description'
+- name: story_has_implementation_guidance
+  target: E-001-intake-submission/S-001.0-intake-e2e.md
+  result: pass
+  detail: 'S-001.0-intake-e2e.md: has Implementation Guidance section'
+- name: story_has_test_expectations
+  target: E-001-intake-submission/S-001.0-intake-e2e.md
+  result: pass
+  detail: 'S-001.0-intake-e2e.md: has Test Expectations section'
+- name: story_has_dependency_contracts
+  target: E-001-intake-submission/S-001.0-intake-e2e.md
+  result: pass
+  detail: 'S-001.0-intake-e2e.md: has Dependency Contracts section'
+- name: story_has_required_tests
+  target: E-001-intake-submission/S-001.0-intake-e2e.md
+  result: pass
+  detail: 'S-001.0-intake-e2e.md: has Required Tests section'
+- name: story_has_agent_contract
+  target: E-001-intake-submission/S-001.0-intake-e2e.md
+  result: pass
+  detail: 'S-001.0-intake-e2e.md: paired agent contract present (S-001.0-intake-e2e.agent.yaml)'
+- name: story_agent_contract_yaml_parseable
+  target: S-001.0-intake-e2e.md/S-001.0-intake-e2e.agent.yaml
+  result: pass
+  detail: 'S-001.0-intake-e2e.agent.yaml: parsed as YAML object'
+- name: story_agent_contract_has_story_id
+  target: S-001.0-intake-e2e.md/S-001.0-intake-e2e.agent.yaml
+  result: pass
+  detail: 'S-001.0-intake-e2e.agent.yaml: story_id present (S-001.0)'
+- name: story_agent_contract_story_id_matches_story
+  target: S-001.0-intake-e2e.md/S-001.0-intake-e2e.agent.yaml
+  result: pass
+  detail: 'S-001.0-intake-e2e.agent.yaml: story_id matches markdown story heading
+    (S-001.0)'
+- name: story_agent_contract_has_title
+  target: S-001.0-intake-e2e.md/S-001.0-intake-e2e.agent.yaml
+  result: pass
+  detail: 'S-001.0-intake-e2e.agent.yaml: title present'
+- name: story_agent_contract_story_type_valid
+  target: S-001.0-intake-e2e.md/S-001.0-intake-e2e.agent.yaml
+  result: pass
+  detail: 'S-001.0-intake-e2e.agent.yaml: story_type ''generic'' is valid'
+- name: story_agent_contract_layer_valid
+  target: S-001.0-intake-e2e.md/S-001.0-intake-e2e.agent.yaml
+  result: pass
+  detail: 'S-001.0-intake-e2e.agent.yaml: layer ''backend'' is valid'
+- name: story_agent_contract_requirements_implemented_valid
+  target: S-001.0-intake-e2e.md/S-001.0-intake-e2e.agent.yaml
+  result: pass
+  detail: 'S-001.0-intake-e2e.agent.yaml: requirements_implemented contains valid
+    requirement IDs'
+- name: story_agent_contract_requirements_referenced_valid
+  target: S-001.0-intake-e2e.md/S-001.0-intake-e2e.agent.yaml
+  result: pass
+  detail: 'S-001.0-intake-e2e.agent.yaml: requirements_referenced contains valid requirement
+    IDs'
+- name: story_agent_contract_requirement_sets_disjoint
+  target: S-001.0-intake-e2e.md/S-001.0-intake-e2e.agent.yaml
+  result: pass
+  detail: 'S-001.0-intake-e2e.agent.yaml: implemented and referenced requirement sets
+    are disjoint'
+- name: story_agent_contract_in_scope_present
+  target: S-001.0-intake-e2e.md/S-001.0-intake-e2e.agent.yaml
+  result: pass
+  detail: 'S-001.0-intake-e2e.agent.yaml: in_scope lists concrete behavior'
+- name: story_agent_contract_out_of_scope_present
+  target: S-001.0-intake-e2e.md/S-001.0-intake-e2e.agent.yaml
+  result: pass
+  detail: 'S-001.0-intake-e2e.agent.yaml: out_of_scope lists explicit exclusions'
+- name: story_agent_contract_dependencies_valid
+  target: S-001.0-intake-e2e.md/S-001.0-intake-e2e.agent.yaml
+  result: pass
+  detail: 'S-001.0-intake-e2e.agent.yaml: depends_on entries are structurally valid'
+- name: story_agent_contract_has_implementation_contract
+  target: S-001.0-intake-e2e.md/S-001.0-intake-e2e.agent.yaml
+  result: pass
+  detail: 'S-001.0-intake-e2e.agent.yaml: implementation_contract object present'
+- name: story_agent_contract_touched_components_present
+  target: S-001.0-intake-e2e.md/S-001.0-intake-e2e.agent.yaml
+  result: pass
+  detail: 'S-001.0-intake-e2e.agent.yaml: touched_components populated'
+- name: story_agent_contract_operations_present
+  target: S-001.0-intake-e2e.md/S-001.0-intake-e2e.agent.yaml
+  result: pass
+  detail: 'S-001.0-intake-e2e.agent.yaml: implementation_contract.operations populated'
+- name: story_agent_contract_required_tests_present
+  target: S-001.0-intake-e2e.md/S-001.0-intake-e2e.agent.yaml
+  result: pass
+  detail: 'S-001.0-intake-e2e.agent.yaml: required_tests contains concrete obligations'
+- name: story_has_implementation_guidance
+  target: E-001-intake-submission/S-001.2-intake-api-submit.md
+  result: pass
+  detail: 'S-001.2-intake-api-submit.md: has Implementation Guidance section'
+- name: story_has_test_expectations
+  target: E-001-intake-submission/S-001.2-intake-api-submit.md
+  result: pass
+  detail: 'S-001.2-intake-api-submit.md: has Test Expectations section'
+- name: story_has_dependency_contracts
+  target: E-001-intake-submission/S-001.2-intake-api-submit.md
+  result: pass
+  detail: 'S-001.2-intake-api-submit.md: has Dependency Contracts section'
+- name: story_has_required_tests
+  target: E-001-intake-submission/S-001.2-intake-api-submit.md
+  result: pass
+  detail: 'S-001.2-intake-api-submit.md: has Required Tests section'
+- name: story_has_agent_contract
+  target: E-001-intake-submission/S-001.2-intake-api-submit.md
+  result: pass
+  detail: 'S-001.2-intake-api-submit.md: paired agent contract present (S-001.2-intake-api-submit.agent.yaml)'
+- name: story_agent_contract_yaml_parseable
+  target: S-001.2-intake-api-submit.md/S-001.2-intake-api-submit.agent.yaml
+  result: pass
+  detail: 'S-001.2-intake-api-submit.agent.yaml: parsed as YAML object'
+- name: story_agent_contract_has_story_id
+  target: S-001.2-intake-api-submit.md/S-001.2-intake-api-submit.agent.yaml
+  result: pass
+  detail: 'S-001.2-intake-api-submit.agent.yaml: story_id present (S-001.2)'
+- name: story_agent_contract_story_id_matches_story
+  target: S-001.2-intake-api-submit.md/S-001.2-intake-api-submit.agent.yaml
+  result: pass
+  detail: 'S-001.2-intake-api-submit.agent.yaml: story_id matches markdown story heading
+    (S-001.2)'
+- name: story_agent_contract_has_title
+  target: S-001.2-intake-api-submit.md/S-001.2-intake-api-submit.agent.yaml
+  result: pass
+  detail: 'S-001.2-intake-api-submit.agent.yaml: title present'
+- name: story_agent_contract_story_type_valid
+  target: S-001.2-intake-api-submit.md/S-001.2-intake-api-submit.agent.yaml
+  result: pass
+  detail: 'S-001.2-intake-api-submit.agent.yaml: story_type ''backend-endpoint'' is
+    valid'
+- name: story_agent_contract_layer_valid
+  target: S-001.2-intake-api-submit.md/S-001.2-intake-api-submit.agent.yaml
+  result: pass
+  detail: 'S-001.2-intake-api-submit.agent.yaml: layer ''backend'' is valid'
+- name: story_agent_contract_requirements_implemented_valid
+  target: S-001.2-intake-api-submit.md/S-001.2-intake-api-submit.agent.yaml
+  result: pass
+  detail: 'S-001.2-intake-api-submit.agent.yaml: requirements_implemented contains
+    valid requirement IDs'
+- name: story_agent_contract_requirements_referenced_valid
+  target: S-001.2-intake-api-submit.md/S-001.2-intake-api-submit.agent.yaml
+  result: pass
+  detail: 'S-001.2-intake-api-submit.agent.yaml: requirements_referenced contains
+    valid requirement IDs'
+- name: story_agent_contract_requirement_sets_disjoint
+  target: S-001.2-intake-api-submit.md/S-001.2-intake-api-submit.agent.yaml
+  result: pass
+  detail: 'S-001.2-intake-api-submit.agent.yaml: implemented and referenced requirement
+    sets are disjoint'
+- name: story_agent_contract_in_scope_present
+  target: S-001.2-intake-api-submit.md/S-001.2-intake-api-submit.agent.yaml
+  result: pass
+  detail: 'S-001.2-intake-api-submit.agent.yaml: in_scope lists concrete behavior'
+- name: story_agent_contract_out_of_scope_present
+  target: S-001.2-intake-api-submit.md/S-001.2-intake-api-submit.agent.yaml
+  result: pass
+  detail: 'S-001.2-intake-api-submit.agent.yaml: out_of_scope lists explicit exclusions'
+- name: story_agent_contract_dependencies_valid
+  target: S-001.2-intake-api-submit.md/S-001.2-intake-api-submit.agent.yaml
+  result: pass
+  detail: 'S-001.2-intake-api-submit.agent.yaml: depends_on entries are structurally
+    valid'
+- name: story_agent_contract_has_implementation_contract
+  target: S-001.2-intake-api-submit.md/S-001.2-intake-api-submit.agent.yaml
+  result: pass
+  detail: 'S-001.2-intake-api-submit.agent.yaml: implementation_contract object present'
+- name: story_agent_contract_touched_components_present
+  target: S-001.2-intake-api-submit.md/S-001.2-intake-api-submit.agent.yaml
+  result: pass
+  detail: 'S-001.2-intake-api-submit.agent.yaml: touched_components populated'
+- name: story_agent_contract_operations_present
+  target: S-001.2-intake-api-submit.md/S-001.2-intake-api-submit.agent.yaml
+  result: pass
+  detail: 'S-001.2-intake-api-submit.agent.yaml: implementation_contract.operations
+    populated'
+- name: story_agent_contract_required_tests_present
+  target: S-001.2-intake-api-submit.md/S-001.2-intake-api-submit.agent.yaml
+  result: pass
+  detail: 'S-001.2-intake-api-submit.agent.yaml: required_tests contains concrete
+    obligations'
+- name: story_agent_contract_backend_endpoint_api_tests
+  target: S-001.2-intake-api-submit.md/S-001.2-intake-api-submit.agent.yaml
+  result: pass
+  detail: 'S-001.2-intake-api-submit.agent.yaml: backend-endpoint includes API tests'
+- name: story_has_implementation_guidance
+  target: E-001-intake-submission/S-001.4-status-lookup.md
+  result: pass
+  detail: 'S-001.4-status-lookup.md: has Implementation Guidance section'
+- name: story_has_test_expectations
+  target: E-001-intake-submission/S-001.4-status-lookup.md
+  result: pass
+  detail: 'S-001.4-status-lookup.md: has Test Expectations section'
+- name: story_has_dependency_contracts
+  target: E-001-intake-submission/S-001.4-status-lookup.md
+  result: pass
+  detail: 'S-001.4-status-lookup.md: has Dependency Contracts section'
+- name: story_has_required_tests
+  target: E-001-intake-submission/S-001.4-status-lookup.md
+  result: pass
+  detail: 'S-001.4-status-lookup.md: has Required Tests section'
+- name: story_has_agent_contract
+  target: E-001-intake-submission/S-001.4-status-lookup.md
+  result: pass
+  detail: 'S-001.4-status-lookup.md: paired agent contract present (S-001.4-status-lookup.agent.yaml)'
+- name: story_agent_contract_yaml_parseable
+  target: S-001.4-status-lookup.md/S-001.4-status-lookup.agent.yaml
+  result: pass
+  detail: 'S-001.4-status-lookup.agent.yaml: parsed as YAML object'
+- name: story_agent_contract_has_story_id
+  target: S-001.4-status-lookup.md/S-001.4-status-lookup.agent.yaml
+  result: pass
+  detail: 'S-001.4-status-lookup.agent.yaml: story_id present (S-001.4)'
+- name: story_agent_contract_story_id_matches_story
+  target: S-001.4-status-lookup.md/S-001.4-status-lookup.agent.yaml
+  result: pass
+  detail: 'S-001.4-status-lookup.agent.yaml: story_id matches markdown story heading
+    (S-001.4)'
+- name: story_agent_contract_has_title
+  target: S-001.4-status-lookup.md/S-001.4-status-lookup.agent.yaml
+  result: pass
+  detail: 'S-001.4-status-lookup.agent.yaml: title present'
+- name: story_agent_contract_story_type_valid
+  target: S-001.4-status-lookup.md/S-001.4-status-lookup.agent.yaml
+  result: pass
+  detail: 'S-001.4-status-lookup.agent.yaml: story_type ''backend-endpoint'' is valid'
+- name: story_agent_contract_layer_valid
+  target: S-001.4-status-lookup.md/S-001.4-status-lookup.agent.yaml
+  result: pass
+  detail: 'S-001.4-status-lookup.agent.yaml: layer ''backend'' is valid'
+- name: story_agent_contract_requirements_implemented_valid
+  target: S-001.4-status-lookup.md/S-001.4-status-lookup.agent.yaml
+  result: pass
+  detail: 'S-001.4-status-lookup.agent.yaml: requirements_implemented contains valid
+    requirement IDs'
+- name: story_agent_contract_requirements_referenced_valid
+  target: S-001.4-status-lookup.md/S-001.4-status-lookup.agent.yaml
+  result: pass
+  detail: 'S-001.4-status-lookup.agent.yaml: requirements_referenced contains valid
+    requirement IDs'
+- name: story_agent_contract_requirement_sets_disjoint
+  target: S-001.4-status-lookup.md/S-001.4-status-lookup.agent.yaml
+  result: pass
+  detail: 'S-001.4-status-lookup.agent.yaml: implemented and referenced requirement
+    sets are disjoint'
+- name: story_agent_contract_in_scope_present
+  target: S-001.4-status-lookup.md/S-001.4-status-lookup.agent.yaml
+  result: pass
+  detail: 'S-001.4-status-lookup.agent.yaml: in_scope lists concrete behavior'
+- name: story_agent_contract_out_of_scope_present
+  target: S-001.4-status-lookup.md/S-001.4-status-lookup.agent.yaml
+  result: pass
+  detail: 'S-001.4-status-lookup.agent.yaml: out_of_scope lists explicit exclusions'
+- name: story_agent_contract_dependencies_valid
+  target: S-001.4-status-lookup.md/S-001.4-status-lookup.agent.yaml
+  result: pass
+  detail: 'S-001.4-status-lookup.agent.yaml: depends_on entries are structurally valid'
+- name: story_agent_contract_has_implementation_contract
+  target: S-001.4-status-lookup.md/S-001.4-status-lookup.agent.yaml
+  result: pass
+  detail: 'S-001.4-status-lookup.agent.yaml: implementation_contract object present'
+- name: story_agent_contract_touched_components_present
+  target: S-001.4-status-lookup.md/S-001.4-status-lookup.agent.yaml
+  result: pass
+  detail: 'S-001.4-status-lookup.agent.yaml: touched_components populated'
+- name: story_agent_contract_operations_present
+  target: S-001.4-status-lookup.md/S-001.4-status-lookup.agent.yaml
+  result: pass
+  detail: 'S-001.4-status-lookup.agent.yaml: implementation_contract.operations populated'
+- name: story_agent_contract_required_tests_present
+  target: S-001.4-status-lookup.md/S-001.4-status-lookup.agent.yaml
+  result: pass
+  detail: 'S-001.4-status-lookup.agent.yaml: required_tests contains concrete obligations'
+- name: story_agent_contract_backend_endpoint_api_tests
+  target: S-001.4-status-lookup.md/S-001.4-status-lookup.agent.yaml
+  result: pass
+  detail: 'S-001.4-status-lookup.agent.yaml: backend-endpoint includes API tests'
+- name: layers_coverage
+  target: epics
+  result: fail
+  detail: "declared layers not covered by any story: ['frontend', 'infrastructure']\
+    \ \u2014 skeleton declares these layers but no story touches them"
+- name: validation_audit
+  target: epics/
+  result: pass
+  detail: validation coverage is acceptable (dispatch=dedicated, downstream_consumers=5)
+- &id001
+  name: named_validation_rule
+  rule_name: no_unknown_requirement_references
+  severity: required
+  target: epics/
+  result: pass
+  detail: all referenced requirement IDs exist in atomic requirements
+- &id002
+  name: named_validation_rule
+  rule_name: requirement_title_consistency
+  severity: required
+  target: epics/
+  result: pass
+  detail: downstream requirement titles match canonical titles
+- &id003
+  name: named_validation_rule
+  rule_name: requirement_semantics_preserved
+  severity: required
+  target: epics/
+  result: pass
+  detail: story behavior preserves linked requirement semantics
+- &id004
+  name: named_validation_rule
+  rule_name: open_questions_propagated
+  severity: required
+  target: epics/
+  result: pass
+  detail: open questions and ambiguities are propagated downstream
+- &id005
+  name: named_validation_rule
+  rule_name: agent_yaml_operations_match_contract
+  severity: optional
+  target: epics/
+  result: pass
+  detail: all agent YAML operations reference endpoints from implementation contracts
+named_rule_results:
+- *id001
+- *id002
+- *id003
+- *id004
+- *id005
+failures:
+- 'epics/: epic_stories_cover_requirements failed - E-001-intake-submission: stories
+  missing 1 requirements from skeleton: [''FR-027'']'
+- "epics/: story_invest_small failed - S-001.0-intake-e2e.md: covers 7 requirements\
+  \ \u2014 likely too large (INVEST: Small). Consider splitting."
+- "epics/: layers_coverage failed - declared layers not covered by any story: ['frontend',\
+  \ 'infrastructure'] \u2014 skeleton declares these layers but no story touches them"
+advisories: []

@@ -46,12 +46,19 @@ This file is listed in `{computed_inputs}` in `current-inputs.json`.
 **Read this file first.** It contains:
 - `canonical_requirements` — every requirement ID and canonical title from atomic-requirements.md
 - `stories` — every story file on disk with its linked requirement IDs, epic, and feature
-- `coverage_matrix` — the pre-built mapping of requirements to stories with status
+- `coverage_matrix` — the pre-built mapping of requirements to stories with status and `elaboration_status`
 - `summary` — total, covered, not_covered, coverage_pct (pre-computed)
+- `planned_coverage` — metrics for skeleton-level assignment (total, assigned, unassigned, pct)
+- `generated_coverage` — metrics for actual story-level coverage (total, covered, not_covered, pct, uncovered_requirements)
+- `suggested_fixes` — for each uncovered requirement, the engine suggests which story file to add it to. Entries with `action: "add_to_requirements_referenced"` include the exact `target_story_file` to edit.
 
 This data was derived deterministically from the actual files. Use it as the
 authoritative source for the coverage report. Do NOT re-derive, guess, or
 invent coverage data.
+
+**Critical distinction:** Planned coverage measures whether requirements are assigned to epics in the skeleton. Generated coverage measures whether actual story files link to those requirements. These are separate metrics — never conflate them.
+
+**Do NOT auto-patch story traceability just to improve the percentage.** `suggested_fixes` are advisory only. If a requirement is `Referenced Only`, `Spike Only`, or `Not Covered`, report that honestly. Do not convert a gap into fake coverage by merely adding the requirement ID to `## Requirements Referenced`.
 
 ### Step 2 — Read additional inputs
 
@@ -66,17 +73,25 @@ defined by the artifact template. For each row use:
 - `req_id` and `title` exactly as provided (do NOT rename or paraphrase)
 - `epic`, `feature`, `story` exactly as provided
 - `open_questions_propagated` exactly as provided
+- `elaboration_status` exactly as provided (`elaborated`, `planned`, or `unassigned`)
 - `evidence` exactly as provided
-- `status` exactly as provided
+- `status` exactly as provided. Valid statuses now include `Covered`, `Referenced Only`, `Spike Only`, `Deferred`, and `Not Covered`
 
-### Step 4 — Format the summary
+### Step 4 — Format the summaries
 
-Transcribe `summary` from the computed data into the Coverage Summary table.
+Write **two** separate summary tables:
+
+**Planned Coverage Summary** — from `planned_coverage`:
+- Total requirements, assigned to epics, unassigned, planned coverage percentage
+
+**Generated Coverage Summary** — from `generated_coverage`:
+- In-scope requirements, covered by implementation stories, weak coverage count (`Referenced Only` + `Spike Only`), not covered, generated coverage percentage, deferred count from `summary.deferred_wave_count`
+
 The numbers MUST match exactly — do not recount or adjust.
 
 ### Step 5 — Document gaps and risks
 
-For each row where `status` is `Not Covered`:
+For each row where `status` is `Referenced Only`, `Spike Only`, or `Not Covered`:
 - Explain why (missing story, deferred, out of scope)
 - Recommend an action (create story, defer to next wave, accept risk)
 

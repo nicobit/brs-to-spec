@@ -1,0 +1,34 @@
+story_id: S-004.0
+title: Offer generation end-to-end
+story_type: backend-endpoint
+layer: backend
+requirements_implemented:
+  - FR-020
+requirements_referenced: []
+in_scope:
+  - Persist OfferDocument
+out_of_scope:
+  - Accounting reconciliation
+depends_on: []
+implementation_contract:
+  path: ../../implementation-contract.md
+  touched_components:
+    - offer-service
+  operations:
+    - type: http
+      target: POST /api/offers
+      description: create offer API
+required_tests:
+  unit:
+    - offer generation unit tests
+  contract:
+    - /api/offers contract schema tests
+  api:
+    - POST /api/offers contract test
+  e2e:
+    - offer generation end-to-end
+operations:
+  - id: generate-offer
+    method: POST
+    path: /api/offers
+    description: Generate an offer for an application

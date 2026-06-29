@@ -8,6 +8,9 @@
 | `technical-spec-modular` | Same as enterprise-modular + canonical technical specifications produced before story handoff | OpenSpec, Standalone, FastPath |
 | `fast-path` | Simple, internal, or low-risk initiatives where full analysis and quality gates are not needed | FastPath only |
 | `agile-delivery-flow` | Progressive decomposition with governance, capability mapping, per-story quality gates, and dispatch routing | OpenSpec, Standalone |
+| `agile-delivery-light-flow` | Lean progressive decomposition with planning-first output and on-demand coding handoff | OpenSpec, Standalone |
+| `b2s-flow` | Lean progressive decomposition with mandatory technical landscape and solution decisions before backlog | OpenSpec, Standalone |
+| `b2s-dynamic` | Experimental loop-based BRS-to-spec orchestration for high-uncertainty initiatives | OpenSpec, Standalone |
 
 ## Decision guide
 
@@ -24,9 +27,20 @@ with explicit auth/SLA/retry requirements, or need shared schema specs for
 multi-team coordination?**
 → Use `technical-spec-modular`
 
+**Does the initiative touch multiple repositories or services, and the team needs
+explicit decisions about what to create vs. modify before writing stories?**
+→ Use `b2s-flow`
+
+**Is the initiative highly uncertain, likely to revisit architecture or planning decisions repeatedly, and you want to evaluate loop-based orchestration experimentally?**
+→ Use `b2s-dynamic`
+
 **Does the initiative need architecture impact mapped per requirement, capability
 mapping, per-story quality gates, or explicit dispatch routing?**
 → Use `agile-delivery-flow`
+
+**Does the initiative need lean architecture-aware planning without heavy
+pre-analysis?**
+→ Use `agile-delivery-light-flow`
 
 **Otherwise:**
 → Use `enterprise-modular`
@@ -50,6 +64,31 @@ mapping, per-story quality gates, or explicit dispatch routing?**
 ```
 0-routing → 2-business-intake → 3-planning → 5-handoff → 6-review-package
 ```
+
+`agile-delivery-light-flow`:
+```
+0-governance → 1-requirements-and-architecture [GATE]
+  → 2-delivery-planning [GATE] → 3-epic-elaboration [GATE]
+  → human-triggered: implementation-contracts, coding-handoffs
+```
+
+`b2s-flow`:
+```
+0-governance → 1-requirements-and-architecture [GATE]
+  → 2-solution-design [GATE] → 3-delivery-planning [GATE]
+  → 4-epic-elaboration [GATE]
+  → human-triggered: implementation-contracts, coding-handoffs
+```
+
+`b2s-dynamic`:
+```
+0-dynamic-assessment → 1-dynamic-selection → 2-dynamic-stop-review
+  → experimental loop orchestration scaffold
+```
+
+Note:
+- `b2s-dynamic` is currently an experimental scaffold, not a full replacement for `b2s-flow`
+- it is intended for controlled evaluation, not broad default adoption
 
 `agile-delivery-flow`:
 ```

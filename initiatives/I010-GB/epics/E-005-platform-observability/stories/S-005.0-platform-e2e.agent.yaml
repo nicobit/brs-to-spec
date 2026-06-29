@@ -1,0 +1,30 @@
+id: S-005.0
+title: "Platform e2e POC"
+story_id: S-005.0
+story_type: spike
+layer: backend
+requirements_implemented:
+  - FR-029
+requirements_referenced:
+  - NFR-006
+in_scope:
+  - "POST a synthetic submission to Intake sample service and verify audit.event.appended is emitted"
+  - "Pipeline: run provisioning -> deploy sample -> run smoke-test that emits audit event"
+out_of_scope:
+  - Production scalability and retention
+depends_on:
+  - story_id: S-005.1
+    reason: "Uses the append API implemented by S-005.1"
+implementation_contract:
+  operations:
+    - type: e2e
+      target: synthetic workflow
+  touched_components:
+    - Platform API
+    - Audit store (POC)
+    - Metrics pipeline
+required_tests:
+  e2e:
+    - POC demonstrates append -> metric
+mocks:
+  audit_store: true

@@ -1,0 +1,41 @@
+story_id: S-002.1
+title: "Scoring ingestion API"
+story_type: "backend-endpoint"
+layer: "backend"
+
+requirements_implemented:
+  - FR-010
+
+requirements_referenced:
+  - FR-011
+  - NFR-003
+
+depends_on:
+  - story_id: "EVT-application.scoring.job"
+    reason: "Consume event bus contract for scoring.job messages"
+    consumed_contract_summary: "application.scoring.job event schema"
+    contract_type: "event"
+
+
+out_of_scope:
+  - "End-to-end scoring model inference and explainability persistence"
+
+in_scope:
+  - "Publish normalized `application.scoring.job` events from Intake API"
+
+implementation_contract:
+  touched_components:
+    - "Intake API"
+  operations:
+    - type: "event"
+      target: "application.scoring.job"
+      expected_result: "Normalized payload published for scoring"
+
+required_tests:
+  integration:
+    - "Normalized event consumable by scoring pipeline"
+  api:
+    - "POST /api/submit -> publishes application.scoring.job"
+
+done_evidence:
+  - "Event schema published and sample messages validated"

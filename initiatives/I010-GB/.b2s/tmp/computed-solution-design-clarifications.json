@@ -1,0 +1,43 @@
+{
+  "exists": true,
+  "path": "input/clarifications/solution-design.yaml",
+  "data": [
+    {
+      "id": "SDQ-001",
+      "answer": "no",
+      "answered_at": "2026-06-28",
+      "answered_by": "human",
+      "rationale": "No test contracts or staging endpoints are available for Experian or DocuSign at this time.\nIntegration adapters will need to be validated using mocks or sandbox arrangements until contracts are provisioned.\n",
+      "owner": "Procurement / IT",
+      "artefacts_to_update": [
+        "architecture/solution-decisions.md",
+        "architecture/impacted-systems.md"
+      ]
+    },
+    {
+      "id": "SDQ-002",
+      "answer": "mono repo",
+      "answered_at": "2026-06-28",
+      "answered_by": "human",
+      "rationale": "Repository-level mapping will be a mono-repo. Solution decisions should reference package/module boundaries\nwithin the mono-repo rather than separate repository names.\n",
+      "owner": "Engineering Lead",
+      "artefacts_to_update": [
+        "architecture/solution-decisions.md",
+        "architecture/technical-landscape.md",
+        "input/repository-context.md"
+      ]
+    },
+    {
+      "id": "SDQ-003",
+      "answer": "single team",
+      "answered_at": "2026-06-28",
+      "answered_by": "human",
+      "rationale": "A single delivery team will own the newly proposed services (scoring pipeline and immutable audit store).\nThe team will be responsible for SLAs, POCs, and integration test coordination.\n",
+      "owner": "Delivery Team",
+      "artefacts_to_update": [
+        "architecture/solution-decisions.md",
+        "architecture/technical-landscape.md"
+      ]
+    }
+  ]
+}

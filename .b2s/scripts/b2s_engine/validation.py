@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 from typing import Any, Callable
+import yaml
 
 from b2s_engine import workspace
 
@@ -16,6 +17,10 @@ NamedRuleValidator = Callable[[Path, Path, dict[str, Any], str, list[dict[str, s
 
 def _read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
+
+def _read_yaml(path: Path) -> Any:
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
 def _source_texts(workspace_root: Path) -> list[str]:
@@ -191,6 +196,90 @@ def _keywords(value: str) -> set[str]:
     }
 
 
+_STOPWORDS = {
+    "a", "an", "and", "are", "as", "at", "be", "by", "for", "from",
+    "has", "have", "if", "in", "is", "it", "of", "on", "or", "so",
+    "that", "the", "their", "then", "there", "this", "to", "when",
+    "with", "within", "shall", "should", "must", "can", "will",
+    "system", "user", "users",
+}
+
+
+def _key_phrases(value: str) -> set[str]:
+    """Extract bigrams and trigrams from normalized text."""
+    tokens = _normalize_text(value).split()
+    phrases: set[str] = set()
+    for n in (2, 3):
+        for i in range(len(tokens) - n + 1):
+            gram = tokens[i : i + n]
+            if all(t in _STOPWORDS or len(t) < 3 for t in gram):
+                continue
+            phrases.add(" ".join(gram))
+    return phrases
+
+
+def _semantic_overlap_score(
+    req: dict[str, Any],
+    story_text: str,
+) -> tuple[float, list[str]]:
+    """Score semantic overlap between a requirement and a story.
+
+    Returns (score 0.0–1.0, list of matching details).
+    """
+    signature = " ".join(
+        part for part in [
+            req.get("title", ""),
+            req.get("actor", ""),
+            req.get("business_object", ""),
+            req.get("trigger", ""),
+            req.get("expected_outcome", ""),
+            req.get("text", ""),
+        ] if part
+    )
+    details: list[str] = []
+
+    req_kw = _keywords(signature)
+    story_kw = _keywords(story_text)
+    kw_overlap = req_kw & story_kw
+    kw_ratio = len(kw_overlap) / max(len(req_kw), 1)
+
+    req_phrases = _key_phrases(signature)
+    story_phrases = _key_phrases(story_text)
+    phrase_overlap = req_phrases & story_phrases
+    phrase_ratio = len(phrase_overlap) / max(len(req_phrases), 1)
+
+    actor = req.get("actor", "").strip()
+    actor_score = 0.0
+    if actor and actor.lower() not in ("system", "user", "users", "", "—"):
+        actor_tokens = _keywords(actor)
+        if actor_tokens and actor_tokens & story_kw:
+            actor_score = 1.0
+            details.append(f"actor '{actor}' found")
+    else:
+        actor_score = 1.0
+
+    outcome = req.get("expected_outcome", "").strip()
+    outcome_score = 0.0
+    if outcome and outcome not in ("", "—"):
+        outcome_kw = _keywords(outcome)
+        if outcome_kw:
+            outcome_overlap = outcome_kw & story_kw
+            outcome_score = len(outcome_overlap) / max(len(outcome_kw), 1)
+            if outcome_overlap:
+                details.append(f"outcome keywords matched: {outcome_overlap}")
+    else:
+        outcome_score = 1.0
+
+    score = (kw_ratio * 0.3) + (phrase_ratio * 0.4) + (actor_score * 0.15) + (outcome_score * 0.15)
+
+    if kw_overlap:
+        details.append(f"keyword overlap: {len(kw_overlap)}/{len(req_kw)}")
+    if phrase_overlap:
+        details.append(f"phrase overlap: {len(phrase_overlap)}/{len(req_phrases)}")
+
+    return score, details
+
+
 def _canonical_requirements(workspace_root: Path) -> dict[str, dict[str, Any]]:
     req_path = workspace_root / "requirements" / "atomic-requirements.md"
     if not req_path.exists():
@@ -202,6 +291,17 @@ def _canonical_requirements(workspace_root: Path) -> dict[str, dict[str, Any]]:
         flags=re.MULTILINE | re.DOTALL,
     )
     requirements: dict[str, dict[str, Any]] = {}
+
+    _COMPACT_META_RE = re.compile(
+        r"^\*\*Source:\*\*\s*(.+?)\s*\|\s*\*\*Actor:\*\*\s*(.+?)\s*\|\s*\*\*Deps:\*\*\s*(.+?)\s*$",
+        flags=re.MULTILINE,
+    )
+    _COMPACT_AMBIGUITY_RE = re.compile(
+        r"^>\s*\*\*Ambiguities?:\*\*\s*(.+)$", flags=re.MULTILINE,
+    )
+    _COMPACT_BLOCKING_RE = re.compile(
+        r"^>\s*\*\*Blocking:\*\*\s*(.+)$", flags=re.MULTILINE,
+    )
 
     for match in pattern.finditer(text):
         req_id = match.group(1).strip()
@@ -216,6 +316,7 @@ def _canonical_requirements(workspace_root: Path) -> dict[str, dict[str, Any]]:
             )
             return field_match.group(1).strip() if field_match else ""
 
+        # Try verbose format first (| Field | Value | tables)
         requirement_text_match = re.search(
             r"####\s+Requirement Text\s*(.*?)(?=^####\s+|\Z)",
             block,
@@ -223,12 +324,44 @@ def _canonical_requirements(workspace_root: Path) -> dict[str, dict[str, Any]]:
         )
         requirement_text = requirement_text_match.group(1).strip() if requirement_text_match else ""
 
+        actor = _field("Actor")
         blocking_questions = _field("Blocking Questions")
         ambiguities = _field("Ambiguities")
+
+        # If no verbose fields found, try compact format
+        if not actor:
+            compact_meta = _COMPACT_META_RE.search(block)
+            if compact_meta:
+                actor = compact_meta.group(2).strip()
+
+            compact_amb = _COMPACT_AMBIGUITY_RE.search(block)
+            if compact_amb:
+                ambiguities = compact_amb.group(1).strip()
+
+            compact_blk = _COMPACT_BLOCKING_RE.search(block)
+            if compact_blk:
+                blocking_questions = compact_blk.group(1).strip()
+
+            # In compact format the EARS text is the block body (excluding metadata and blockquotes)
+            if not requirement_text:
+                body_lines = []
+                for line in block.splitlines():
+                    stripped = line.strip()
+                    if not stripped:
+                        continue
+                    if stripped.startswith("|") or stripped.startswith(">") or stripped.startswith("**Source:**"):
+                        continue
+                    if stripped == "---":
+                        continue
+                    if stripped.startswith("####"):
+                        continue
+                    body_lines.append(stripped)
+                requirement_text = "\n".join(body_lines)
+
         signature_source = " ".join(
             part for part in [
                 title,
-                _field("Actor"),
+                actor,
                 _field("Business Object"),
                 _field("Trigger / Event"),
                 _field("Expected Outcome"),
@@ -239,7 +372,7 @@ def _canonical_requirements(workspace_root: Path) -> dict[str, dict[str, Any]]:
             "id": req_id,
             "title": title,
             "normalized_title": _normalized_title(title),
-            "actor": _field("Actor"),
+            "actor": actor,
             "business_object": _field("Business Object"),
             "trigger": _field("Trigger / Event"),
             "expected_outcome": _field("Expected Outcome"),
@@ -284,6 +417,117 @@ def _all_requirement_ids(workspace_root: Path) -> set[str]:
     return canonical
 
 
+def _source_brs_ids(workspace_root: Path) -> dict[str, set[str]]:
+    text = _source_text(workspace_root)
+    return {
+        "objectives": set(re.findall(r"(?<![A-Za-z])OBJ-\d{3}", text)),
+        "functional": set(re.findall(r"(?<![A-Za-z])FR-\d{3}", text)),
+        "non_functional": set(re.findall(r"(?<![A-Za-z])NFR-\d{3}", text)),
+    }
+
+
+def _catalog_heading_ids(text: str) -> set[str]:
+    return set(re.findall(r"^###\s+((?:OBJ|FR|REQ|NFR|C)-\d{3})\b", text, flags=re.MULTILINE))
+
+
+def _catalog_entries_by_type(text: str) -> dict[str, list[str]]:
+    """Parse catalogue entries and classify by their ``| Type | ... |`` field.
+
+    Returns a dict mapping lowercase type labels (``"functional"``,
+    ``"non-functional"``, ``"objective"``, ``"constraint"``) to lists of
+    heading IDs.  When a catalogue entry uses a ``REQ-NNN`` heading but
+    declares ``| Type | Functional |``, it is counted as functional.
+    Falls back to prefix-based classification when no Type field is found.
+    """
+    result: dict[str, list[str]] = {
+        "functional": [],
+        "non-functional": [],
+        "objective": [],
+        "constraint": [],
+    }
+    heading_pattern = re.compile(
+        r"^###\s+((?:OBJ|FR|REQ|NFR|C)-\d{3})\b", re.MULTILINE,
+    )
+    type_field_pattern = re.compile(
+        r"^\|\s*Type\s*\|\s*(.+?)\s*\|$", re.MULTILINE,
+    )
+    matches = list(heading_pattern.finditer(text))
+    for i, m in enumerate(matches):
+        heading_id = m.group(1)
+        start = m.end()
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+        block = text[start:end]
+
+        type_match = type_field_pattern.search(block)
+        if type_match:
+            type_label = type_match.group(1).strip().lower()
+            if type_label in ("functional",):
+                result["functional"].append(heading_id)
+            elif type_label in ("non-functional", "non_functional", "nonfunctional"):
+                result["non-functional"].append(heading_id)
+            elif type_label in ("objective", "business objective"):
+                result["objective"].append(heading_id)
+            elif type_label in ("constraint",):
+                result["constraint"].append(heading_id)
+            else:
+                result.setdefault(type_label, []).append(heading_id)
+        else:
+            if heading_id.startswith("FR-"):
+                result["functional"].append(heading_id)
+            elif heading_id.startswith("NFR-"):
+                result["non-functional"].append(heading_id)
+            elif heading_id.startswith("OBJ-"):
+                result["objective"].append(heading_id)
+            elif heading_id.startswith("C-"):
+                result["constraint"].append(heading_id)
+            elif heading_id.startswith("REQ-"):
+                classified = False
+                source_in_title = re.search(r"\(Source:\s*(FR|NFR|OBJ|C)-\d{3}\)", block)
+                if source_in_title:
+                    prefix = source_in_title.group(1)
+                    if prefix == "FR":
+                        result["functional"].append(heading_id)
+                    elif prefix == "NFR":
+                        result["non-functional"].append(heading_id)
+                    elif prefix == "OBJ":
+                        result["objective"].append(heading_id)
+                    elif prefix == "C":
+                        result["constraint"].append(heading_id)
+                    classified = True
+                if not classified:
+                    source_line = re.search(
+                        r"\*\*Source:\*\*\s*([^|]+)",
+                        block,
+                    )
+                    if source_line:
+                        source_val = source_line.group(1)
+                        source_prefix = re.search(r"(FR|NFR|OBJ|C)-\d{3}", source_val)
+                        if source_prefix:
+                            prefix = source_prefix.group(1)
+                            if prefix == "FR":
+                                result["functional"].append(heading_id)
+                            elif prefix == "NFR":
+                                result["non-functional"].append(heading_id)
+                            elif prefix == "OBJ":
+                                result["objective"].append(heading_id)
+                            elif prefix == "C":
+                                result["constraint"].append(heading_id)
+                            classified = True
+                if not classified:
+                    result["functional"].append(heading_id)
+
+    return result
+
+
+def _summary_metric_value(text: str, label: str) -> int | None:
+    match = re.search(
+        rf"^\|\s*{re.escape(label)}\s*\|\s*(\d+)\s*\|$",
+        text,
+        flags=re.MULTILINE,
+    )
+    return int(match.group(1)) if match else None
+
+
 def _extract_requirement_titles_from_story(text: str) -> dict[str, str]:
     titles: dict[str, str] = {}
     rows = _section_table_rows(text, "## Linked Requirements")
@@ -294,6 +538,361 @@ def _extract_requirement_titles_from_story(text: str) -> dict[str, str]:
         if re.fullmatch(r"(?:FR|REQ|NFR|C)-\d{3}", req_id):
             titles[req_id] = row[1].strip()
     return titles
+
+
+def _extract_story_heading_parts(text: str) -> tuple[str | None, str]:
+    heading = next((line.strip() for line in text.splitlines() if line.startswith("# ")), "")
+    if not heading:
+        return None, ""
+    match = re.match(r"^#\s+(S-\d{3}\.\d+)\s+[—-]\s+(.+?)\s*$", heading)
+    if match:
+        return match.group(1), match.group(2).strip()
+    story_id_match = re.search(r"(S-\d{3}\.\d+)", heading)
+    return (story_id_match.group(1) if story_id_match else None), ""
+
+
+def _story_metadata_value(text: str, field: str) -> str:
+    pattern = re.compile(
+        rf"^\|\s*{re.escape(field)}\s*\|\s*(.*?)\s*\|$",
+        flags=re.MULTILINE | re.IGNORECASE,
+    )
+    match = pattern.search(text)
+    return match.group(1).strip() if match else ""
+
+
+def _extract_story_requirement_ids(text: str, heading: str) -> list[str]:
+    block = _section_block(text, heading)
+    if not block:
+        return []
+    req_ids: list[str] = []
+    for line in block.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("-") or stripped.startswith("|"):
+            req_ids.extend(re.findall(r"(?<![A-Za-z])(?:FR|REQ|NFR|C)-\d{3}", stripped))
+    return list(dict.fromkeys(req_ids))
+
+
+def _extract_story_dependencies(text: str) -> list[str]:
+    dependencies: list[str] = []
+    rows = _section_table_rows(text, "## Dependencies")
+    for row in rows:
+        if not row:
+            continue
+        dependency_id = row[0].strip()
+        if dependency_id.lower() == "dependency":
+            continue
+        if dependency_id:
+            dependencies.append(dependency_id)
+    return list(dict.fromkeys(dependencies))
+
+
+def _extract_story_markdown_operation_refs(text: str) -> set[str]:
+    refs: set[str] = set()
+    for heading in ("## Implementation Guidance", "## UI Behaviour", "## Dependency Contracts"):
+        block = _section_block(text, heading)
+        if not block:
+            continue
+        for method, path in re.findall(r"\b(GET|POST|PUT|PATCH|DELETE)\s+(/[A-Za-z0-9{}._~!$&'()*+,;=:@%/\-]+)", block, flags=re.IGNORECASE):
+            refs.add(f"{method.upper()} {_normalize_api_path(path)}")
+        for path in re.findall(r"(?<![A-Za-z0-9])(/[A-Za-z0-9{}._~!$&'()*+,;=:@%/\-]+)", block):
+            refs.add(_normalize_api_path(path))
+    return refs
+
+
+def _is_non_empty_string_list(value: Any) -> bool:
+    return isinstance(value, list) and any(isinstance(item, str) and item.strip() for item in value)
+
+
+def _validate_story_agent_contract_file(
+    agent_contract_path: Path,
+    story_file: Path,
+    story_text: str,
+) -> list[dict[str, str]]:
+    checks: list[dict[str, str]] = []
+    target = f"{story_file.name}/{agent_contract_path.name}"
+
+    try:
+        data = _read_yaml(agent_contract_path)
+    except Exception as exc:
+        return [
+            _result(
+                "story_agent_contract_yaml_parseable",
+                target,
+                False,
+                f"{agent_contract_path.name}: YAML parse failed - {exc}",
+            )
+        ]
+
+    checks.append(
+        _result(
+            "story_agent_contract_yaml_parseable",
+            target,
+            isinstance(data, dict),
+            f"{agent_contract_path.name}: parsed as YAML object"
+            if isinstance(data, dict)
+            else f"{agent_contract_path.name}: YAML root must be a mapping/object",
+        )
+    )
+    if not isinstance(data, dict):
+        return checks
+
+    story_id = data.get("story_id")
+    title = data.get("title")
+    story_type = data.get("story_type")
+    layer = data.get("layer")
+    req_implemented = data.get("requirements_implemented")
+    req_referenced = data.get("requirements_referenced")
+    in_scope = data.get("in_scope")
+    out_of_scope = data.get("out_of_scope")
+    depends_on = data.get("depends_on")
+    implementation_contract = data.get("implementation_contract")
+    required_tests = data.get("required_tests")
+
+    story_heading = next((line for line in story_text.splitlines() if line.startswith("# ")), "")
+    story_heading_id_match = re.search(r"(S-\d{3}\.\d+)", story_heading)
+    story_heading_id = story_heading_id_match.group(1) if story_heading_id_match else None
+
+    checks.append(
+        _result(
+            "story_agent_contract_has_story_id",
+            target,
+            isinstance(story_id, str) and story_id.strip() != "",
+            f"{agent_contract_path.name}: story_id present ({story_id})"
+            if isinstance(story_id, str) and story_id.strip()
+            else f"{agent_contract_path.name}: missing non-empty story_id",
+        )
+    )
+    checks.append(
+        _result(
+            "story_agent_contract_story_id_matches_story",
+            target,
+            isinstance(story_id, str) and story_heading_id is not None and story_id.strip() == story_heading_id,
+            f"{agent_contract_path.name}: story_id matches markdown story heading ({story_heading_id})"
+            if isinstance(story_id, str) and story_heading_id is not None and story_id.strip() == story_heading_id
+            else f"{agent_contract_path.name}: story_id must match markdown story heading ({story_heading_id or 'missing heading ID'})",
+        )
+    )
+    checks.append(
+        _result(
+            "story_agent_contract_has_title",
+            target,
+            isinstance(title, str) and len(title.strip()) >= 5,
+            f"{agent_contract_path.name}: title present"
+            if isinstance(title, str) and len(title.strip()) >= 5
+            else f"{agent_contract_path.name}: missing or too-short title",
+        )
+    )
+
+    allowed_story_types = {
+        "frontend-form",
+        "frontend-page",
+        "backend-endpoint",
+        "event-consumer",
+        "schema-migration",
+        "generic",
+        "spike",
+    }
+    checks.append(
+        _result(
+            "story_agent_contract_story_type_valid",
+            target,
+            isinstance(story_type, str) and story_type in allowed_story_types,
+            f"{agent_contract_path.name}: story_type '{story_type}' is valid"
+            if isinstance(story_type, str) and story_type in allowed_story_types
+            else f"{agent_contract_path.name}: story_type must be one of {sorted(allowed_story_types)}",
+        )
+    )
+
+    allowed_layers = {"frontend", "backend", "infrastructure", "integration"}
+    checks.append(
+        _result(
+            "story_agent_contract_layer_valid",
+            target,
+            isinstance(layer, str) and layer in allowed_layers,
+            f"{agent_contract_path.name}: layer '{layer}' is valid"
+            if isinstance(layer, str) and layer in allowed_layers
+            else f"{agent_contract_path.name}: layer must be one of {sorted(allowed_layers)}",
+        )
+    )
+
+    req_id_pattern = re.compile(r"^(?:FR|REQ|NFR|C)-\d{3}$")
+    implemented_ok = isinstance(req_implemented, list) and bool(req_implemented) and all(
+        isinstance(item, str) and req_id_pattern.fullmatch(item.strip()) for item in req_implemented
+    )
+    checks.append(
+        _result(
+            "story_agent_contract_requirements_implemented_valid",
+            target,
+            implemented_ok,
+            f"{agent_contract_path.name}: requirements_implemented contains valid requirement IDs"
+            if implemented_ok
+            else f"{agent_contract_path.name}: requirements_implemented must be a non-empty list of canonical requirement IDs",
+        )
+    )
+
+    referenced_ok = isinstance(req_referenced, list) and all(
+        isinstance(item, str) and req_id_pattern.fullmatch(item.strip()) for item in req_referenced
+    )
+    checks.append(
+        _result(
+            "story_agent_contract_requirements_referenced_valid",
+            target,
+            referenced_ok,
+            f"{agent_contract_path.name}: requirements_referenced contains valid requirement IDs"
+            if referenced_ok
+            else f"{agent_contract_path.name}: requirements_referenced must be a list of canonical requirement IDs (or empty list)",
+        )
+    )
+
+    overlap = set(req_implemented or []) & set(req_referenced or [])
+    checks.append(
+        _result(
+            "story_agent_contract_requirement_sets_disjoint",
+            target,
+            len(overlap) == 0,
+            f"{agent_contract_path.name}: implemented and referenced requirement sets are disjoint"
+            if len(overlap) == 0
+            else f"{agent_contract_path.name}: requirements appear in both implemented and referenced sets: {sorted(overlap)}",
+        )
+    )
+
+    checks.append(
+        _result(
+            "story_agent_contract_in_scope_present",
+            target,
+            _is_non_empty_string_list(in_scope),
+            f"{agent_contract_path.name}: in_scope lists concrete behavior"
+            if _is_non_empty_string_list(in_scope)
+            else f"{agent_contract_path.name}: in_scope must contain at least one concrete behavior",
+        )
+    )
+    checks.append(
+        _result(
+            "story_agent_contract_out_of_scope_present",
+            target,
+            _is_non_empty_string_list(out_of_scope),
+            f"{agent_contract_path.name}: out_of_scope lists explicit exclusions"
+            if _is_non_empty_string_list(out_of_scope)
+            else f"{agent_contract_path.name}: out_of_scope must contain at least one explicit exclusion",
+        )
+    )
+
+    depends_ok = isinstance(depends_on, list) and all(
+        isinstance(dep, dict)
+        and isinstance(dep.get("story_id"), str)
+        and dep.get("story_id", "").strip()
+        and isinstance(dep.get("reason"), str)
+        and dep.get("reason", "").strip()
+        and (
+            not dep.get("consumes_contract")
+            or (
+                isinstance(dep.get("consumes_contract"), dict)
+                and (
+                    isinstance(dep["consumes_contract"].get("summary"), str)
+                    and dep["consumes_contract"].get("summary", "").strip()
+                    or isinstance(dep["consumes_contract"].get("type"), str)
+                    and dep["consumes_contract"].get("type", "").strip()
+                )
+            )
+        )
+        for dep in depends_on
+    )
+    checks.append(
+        _result(
+            "story_agent_contract_dependencies_valid",
+            target,
+            depends_ok,
+            f"{agent_contract_path.name}: depends_on entries are structurally valid"
+            if depends_ok
+            else f"{agent_contract_path.name}: depends_on must be a list of dependency objects with story_id, reason, and consumed contract summary or type",
+        )
+    )
+
+    impl_ok = isinstance(implementation_contract, dict)
+    checks.append(
+        _result(
+            "story_agent_contract_has_implementation_contract",
+            target,
+            impl_ok,
+            f"{agent_contract_path.name}: implementation_contract object present"
+            if impl_ok
+            else f"{agent_contract_path.name}: missing implementation_contract object",
+        )
+    )
+    if impl_ok:
+        touched_components_ok = _is_non_empty_string_list(implementation_contract.get("touched_components"))
+        operations = implementation_contract.get("operations")
+        operations_ok = isinstance(operations, list) and any(
+            isinstance(op, dict)
+            and isinstance(op.get("type"), str)
+            and op.get("type", "").strip()
+            and isinstance(op.get("target"), str)
+            and op.get("target", "").strip()
+            for op in operations
+        )
+        checks.append(
+            _result(
+                "story_agent_contract_touched_components_present",
+                target,
+                touched_components_ok,
+                f"{agent_contract_path.name}: touched_components populated"
+                if touched_components_ok
+                else f"{agent_contract_path.name}: implementation_contract.touched_components must list at least one component",
+            )
+        )
+        checks.append(
+            _result(
+                "story_agent_contract_operations_present",
+                target,
+                operations_ok,
+                f"{agent_contract_path.name}: implementation_contract.operations populated"
+                if operations_ok
+                else f"{agent_contract_path.name}: implementation_contract.operations must contain at least one operation with type and target",
+            )
+        )
+
+    tests_ok = isinstance(required_tests, dict) and any(
+        _is_non_empty_string_list(required_tests.get(key))
+        for key in ("unit", "integration", "api", "e2e", "accessibility")
+    )
+    checks.append(
+        _result(
+            "story_agent_contract_required_tests_present",
+            target,
+            tests_ok,
+            f"{agent_contract_path.name}: required_tests contains concrete obligations"
+            if tests_ok
+            else f"{agent_contract_path.name}: required_tests must contain at least one non-empty test category",
+        )
+    )
+
+    if story_type == "frontend-form":
+        accessibility_ok = isinstance(required_tests, dict) and _is_non_empty_string_list(required_tests.get("accessibility"))
+        checks.append(
+            _result(
+                "story_agent_contract_frontend_form_accessibility_tests",
+                target,
+                accessibility_ok,
+                f"{agent_contract_path.name}: frontend-form includes accessibility tests"
+                if accessibility_ok
+                else f"{agent_contract_path.name}: frontend-form stories must declare accessibility test obligations",
+            )
+        )
+
+    if story_type == "backend-endpoint":
+        api_tests_ok = isinstance(required_tests, dict) and _is_non_empty_string_list(required_tests.get("api"))
+        checks.append(
+            _result(
+                "story_agent_contract_backend_endpoint_api_tests",
+                target,
+                api_tests_ok,
+                f"{agent_contract_path.name}: backend-endpoint includes API tests"
+                if api_tests_ok
+                else f"{agent_contract_path.name}: backend-endpoint stories must declare API contract test obligations",
+            )
+        )
+
+    return checks
 
 
 def _extract_requirement_titles_from_epic(text: str) -> dict[str, str]:
@@ -380,6 +979,12 @@ _PLACEHOLDER_PATTERNS = [
     r"\[role\]",
     r"\[goal\]",
     r"\[benefit\]",
+    # deferred / missing stubs that indicate no real content was generated
+    r"\bDEFERRED\b",
+    r"\(missing\s*—\s*fill in\b",
+    r"\bawaiting\s+\w+\s+text\b",
+    r"\bfill in BRS\b",
+    r"Preserved\s*—\s*see\b",
     # slash-separated option lists that were copied verbatim from the template
     r"\b(?:High|Medium|Low)\s*/\s*(?:High|Medium|Low)",
     r"\bPerformance\s*/\s*Security",
@@ -982,7 +1587,14 @@ def _validate_atomic_requirements(path: Path, workspace_root: Path) -> list[dict
     for heading in ["## Requirement Catalogue", "## Open Questions", "## Assumptions"]:
         checks.extend(_contains(path, heading, f"has_{heading.split()[-1].lower()}", f"{heading} section present"))
 
-    checks.extend(_matches(path, r"\|\s*(?:FR|REQ)-\d{3}\s*\|", "has_req_rows", "requirement catalogue includes typed rows"))
+    checks.extend(
+        _matches(
+            path,
+            r"\|\s*(?:OBJ|FR|REQ|NFR|C)-\d{3}\s*\|",
+            "has_req_rows",
+            "requirement catalogue includes typed rows",
+        )
+    )
 
     source_fr_count = _count_pattern(source, r"\*\*FR-\d{3}\*\*")
     if source_fr_count == 0:
@@ -1021,6 +1633,38 @@ def _validate_atomic_requirements(path: Path, workspace_root: Path) -> list[dict
             "requirements contain no template placeholder text",
         )
     )
+
+    _EARS_KEYWORDS = re.compile(
+        r"(?:THE SYSTEM SHALL|WHEN .+?,\s*THE SYSTEM SHALL|WHILE .+?,\s*THE SYSTEM SHALL|"
+        r"IF .+?,\s*THEN THE SYSTEM SHALL|WHERE .+?,\s*THE SYSTEM SHALL)",
+        flags=re.IGNORECASE,
+    )
+    ears_count = len(_EARS_KEYWORDS.findall(text))
+    if source_fr_count >= 4:
+        min_ears = max(2, (source_fr_count * 3) // 4)
+        checks.append(
+            _result(
+                "req_has_ears_content",
+                path.name,
+                ears_count >= min_ears,
+                f"found {ears_count} EARS statements (minimum {min_ears} for {source_fr_count} BRS FRs)"
+                if ears_count >= min_ears
+                else f"only {ears_count} EARS statements found — expected at least {min_ears} for {source_fr_count} BRS FRs; "
+                     f"requirements must contain actual EARS notation, not DEFERRED stubs",
+            )
+        )
+    elif source_fr_count >= 1:
+        checks.append(
+            _result(
+                "req_has_ears_content",
+                path.name,
+                ears_count >= 1,
+                f"found {ears_count} EARS statement(s)"
+                if ears_count >= 1
+                else "no EARS statements found — requirements must use EARS notation (THE SYSTEM SHALL ...)",
+            )
+        )
+
     return checks
 
 
@@ -1087,65 +1731,137 @@ def _validate_delivery_skeleton(path: Path, workspace_root: Path) -> list[dict[s
     return checks
 
 
+def _load_computed_coverage(workspace_root: Path) -> dict | None:
+    import json
+    computed_path = workspace_root / ".b2s" / "tmp" / "computed-coverage.json"
+    if not computed_path.exists():
+        return None
+    try:
+        return json.loads(computed_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
 def _validate_fr_coverage_report(path: Path, workspace_root: Path) -> list[dict[str, str]]:
     text = _read_text(path)
     checks = []
     checks.extend(_non_empty_file(path))
 
-    for heading in ["## Coverage Summary", "## Full Coverage Matrix"]:
-        checks.extend(_contains(path, heading, f"has_{heading.strip('# ').lower().replace(' ', '_')}", f"{heading} section present"))
+    # Accept both old single-table and new two-table heading formats
+    has_old_summary = "## Coverage Summary" in text
+    has_planned = "## Planned Coverage Summary" in text
+    has_generated = "## Generated Coverage Summary" in text
+    has_matrix = "## Full Coverage Matrix" in text
 
-    coverage_match = re.search(r"\|\s*Coverage percentage\s*\|\s*(\d+)%?\s*\|", text)
-    if coverage_match:
-        pct = int(coverage_match.group(1))
+    if has_planned or has_generated:
+        for heading in ["## Planned Coverage Summary", "## Generated Coverage Summary", "## Full Coverage Matrix"]:
+            checks.extend(_contains(path, heading, f"has_{heading.strip('# ').lower().replace(' ', '_')}", f"{heading} section present"))
+    else:
+        for heading in ["## Coverage Summary", "## Full Coverage Matrix"]:
+            checks.extend(_contains(path, heading, f"has_{heading.strip('# ').lower().replace(' ', '_')}", f"{heading} section present"))
+
+    computed = _load_computed_coverage(workspace_root)
+
+    if computed:
+        summary = computed.get("summary", {})
+        engine_total = summary.get("total", 0)
+        engine_covered = summary.get("covered", 0)
+        engine_pct = summary.get("coverage_pct", 0)
+        deferred = summary.get("deferred_wave_count", 0)
+
+        gen = computed.get("generated_coverage", {})
+        gen_total = gen.get("total", summary.get("in_scope_total", engine_total))
+        gen_covered = gen.get("covered", summary.get("in_scope_covered", engine_covered))
+        gen_pct = gen.get("pct", summary.get("in_scope_pct", engine_pct))
+
         checks.append(
             _result(
                 "coverage_percentage_acceptable",
                 path.name,
-                pct >= 90,
-                f"coverage percentage is {pct}%" if pct >= 90
-                else f"coverage percentage is only {pct}% — expected at least 90%; likely missing stories for requirements",
+                gen_pct >= 90,
+                f"generated coverage is {gen_pct}% ({gen_covered}/{gen_total})"
+                + (f"; {deferred} requirements deferred to later waves" if deferred else "")
+                + (f"; overall {engine_pct}% ({engine_covered}/{engine_total})" if deferred else "")
+                if gen_pct >= 90
+                else f"generated coverage is only {gen_pct}% ({gen_covered}/{gen_total}) "
+                     f"— expected at least 90%"
+                     + (f"; {deferred} requirements deferred to later waves" if deferred else "")
+                     + f"; overall {engine_pct}% ({engine_covered}/{engine_total})",
             )
         )
-    else:
-        covered_rows = _count_pattern(text, r"\|\s*Covered\s*\|")
-        not_covered_rows = _count_pattern(text, r"\|\s*\*\*Not Covered\*\*\s*\|")
-        total = covered_rows + not_covered_rows
-        if total >= 2:
-            pct = (covered_rows * 100) // total
-            checks.append(
-                _result(
-                    "coverage_percentage_acceptable",
-                    path.name,
-                    pct >= 90,
-                    f"calculated coverage: {covered_rows}/{total} ({pct}%)" if pct >= 90
-                    else f"calculated coverage: only {covered_rows}/{total} ({pct}%) — expected at least 90%",
-                )
-            )
 
-    req_path = workspace_root / "requirements" / "atomic-requirements.md"
-    if req_path.exists():
-        req_text = _read_text(req_path)
-        req_ids = set(re.findall(r"(?:FR|REQ|NFR)-\d{3}", req_text))
-        matrix_ids = set(re.findall(r"(?:FR|REQ|NFR)-\d{3}", _section_block(text, "## Full Coverage Matrix")))
-        if len(req_ids) >= 2:
-            missing = req_ids - matrix_ids
+        engine_req_ids = {r["id"] for r in computed.get("canonical_requirements", [])}
+        matrix_ids = set(re.findall(r"(?:FR|REQ|NFR|C)-\d{3}", _section_block(text, "## Full Coverage Matrix")))
+        if engine_req_ids:
+            missing = engine_req_ids - matrix_ids
             checks.append(
                 _result(
                     "all_reqs_in_matrix",
                     path.name,
                     len(missing) == 0,
-                    f"all {len(req_ids)} requirements appear in coverage matrix"
+                    f"all {len(engine_req_ids)} canonical requirements appear in coverage matrix"
                     if len(missing) == 0
-                    else f"{len(missing)} requirements missing from coverage matrix: {sorted(missing)[:10]}",
+                    else f"{len(missing)} canonical requirements missing from coverage matrix: {sorted(missing)[:10]}",
                 )
             )
+    else:
+        coverage_match = re.search(r"\|\s*Coverage percentage\s*\|\s*(\d+)%?\s*\|", text)
+        if coverage_match:
+            pct = int(coverage_match.group(1))
+            checks.append(
+                _result(
+                    "coverage_percentage_acceptable",
+                    path.name,
+                    pct >= 90,
+                    f"coverage percentage is {pct}% (no engine data available for cross-check)"
+                    if pct >= 90
+                    else f"coverage percentage is only {pct}% — expected at least 90%; "
+                         f"likely missing stories for requirements (no engine data available for cross-check)",
+                )
+            )
+        else:
+            covered_rows = _count_pattern(text, r"\|\s*Covered\s*\|")
+            not_covered_rows = _count_pattern(text, r"\|\s*\*\*Not Covered\*\*\s*\|")
+            total = covered_rows + not_covered_rows
+            if total >= 2:
+                pct = (covered_rows * 100) // total
+                checks.append(
+                    _result(
+                        "coverage_percentage_acceptable",
+                        path.name,
+                        pct >= 90,
+                        f"calculated coverage: {covered_rows}/{total} ({pct}%)" if pct >= 90
+                        else f"calculated coverage: only {covered_rows}/{total} ({pct}%) — expected at least 90%",
+                    )
+                )
 
+        req_path = workspace_root / "requirements" / "atomic-requirements.md"
+        if req_path.exists():
+            req_text = _read_text(req_path)
+            req_ids = set(re.findall(r"(?:FR|REQ|NFR)-\d{3}", req_text))
+            matrix_ids = set(re.findall(r"(?:FR|REQ|NFR)-\d{3}", _section_block(text, "## Full Coverage Matrix")))
+            if len(req_ids) >= 2:
+                missing = req_ids - matrix_ids
+                checks.append(
+                    _result(
+                        "all_reqs_in_matrix",
+                        path.name,
+                        len(missing) == 0,
+                        f"all {len(req_ids)} requirements appear in coverage matrix"
+                        if len(missing) == 0
+                        else f"{len(missing)} requirements missing from coverage matrix: {sorted(missing)[:10]}",
+                    )
+                )
+
+    # "Deferred" is a legitimate coverage term, not a placeholder stub
+    coverage_safe_patterns = [
+        p for p in _PLACEHOLDER_PATTERNS if p != r"\bDEFERRED\b"
+    ]
     checks.append(
         _result(
             "fr_coverage_no_placeholders",
             path.name,
-            _placeholders_absent(text),
+            not any(re.search(p, text, flags=re.IGNORECASE) for p in coverage_safe_patterns),
             "coverage report contains no template placeholder text",
         )
     )
@@ -1389,14 +2105,14 @@ def _validate_use_case_specs_directory(path: Path, workspace_root: Path) -> list
             )
         )
 
-        has_fr_trace = bool(re.search(r"FR-\d{3}", text))
+        has_req_trace = bool(re.search(r"(?:FR|REQ|NFR)-\d{3}", text))
         checks.append(
             _result(
                 "uc_has_fr_trace",
                 label,
-                has_fr_trace,
-                f"{label}: traces to at least one FR-NNN" if has_fr_trace
-                else f"{label}: no FR-NNN reference found — use case must trace to requirements",
+                has_req_trace,
+                f"{label}: traces to at least one requirement identifier" if has_req_trace
+                else f"{label}: no requirement reference (FR-NNN or REQ-NNN) found — use case must trace to requirements",
             )
         )
 
@@ -1494,11 +2210,12 @@ def _validate_story_package_directory(path: Path, workspace_root: Path) -> list[
         ))
 
         # story_has_requirements_link
+        has_req_link = bool(re.search(r"(?:FR|REQ|NFR)-\d{3}", text))
         checks.append(_result(
             "story_has_requirements_link", label,
-            bool(re.search(r"FR-\d{3}", text)),
-            f"{label}/story.md: links to at least one FR-NNN requirement" if re.search(r"FR-\d{3}", text)
-            else f"{label}/story.md: no FR-NNN requirement reference found",
+            has_req_link,
+            f"{label}/story.md: links to at least one requirement identifier" if has_req_link
+            else f"{label}/story.md: no requirement reference (FR-NNN or REQ-NNN) found",
         ))
 
         # story_has_acceptance_criteria
@@ -2059,15 +2776,118 @@ def _rule_requirement_has_id(
     base_checks: list[dict[str, str]],
 ) -> dict[str, str]:
     text = _read_text(path)
-    has_fr = bool(re.search(r"^\|\s*FR-\d{3}\s*\|", text, flags=re.MULTILINE))
-    has_nfr = bool(re.search(r"^\|\s*NFR-\d{3}\s*\|", text, flags=re.MULTILINE))
-    has_constraint = bool(re.search(r"^\|\s*C-\d{3}\s*\|", text, flags=re.MULTILINE))
-    passed = has_fr and has_nfr and has_constraint
+
+    # Check for typed identifiers anywhere in the artifact — catalogue
+    # headings, catalogue Type fields, or Source Inventory rows.
+    by_type = _catalog_entries_by_type(text)
+    has_fr_in_catalog = len(by_type.get("functional", [])) > 0
+    has_nfr_in_catalog = len(by_type.get("non-functional", [])) > 0
+    has_constraint_in_catalog = len(by_type.get("constraint", [])) > 0
+
+    # Also check for typed IDs in table rows (Source Inventory or inline
+    # references) — this is the original check that catches cases where
+    # the catalogue uses FR-NNN headings without a Type field.
+    has_fr_in_rows = bool(re.search(r"^\|\s*FR-\d{3}\s*\|", text, flags=re.MULTILINE))
+    has_nfr_in_rows = bool(re.search(r"^\|\s*NFR-\d{3}\s*\|", text, flags=re.MULTILINE))
+    has_constraint_in_rows = bool(re.search(r"^\|\s*C-\d{3}\s*\|", text, flags=re.MULTILINE))
+
+    has_functional = has_fr_in_catalog or has_fr_in_rows
+    has_non_functional = has_nfr_in_catalog or has_nfr_in_rows
+    has_constraint = has_constraint_in_catalog or has_constraint_in_rows
+
+    # Only require a type if the summary claims entries of that type exist.
+    summary_functional = _summary_metric_value(text, "Functional")
+    summary_non_functional = _summary_metric_value(text, "Non-functional")
+    summary_constraints = _summary_metric_value(text, "Constraints")
+
+    missing = []
+    if (summary_functional is None or summary_functional > 0) and not has_functional:
+        missing.append("functional")
+    if (summary_non_functional is None or summary_non_functional > 0) and not has_non_functional:
+        missing.append("non-functional")
+    if summary_constraints is not None and summary_constraints > 0 and not has_constraint:
+        missing.append("constraint")
+
+    passed = len(missing) == 0
+
     return _named_rule_result(
         "requirement_has_id",
         artifact_path,
         passed,
-        "functional, non-functional, and constraint rows all use typed identifiers",
+        "catalogue contains typed requirement identifiers"
+        if passed
+        else f"catalogue missing entries of type: {', '.join(missing)}",
+        severity="required",
+    )
+
+
+def _rule_source_brs_ids_preserved(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    text = _read_text(path)
+    source_ids = _source_brs_ids(workspace_root)
+    preserved = _catalog_heading_ids(text) | set(re.findall(r"(?<![A-Za-z])(?:OBJ|FR|NFR|C|REQ)-\d{3}", text))
+
+    missing_fr = sorted(source_ids["functional"] - preserved)
+    missing_nfr = sorted(source_ids["non_functional"] - preserved)
+    missing_obj = sorted(source_ids["objectives"] - preserved)
+    missing = missing_fr + missing_nfr + missing_obj
+
+    return _named_rule_result(
+        "source_brs_ids_preserved",
+        artifact_path,
+        len(missing) == 0,
+        (
+            f"all source BRS identifiers preserved "
+            f"(FR={len(source_ids['functional'])}, NFR={len(source_ids['non_functional'])}, OBJ={len(source_ids['objectives'])})"
+        )
+        if len(missing) == 0
+        else f"missing source BRS identifiers: {missing[:10]}",
+        severity="required",
+    )
+
+
+def _rule_atomic_requirements_summary_matches_catalog(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    text = _read_text(path)
+    by_type = _catalog_entries_by_type(text)
+    summary_total = _summary_metric_value(text, "Total requirements")
+    summary_functional = _summary_metric_value(text, "Functional")
+    summary_non_functional = _summary_metric_value(text, "Non-functional")
+    summary_objectives = _summary_metric_value(text, "Business objectives")
+
+    actual_functional = len(by_type.get("functional", []))
+    actual_non_functional = len(by_type.get("non-functional", []))
+    actual_objectives = len(by_type.get("objective", []))
+    actual_constraints = len(by_type.get("constraint", []))
+    actual_total = actual_functional + actual_non_functional + actual_objectives + actual_constraints
+
+    mismatches: list[str] = []
+    if summary_total is not None and summary_total != actual_total:
+        mismatches.append(f"summary total={summary_total} actual={actual_total}")
+    if summary_functional is not None and summary_functional != actual_functional:
+        mismatches.append(f"summary functional={summary_functional} actual={actual_functional}")
+    if summary_non_functional is not None and summary_non_functional != actual_non_functional:
+        mismatches.append(f"summary non-functional={summary_non_functional} actual={actual_non_functional}")
+    if summary_objectives is not None and summary_objectives != actual_objectives:
+        mismatches.append(f"summary objectives={summary_objectives} actual={actual_objectives}")
+
+    return _named_rule_result(
+        "atomic_requirements_summary_matches_catalog",
+        artifact_path,
+        len(mismatches) == 0,
+        "summary metrics match the actual catalog entries"
+        if len(mismatches) == 0
+        else "; ".join(mismatches),
         severity="required",
     )
 
@@ -2204,7 +3024,13 @@ def _rule_nfr_assessment_has_ids(
     base_checks: list[dict[str, str]],
 ) -> dict[str, str]:
     text = _read_text(path)
-    passed = bool(re.search(r"^\|\s*NFR-\d{3}\s*\|", text, flags=re.MULTILINE))
+    has_nfr_typed = bool(re.search(r"^\|\s*NFR-\d{3}\s*\|", text, flags=re.MULTILINE))
+    has_req_with_nfr_type = bool(
+        re.search(r"^\|\s*REQ-\d{3}\s*\|", text, flags=re.MULTILINE)
+    ) and bool(
+        re.search(r"^\|\s*Type\s*\|\s*Non-[Ff]unctional\s*\|", text, flags=re.MULTILINE)
+    )
+    passed = has_nfr_typed or has_req_with_nfr_type
     return _named_rule_result(
         "nfr_assessment_has_ids",
         artifact_path,
@@ -2333,6 +3159,9 @@ def _rule_requirement_title_consistency(
     )
 
 
+_SEMANTIC_THRESHOLD = 0.25
+
+
 def _rule_requirement_semantics_preserved(
     path: Path,
     workspace_root: Path,
@@ -2366,21 +3195,23 @@ def _rule_requirement_semantics_preserved(
                     _section_block(text, "## User Story"),
                     _section_block(text, "## Business Context"),
                     _section_block(text, "## Acceptance Criteria"),
+                    _section_block(text, "## In Scope"),
                 ]
             )
-            story_tokens = _keywords(semantic_text)
             for req_id in story_titles:
                 canonical_req = canonical.get(req_id)
                 if canonical_req is None:
                     continue
-                req_keywords = canonical_req["keywords"]
-                if not req_keywords:
+                if not canonical_req.get("keywords"):
                     continue
-                overlap = req_keywords & story_tokens
-                minimum = 1 if len(req_keywords) < 4 else 2
-                if len(overlap) < minimum:
+                score, details = _semantic_overlap_score(canonical_req, semantic_text)
+                if score < _SEMANTIC_THRESHOLD:
+                    req_title = canonical_req.get("title", "")
+                    story_kw = sorted(_keywords(semantic_text))[:8]
                     failures.append(
-                        f"{epic_dir.name}/{story_file.name} lacks semantic overlap for {req_id}"
+                        f"{req_id} ({req_title}): story {story_file.name} score "
+                        f"{score:.2f} < {_SEMANTIC_THRESHOLD} — "
+                        f"story discusses: {', '.join(story_kw[:5])}"
                     )
 
     return _named_rule_result(
@@ -2475,59 +3306,133 @@ def _rule_coverage_claim_matches_evidence(
     base_checks: list[dict[str, str]],
 ) -> dict[str, str]:
     text = _read_text(path)
-    rows = _section_table_rows(text, "## Full Coverage Matrix")
-    matrix_rows = [
-        row for row in rows
-        if len(row) >= 9 and re.fullmatch(r"(?:FR|REQ|NFR|C)-\d{3}", row[0].strip())
-    ]
-    story_files = set()
-    for story_file in (workspace_root / "epics").rglob("S-*.md"):
-        if story_file.is_file() and not story_file.name.endswith(".prompt.md"):
-            m = re.match(r"(S-\d{3}\.\d+)", story_file.stem)
-            if m:
-                story_files.add(m.group(1))
+    matrix_block = _section_block(text, "## Full Coverage Matrix")
+    if not matrix_block:
+        return _named_rule_result(
+            "coverage_claim_matches_evidence",
+            artifact_path,
+            False,
+            "no Full Coverage Matrix section found",
+            severity="required",
+        )
+
+    # Parse header to find column indices dynamically
+    table_lines = [l for l in matrix_block.splitlines() if l.strip().startswith("|")]
+    if len(table_lines) < 2:
+        return _named_rule_result(
+            "coverage_claim_matches_evidence",
+            artifact_path,
+            False,
+            "coverage matrix has no table rows",
+            severity="required",
+        )
+
+    header_cells = [c.strip().lower() for c in table_lines[0].split("|")]
+    header_cells = [c for c in header_cells if c]
+
+    def _find_col(keywords: list[str]) -> int:
+        # Prefer exact match over substring match
+        for i, cell in enumerate(header_cells):
+            if cell in keywords:
+                return i
+        for i, cell in enumerate(header_cells):
+            if any(kw in cell for kw in keywords):
+                return i
+        return -1
+
+    story_col = _find_col(["story"])
+    status_col = _find_col(["status"])
+    req_col = 0  # first column is always requirement ID
+
+    if story_col < 0 or status_col < 0:
+        return _named_rule_result(
+            "coverage_claim_matches_evidence",
+            artifact_path,
+            False,
+            f"cannot find Story or Status column in matrix header: {header_cells}",
+            severity="required",
+        )
+
+    # Collect known story IDs from disk
+    story_files: set[str] = set()
+    epics_dir = workspace_root / "epics"
+    if epics_dir.exists():
+        for story_file in epics_dir.rglob("S-*.md"):
+            if story_file.is_file() and not story_file.name.endswith(".prompt.md"):
+                m = re.match(r"(S-\d{3}\.\d+)", story_file.stem)
+                if m:
+                    story_files.add(m.group(1))
+                else:
+                    story_files.add(story_file.stem)
+                # Also extract ID from the file heading
+                try:
+                    first_line = story_file.read_text(encoding="utf-8").split("\n", 1)[0]
+                    hm = re.search(r"(S-\d{3}\.\d+)", first_line)
+                    if hm:
+                        story_files.add(hm.group(1))
+                except Exception:
+                    pass
+
+    # Parse data rows
+    matrix_rows: list[list[str]] = []
+    for line in table_lines[2:]:  # skip header + separator
+        cells = [c.strip() for c in line.split("|")]
+        cells = [c for c in cells if c != ""]
+        if cells and re.fullmatch(r"(?:FR|REQ|NFR|C)-\d{3}", cells[0].strip()):
+            matrix_rows.append(cells)
+
     covered = 0
+    in_scope_rows = 0
     mismatches: list[str] = []
-    for row in matrix_rows:
-        req_id = row[0].strip()
-        story_id = row[5].strip()
-        status = row[8].strip()
+    for cells in matrix_rows:
+        if len(cells) <= max(story_col, status_col):
+            continue
+        req_id = cells[req_col].strip()
+        raw_story = cells[story_col].strip()
+        # Extract story ID from possible markdown link [S-001.0](path)
+        link_match = re.search(r"(S-\d{3}\.\d+)", raw_story)
+        story_id = link_match.group(1) if link_match else raw_story
+        status = cells[status_col].strip().strip("*")  # strip bold markers
+        if status != "Deferred":
+            in_scope_rows += 1
         if status == "Covered":
-            if story_id == "—" or story_id not in story_files:
+            if story_id == "—" or (story_id not in story_files and not any(story_id in sf for sf in story_files)):
                 mismatches.append(f"{req_id} marked Covered but story '{story_id}' is missing")
             else:
                 covered += 1
 
-    declared_total_match = re.search(
-        r"\|\s*Total requirements \(from atomic-requirements\)\s*\|\s*(\d+)\s*\|",
-        text,
+    # Check declared summary metrics — accept both old and new heading formats
+    uses_generated_summary = "## Generated Coverage Summary" in text
+    declared_total_match = (
+        re.search(r"\|\s*Total requirements[^|]*\|\s*(\d+)\s*\|", text)
+        or re.search(r"\|\s*In-scope requirements[^|]*\|\s*(\d+)\s*\|", text)
     )
     declared_covered_match = re.search(
-        r"\|\s*Covered by at least one story\s*\|\s*(\d+)\s*\|",
-        text,
+        r"\|\s*Covered by (?:implementation stories|at least one story)\s*\|\s*(\d+)\s*\|", text,
     )
-    declared_pct_match = re.search(
-        r"\|\s*Coverage percentage\s*\|\s*(\d+)%\s*\|",
-        text,
+    declared_pct_match = (
+        re.search(r"\|\s*Coverage percentage\s*\|\s*(\d+)%?\s*\|", text)
+        or re.search(r"\|\s*Generated coverage\s*\|\s*(\d+)%?\s*\|", text)
     )
-    declared_total = int(declared_total_match.group(1)) if declared_total_match else len(matrix_rows)
+    computed_total = in_scope_rows if uses_generated_summary else len(matrix_rows)
+    declared_total = int(declared_total_match.group(1)) if declared_total_match else computed_total
     declared_covered = int(declared_covered_match.group(1)) if declared_covered_match else covered
     declared_pct = int(declared_pct_match.group(1)) if declared_pct_match else (covered * 100 // declared_total if declared_total else 100)
-    computed_pct = (covered * 100 // len(matrix_rows)) if matrix_rows else 100
+    computed_pct = (covered * 100 // computed_total) if computed_total else 100
 
     passed = (
         not mismatches
-        and declared_total == len(matrix_rows)
+        and declared_total == computed_total
         and declared_covered == covered
         and declared_pct == computed_pct
     )
     detail = (
-        f"coverage summary matches evidence ({covered}/{len(matrix_rows)} covered, {computed_pct}%)"
+        f"coverage summary matches evidence ({covered}/{computed_total} covered, {computed_pct}%)"
         if passed
         else "; ".join(
             mismatches[:3]
             + [
-                f"declared total={declared_total} computed total={len(matrix_rows)}",
+                f"declared total={declared_total} computed total={computed_total}",
                 f"declared covered={declared_covered} computed covered={covered}",
                 f"declared pct={declared_pct}% computed pct={computed_pct}%",
             ]
@@ -2538,6 +3443,48 @@ def _rule_coverage_claim_matches_evidence(
         artifact_path,
         passed,
         detail,
+        severity="required",
+    )
+
+
+def _rule_coverage_classifications_acceptable(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    computed = _load_computed_coverage(workspace_root)
+    if not computed:
+        return _named_rule_result(
+            "coverage_classifications_acceptable",
+            artifact_path,
+            True,
+            "no computed coverage data available - skipping coverage classification audit",
+            severity="required",
+        )
+
+    failures: list[str] = []
+    for row in computed.get("coverage_matrix", []):
+        req_id = str(row.get("req_id") or "")
+        title = str(row.get("title") or "")
+        scope = str(row.get("scope") or "")
+        status = str(row.get("status") or "")
+        evidence = str(row.get("evidence") or "")
+
+        if scope == "in_scope" and req_id.startswith(("FR-", "REQ-")) and status in {"Referenced Only", "Spike Only"}:
+            failures.append(f"{req_id} ({title}) has weak coverage status '{status}'")
+
+        if status == "Deferred" and not re.search(r"(?i)^Deferred to E-\d{3}.*(?:\:| because )", evidence):
+            failures.append(f"{req_id} deferred without explicit rationale: {evidence or 'missing evidence'}")
+
+    return _named_rule_result(
+        "coverage_classifications_acceptable",
+        artifact_path,
+        len(failures) == 0,
+        "coverage classifications are implementation-safe"
+        if len(failures) == 0
+        else "; ".join(failures[:6]),
         severity="required",
     )
 
@@ -2598,8 +3545,1227 @@ def _rule_selected_epics_have_coding_handoffs(
     )
 
 
+def _rule_all_components_from_architecture_review_present(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    """Check that the technical landscape covers components from the architecture review."""
+    landscape_text = _read_text(path)
+    review_path = workspace_root / "architecture" / "architecture-review.md"
+    if not review_path.exists():
+        return _named_rule_result(
+            "all_components_from_architecture_review_present",
+            artifact_path,
+            True,
+            "architecture review not found — skipping cross-check",
+            severity="required",
+        )
+    review_text = _read_text(review_path)
+    # Extract component names from architecture review tables (first column after |)
+    # Extract component names from the Initiative-Architecture Fit and Brownfield
+    # Impact sections.  These are the sections that list actual system components.
+    review_components: set[str] = set()
+
+    # Strategy: find the Initiative-Architecture Fit table and extract component
+    # names from the data rows (skip header and separator rows).
+    fit_match = re.search(
+        r"## Initiative-Architecture Fit.*?(?=^## |\Z)",
+        review_text,
+        flags=re.MULTILINE | re.DOTALL,
+    )
+    if fit_match:
+        fit_text = fit_match.group(0)
+        # Find data rows — lines starting with | that are not the header or separator
+        fit_rows = [
+            line for line in fit_text.splitlines()
+            if line.startswith("|")
+            and "---" not in line
+            and "Feature Area" not in line
+            and "Existing Components" not in line
+        ]
+        for row in fit_rows:
+            cells = [c.strip() for c in row.split("|") if c.strip()]
+            # Cells 1 and 2 (0-indexed) contain component lists
+            for cell in cells[1:3] if len(cells) > 2 else []:
+                for name in re.split(r"[,;]", cell):
+                    name = re.sub(r"\(.*?\)", "", name).strip()
+                    if name and len(name) > 2:
+                        review_components.add(name.lower())
+
+    # Also extract from Brownfield Impact Component column (first column)
+    brownfield_match = re.search(
+        r"## Brownfield Impact.*?(?=^## |\Z)",
+        review_text,
+        flags=re.MULTILINE | re.DOTALL,
+    )
+    if brownfield_match:
+        brownfield_text = brownfield_match.group(0)
+        for m in re.finditer(
+            r"^\|\s*([A-Z][A-Za-z0-9 /&-]+?)\s*\|",
+            brownfield_text,
+            flags=re.MULTILINE,
+        ):
+            name = m.group(1).strip()
+            if name and name.lower() not in ("component", "change type", "consumers"):
+                review_components.add(name.lower())
+
+    if not review_components:
+        return _named_rule_result(
+            "all_components_from_architecture_review_present",
+            artifact_path,
+            True,
+            "no components extracted from architecture review — skipping",
+            severity="required",
+        )
+
+    landscape_lower = landscape_text.lower()
+    _ACCOUNTED_MARKERS = ["needs-clarification", "out-of-scope", "deferred", "not-impacted", "not impacted"]
+    missing = []
+    for c in review_components:
+        if c in landscape_lower:
+            continue
+        if any(marker in landscape_lower for marker in _ACCOUNTED_MARKERS):
+            continue
+        missing.append(c)
+    missing.sort()
+    covered = len(review_components) - len(missing)
+
+    return _named_rule_result(
+        "all_components_from_architecture_review_present",
+        artifact_path,
+        len(missing) == 0,
+        f"technical landscape accounts for all {len(review_components)} architecture review components"
+        if len(missing) == 0
+        else f"technical landscape missing components: {', '.join(missing[:5])} ({covered}/{len(review_components)} accounted for)",
+        severity="required",
+    )
+
+
+def _rule_all_functional_requirements_mapped(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    """Check that the impacted systems map covers all functional requirements."""
+    impact_text = _read_text(path)
+    canonical = _canonical_requirements(workspace_root)
+    if not canonical:
+        return _named_rule_result(
+            "all_functional_requirements_mapped",
+            artifact_path,
+            True,
+            "no canonical requirements found — skipping",
+            severity="required",
+        )
+
+    functional_ids = sorted([
+        rid for rid, req in canonical.items()
+        if rid.startswith("FR-") or req.get("type", "").lower() == "functional"
+    ])
+    if not functional_ids:
+        # Fall back: count all REQ- entries that have functional type via catalog parsing
+        req_path = workspace_root / "requirements" / "atomic-requirements.md"
+        if req_path.exists():
+            by_type = _catalog_entries_by_type(_read_text(req_path))
+            functional_ids = sorted(by_type.get("functional", []))
+
+    if not functional_ids:
+        return _named_rule_result(
+            "all_functional_requirements_mapped",
+            artifact_path,
+            True,
+            "no functional requirements found — skipping",
+            severity="required",
+        )
+
+    missing = [rid for rid in functional_ids if rid not in impact_text]
+    covered = len(functional_ids) - len(missing)
+
+    return _named_rule_result(
+        "all_functional_requirements_mapped",
+        artifact_path,
+        len(missing) == 0,
+        f"all {len(functional_ids)} functional requirements appear in the impact map"
+        if len(missing) == 0
+        else f"missing from impact map: {', '.join(missing[:10])} ({covered}/{len(functional_ids)} covered)",
+        severity="required",
+    )
+
+
+def _rule_all_impacted_components_have_decisions(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    """Check that every component in the impacted systems map has a decision."""
+    decisions_text = _read_text(path)
+    impact_path = workspace_root / "architecture" / "impacted-systems.md"
+    if not impact_path.exists():
+        return _named_rule_result(
+            "all_impacted_components_have_decisions",
+            artifact_path,
+            True,
+            "impacted systems artifact not found — skipping cross-check",
+            severity="required",
+        )
+    impact_text = _read_text(impact_path)
+
+    impacted: set[str] = set()
+
+    _KNOWN_HEADERS = {
+        "requirement", "existing services", "new services", "impacted repos",
+        "new apis", "new schemas", "component", "type", "rationale",
+        "concern", "affected components", "requirements", "notes",
+        "nfr", "impact type", "metric", "value", "field", "dimension",
+        "details", "triggered by requirements", "source id", "title / summary",
+        "preserved in", "integration changes", "feature", "feature title",
+        "requirements covered", "priority", "status", "epic",
+    }
+
+    for section_heading in ["## New-Proposed Components", "## Impact Summary Table"]:
+        block = _section_block(impact_text, section_heading)
+        if not block:
+            continue
+        rows = _section_table_rows(impact_text, section_heading)
+        for row in rows:
+            if row and len(row) >= 2:
+                name = row[0].strip()
+                if name.lower() not in _KNOWN_HEADERS and len(name) > 2:
+                    impacted.add(name.lower())
+
+    for heading in ["## Existing Services", "## New Services"]:
+        block = _section_block(impact_text, heading)
+        if not block:
+            continue
+        for line in block.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("- "):
+                name = stripped[2:].split("—")[0].split(":")[0].strip()
+                if name and len(name) > 2:
+                    impacted.add(name.lower())
+            elif stripped.startswith("|"):
+                cells = [c.strip() for c in stripped.strip("|").split("|")]
+                if cells and cells[0].lower() not in _KNOWN_HEADERS and len(cells[0]) > 2:
+                    impacted.add(cells[0].lower())
+
+    per_req_sections = re.findall(
+        r"^\|\s*Existing services impacted\s*\|\s*(.+?)\s*\|$",
+        impact_text,
+        flags=re.MULTILINE,
+    )
+    for cell in per_req_sections:
+        for name in re.split(r",\s*", cell):
+            name = name.strip()
+            if name and name.lower() not in ("none", "n/a", "") and len(name) > 2:
+                impacted.add(name.lower())
+
+    if not impacted:
+        return _named_rule_result(
+            "all_impacted_components_have_decisions",
+            artifact_path,
+            True,
+            "no impacted components extracted — skipping",
+            severity="required",
+        )
+
+    decisions_lower = decisions_text.lower()
+    _ACCOUNTED_MARKERS = ["needs-clarification", "out-of-scope", "deferred", "not-impacted", "not impacted"]
+    missing = []
+    for c in impacted:
+        if c in decisions_lower:
+            continue
+        if any(marker in decisions_lower for marker in _ACCOUNTED_MARKERS):
+            continue
+        missing.append(c)
+    missing.sort()
+    covered = len(impacted) - len(missing)
+
+    return _named_rule_result(
+        "all_impacted_components_have_decisions",
+        artifact_path,
+        len(missing) == 0,
+        f"solution decisions account for all {len(impacted)} impacted components"
+        if len(missing) == 0
+        else f"missing decisions for: {', '.join(missing[:5])} ({covered}/{len(impacted)} accounted for)",
+        severity="required",
+    )
+
+
+def _rule_ui_spec_confirmed_pages_have_page_sections(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    text = _read_text(path)
+    coverage_match = re.search(
+        r"## Page Specification Coverage\s*\n((?:\|.*\n)+)", text
+    )
+    if not coverage_match:
+        return _named_rule_result(
+            "ui_spec_confirmed_pages_have_page_sections",
+            artifact_path,
+            False,
+            "Page Specification Coverage table not found",
+            severity="required",
+        )
+
+    confirmed_pages: list[str] = []
+    for row in coverage_match.group(1).splitlines():
+        cells = [c.strip() for c in row.split("|") if c.strip()]
+        if len(cells) < 4:
+            continue
+        status_cell = cells[3].lower().strip()
+        if status_cell in ("confirmed", "full-spec"):
+            confirmed_pages.append(cells[2].strip())
+
+    page_sections = {
+        m.strip().lower()
+        for m in re.findall(r"^###\s+Page:\s*(.+)$", text, flags=re.MULTILINE)
+    }
+    missing = [p for p in confirmed_pages if p.lower() not in page_sections]
+
+    return _named_rule_result(
+        "ui_spec_confirmed_pages_have_page_sections",
+        artifact_path,
+        len(missing) == 0,
+        f"all {len(confirmed_pages)} confirmed pages have page sections"
+        if len(missing) == 0
+        else f"confirmed pages missing page sections: {', '.join(missing[:5])}",
+        severity="required",
+    )
+
+
+def _rule_ui_spec_confirmed_pages_have_required_subsections(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    text = _read_text(path)
+    required_subsections = [
+        "layout", "sections", "data binding", "states", "user flow",
+        "permissions", "acceptance scenarios",
+    ]
+    page_sections = re.split(r"^###\s+Page:\s*", text, flags=re.MULTILINE)[1:]
+    missing_report: list[str] = []
+
+    for section in page_sections:
+        page_name_match = re.match(r"(.+?)$", section.strip(), flags=re.MULTILINE)
+        page_name = page_name_match.group(1).strip() if page_name_match else "unknown"
+        section_lower = section.lower()
+        missing_subs = [s for s in required_subsections if f"#### {s}" not in section_lower]
+        if missing_subs:
+            missing_report.append(f"{page_name}: {', '.join(missing_subs)}")
+
+    return _named_rule_result(
+        "ui_spec_confirmed_pages_have_required_subsections",
+        artifact_path,
+        len(missing_report) == 0,
+        "all page sections have required subsections"
+        if len(missing_report) == 0
+        else f"pages missing subsections: {'; '.join(missing_report[:3])}",
+        severity="required",
+    )
+
+
+def _rule_ui_spec_no_confirmed_when_blockers_exist(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    text = _read_text(path)
+
+    blocking_routes: set[str] = set()
+    questions_match = re.search(
+        r"## Open UI Questions\s*\n((?:\|.*\n)+)", text
+    )
+    if questions_match:
+        for row in questions_match.group(1).splitlines():
+            cells = [c.strip() for c in row.split("|") if c.strip()]
+            if len(cells) >= 6:
+                qid = cells[0].strip()
+                blocking = cells[5].strip().lower()
+                if blocking == "yes" and re.match(r"UIQ-\d+", qid):
+                    for r in re.split(r"[,;]", cells[3]):
+                        blocking_routes.add(r.strip().lower())
+
+    violations: list[str] = []
+
+    coverage_match = re.search(
+        r"## Page Specification Coverage\s*\n((?:\|.*\n)+)", text
+    )
+    if coverage_match:
+        for row in coverage_match.group(1).splitlines():
+            cells = [c.strip() for c in row.split("|") if c.strip()]
+            if len(cells) >= 4:
+                route = cells[1].strip()
+                page = cells[2].strip()
+                status = cells[3].strip().lower()
+                if status == "confirmed" and blocking_routes:
+                    for br in blocking_routes:
+                        if route.lower() in br or br in route.lower() or page.lower() in br:
+                            violations.append(f"{page} ({route})")
+
+    for m in re.finditer(
+        r"\*\*Blocking dependencies:\*\*\s*(.+?)$", text, flags=re.MULTILINE
+    ):
+        deps = m.group(1).strip()
+        if deps.lower() != "none" and deps != "—":
+            status_match = re.search(
+                r"\*\*Specification status:\*\*\s*(.+?)$",
+                text[max(0, m.start() - 300):m.start()],
+                flags=re.MULTILINE,
+            )
+            if status_match and status_match.group(1).strip().lower() == "confirmed":
+                violations.append(f"page with deps={deps}")
+
+    return _named_rule_result(
+        "ui_spec_no_confirmed_when_blockers_exist",
+        artifact_path,
+        len(violations) == 0,
+        "no confirmed pages have blocking questions or dependencies"
+        if len(violations) == 0
+        else f"confirmed pages with blockers: {', '.join(violations[:5])}",
+        severity="required",
+    )
+
+
+def _rule_ui_spec_data_binding_contract_mode_present(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    text = _read_text(path)
+    binding_tables = re.findall(
+        r"#### Data Binding\s*\n((?:\|.*\n)+)", text
+    )
+    if not binding_tables:
+        has_no_api = "no api dependency" in text.lower()
+        return _named_rule_result(
+            "ui_spec_data_binding_contract_mode_present",
+            artifact_path,
+            has_no_api,
+            "no data binding tables found — pages explicitly state no API dependency"
+            if has_no_api
+            else "no data binding tables and no explicit 'no API dependency' statement",
+            severity="required",
+        )
+
+    valid_modes = {"confirmed", "partial", "proposed-by-ui-spec", "mock", "unknown"}
+    missing_mode: list[str] = []
+    for table in binding_tables:
+        header_line = table.strip().splitlines()[0] if table.strip() else ""
+        if "contract mode" not in header_line.lower():
+            missing_mode.append("table missing Contract Mode column")
+            continue
+        for row in table.strip().splitlines()[2:]:
+            cells = [c.strip() for c in row.split("|") if c.strip()]
+            if cells:
+                last_cell = cells[-1].strip().lower()
+                if last_cell not in valid_modes:
+                    missing_mode.append(f"{cells[0]}: mode '{cells[-1]}'")
+
+    return _named_rule_result(
+        "ui_spec_data_binding_contract_mode_present",
+        artifact_path,
+        len(missing_mode) == 0,
+        "all data binding rows have valid Contract Mode"
+        if len(missing_mode) == 0
+        else f"contract mode issues: {', '.join(missing_mode[:5])}",
+        severity="required",
+    )
+
+
+def _rule_ui_spec_every_inferred_has_open_question(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    text = _read_text(path)
+
+    question_routes: set[str] = set()
+    questions_match = re.search(
+        r"## Open UI Questions\s*\n((?:\|.*\n)+)", text
+    )
+    if questions_match:
+        for row in questions_match.group(1).splitlines():
+            cells = [c.strip() for c in row.split("|") if c.strip()]
+            if len(cells) >= 5 and not cells[0].lower().startswith("id") and "---" not in cells[0]:
+                for r in re.split(r"[,;]", cells[3]):
+                    route = r.strip().lower()
+                    if route:
+                        question_routes.add(route)
+
+    inferred_pages: list[str] = []
+    coverage_match = re.search(
+        r"## Page Specification Coverage\s*\n((?:\|.*\n)+)", text
+    )
+    if coverage_match:
+        for row in coverage_match.group(1).splitlines():
+            cells = [c.strip() for c in row.split("|") if c.strip()]
+            if len(cells) >= 4 and "---" not in cells[0]:
+                route = cells[1].strip().lower()
+                page = cells[2].strip()
+                status = cells[3].strip().lower()
+                if status == "inferred":
+                    inferred_pages.append((page, route))
+
+    page_sections = re.split(r"^###\s+Page:\s*", text, flags=re.MULTILINE)[1:]
+    inferred_page_names: list[str] = []
+    for section in page_sections:
+        page_name_match = re.match(r"(.+?)$", section.strip(), flags=re.MULTILINE)
+        page_name = page_name_match.group(1).strip() if page_name_match else ""
+        if "inferred" in section.lower():
+            route_match = re.search(r"\*\*Route:\*\*\s*(.+?)$", section, flags=re.MULTILINE)
+            route = route_match.group(1).strip().lower() if route_match else ""
+            if (page_name, route) not in inferred_pages:
+                inferred_page_names.append((page_name, route))
+
+    all_inferred = inferred_pages + inferred_page_names
+    uncovered: list[str] = []
+    for page_name, route in all_inferred:
+        covered = any(
+            route in qr or qr in route
+            for qr in question_routes
+        ) if route else False
+        if not covered and question_routes:
+            covered = any(page_name.lower() in qr for qr in question_routes)
+        if not covered:
+            uncovered.append(f"{page_name} ({route})" if route else page_name)
+
+    if not all_inferred:
+        return _named_rule_result(
+            "ui_spec_every_inferred_has_open_question",
+            artifact_path,
+            True,
+            "no inferred pages found",
+            severity="required",
+        )
+
+    return _named_rule_result(
+        "ui_spec_every_inferred_has_open_question",
+        artifact_path,
+        len(uncovered) == 0,
+        f"all {len(all_inferred)} inferred pages have matching open questions"
+        if len(uncovered) == 0
+        else f"inferred pages without matching open questions: {', '.join(uncovered[:5])}",
+        severity="required",
+    )
+
+
+def _rule_ui_spec_shared_components_match_page_fields(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    text = _read_text(path)
+    components_match = re.search(
+        r"## Shared Components\s*\n((?:\|.*\n)+)", text
+    )
+    if not components_match:
+        return _named_rule_result(
+            "ui_spec_shared_components_match_page_fields",
+            artifact_path,
+            True,
+            "no shared components section — check not applicable",
+            severity="optional",
+        )
+
+    mismatches: list[str] = []
+    for row in components_match.group(1).splitlines():
+        cells = [c.strip() for c in row.split("|") if c.strip()]
+        if len(cells) < 4:
+            continue
+        comp_name = cells[0].strip()
+        if comp_name.lower() in ("component", "---"):
+            continue
+        props_str = cells[3].strip().lower()
+        prop_fields = [
+            f.strip().rstrip(",")
+            for f in re.split(r"[,;:]", props_str)
+            if f.strip() and f.strip() not in ("fields", "columns", "data inputs", "props / inputs")
+        ]
+        used_by = cells[2].strip()
+        for page_name in re.split(r"[,;]", used_by):
+            page_name = page_name.strip()
+            page_match = re.search(
+                rf"###\s+Page:\s*{re.escape(page_name)}\s*\n(.*?)(?=\n###\s|\Z)",
+                text,
+                flags=re.DOTALL,
+            )
+            if page_match:
+                page_text = page_match.group(1).lower()
+                for field in prop_fields:
+                    if field and field not in page_text:
+                        mismatches.append(f"{comp_name}.{field} not in {page_name}")
+
+    return _named_rule_result(
+        "ui_spec_shared_components_match_page_fields",
+        artifact_path,
+        len(mismatches) == 0,
+        "shared component props consistent with page fields"
+        if len(mismatches) == 0
+        else f"component/page field mismatches: {', '.join(mismatches[:5])}",
+        severity="optional",
+    )
+
+
+def _rule_ui_spec_no_encoding_mojibake(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    text = _read_text(path)
+    mojibake_sequences = [
+        "\xc3\xa2\xc2\x80\xc2\x93",  # en-dash mojibake
+        "\xc3\xa2\xc2\x80\xc2\x99",  # right single-quote mojibake
+        "\xc3\xa2\xc2\x80\xc2\x9c",  # left double-quote mojibake
+        "\xc3\xa2\xc2\x80\xc2\x9d",  # right double-quote mojibake
+        "\xc3\xa2\xc2\x86\xc2\x92",  # arrow mojibake
+    ]
+    mojibake_patterns = [
+        r"\xc3[\x80-\xbf]\xc2",  # generic double-encoded UTF-8 pattern
+    ]
+    found: list[str] = []
+    for seq in mojibake_sequences:
+        count = text.count(seq)
+        if count:
+            found.append(f"mojibake-sequence x{count}")
+    for pattern in mojibake_patterns:
+        matches = re.findall(pattern, text)
+        if matches:
+            found.append(f"double-encoded-utf8 x{len(matches)}")
+
+    return _named_rule_result(
+        "ui_spec_no_encoding_mojibake",
+        artifact_path,
+        len(found) == 0,
+        "no encoding artifacts detected"
+        if len(found) == 0
+        else f"encoding issues found: {', '.join(found[:5])}",
+        severity="required",
+    )
+
+
+def _rule_epic_clarification_request_has_questions_or_explicit_no_blockers(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    state = workspace.load_state(workspace_root)
+    current_item = state.get("current_item")
+    if not current_item:
+        return _named_rule_result(
+            "epic_clarification_request_has_questions_or_explicit_no_blockers",
+            artifact_path,
+            False,
+            "current_item not set for clarification validation",
+            severity="required",
+        )
+
+    epic_dirs = sorted([d for d in path.iterdir() if d.is_dir() and d.name.startswith(current_item)]) if path.exists() else []
+    if not epic_dirs:
+        return _named_rule_result(
+            "epic_clarification_request_has_questions_or_explicit_no_blockers",
+            artifact_path,
+            False,
+            f"no epic directory found for {current_item}",
+            severity="required",
+        )
+
+    request_path = epic_dirs[0] / "clarification-request.md"
+    if not request_path.exists():
+        return _named_rule_result(
+            "epic_clarification_request_has_questions_or_explicit_no_blockers",
+            artifact_path,
+            False,
+            f"{epic_dirs[0].name}/clarification-request.md missing",
+            severity="required",
+        )
+
+    text = _read_text(request_path)
+    if "No blocking questions require clarification for this epic." in text:
+        return _named_rule_result(
+            "epic_clarification_request_has_questions_or_explicit_no_blockers",
+            artifact_path,
+            True,
+            "clarification request explicitly states no blocking questions remain",
+            severity="required",
+        )
+
+    table_match = re.search(r"## Blocking Questions\s*\n((?:\|.*\n)+)", text)
+    if not table_match:
+        return _named_rule_result(
+            "epic_clarification_request_has_questions_or_explicit_no_blockers",
+            artifact_path,
+            False,
+            "clarification request has neither explicit no-blockers text nor a blocking questions table",
+            severity="required",
+        )
+
+    row_count = 0
+    for row in table_match.group(1).splitlines():
+        cells = [c.strip() for c in row.split("|") if c.strip()]
+        if len(cells) == 6 and cells[0] != "ID" and not cells[0].startswith("---"):
+            row_count += 1
+
+    return _named_rule_result(
+        "epic_clarification_request_has_questions_or_explicit_no_blockers",
+        artifact_path,
+        row_count > 0,
+        f"clarification request lists {row_count} blocking question(s)"
+        if row_count > 0
+        else "blocking questions table is present but contains no question rows",
+        severity="required",
+    )
+
+
+def _rule_solution_design_clarification_request_has_questions_or_explicit_no_blockers(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    if not path.exists():
+        return _named_rule_result(
+            "solution_design_clarification_request_has_questions_or_explicit_no_blockers",
+            artifact_path,
+            False,
+            "solution design clarification request artifact missing",
+            severity="required",
+        )
+
+    text = _read_text(path)
+    if "No blocking solution design questions require clarification." in text:
+        return _named_rule_result(
+            "solution_design_clarification_request_has_questions_or_explicit_no_blockers",
+            artifact_path,
+            True,
+            "clarification request explicitly states no blocking solution design questions remain",
+            severity="required",
+        )
+
+    table_match = re.search(r"## Blocking Questions\s*\n((?:\|.*\n)+)", text)
+    if not table_match:
+        return _named_rule_result(
+            "solution_design_clarification_request_has_questions_or_explicit_no_blockers",
+            artifact_path,
+            False,
+            "clarification request has neither explicit no-blockers text nor a blocking questions table",
+            severity="required",
+        )
+
+    row_count = 0
+    for row in table_match.group(1).splitlines():
+        cells = [c.strip() for c in row.split("|") if c.strip()]
+        if len(cells) == 6 and cells[0] != "ID" and not cells[0].startswith("---"):
+            row_count += 1
+
+    return _named_rule_result(
+        "solution_design_clarification_request_has_questions_or_explicit_no_blockers",
+        artifact_path,
+        row_count > 0,
+        f"clarification request lists {row_count} blocking solution design question(s)"
+        if row_count > 0
+        else "blocking questions table is present but contains no question rows",
+        severity="required",
+    )
+
+
+def _extract_contract_api_paths(contract_text: str) -> set[tuple[str, str]]:
+    """Extract (path, method) tuples from the OpenAPI YAML block in an implementation contract."""
+    import yaml as _yaml
+
+    yaml_blocks = re.findall(r"```(?:yaml|yml)\s*\n(.*?)```", contract_text, flags=re.DOTALL)
+    paths: set[tuple[str, str]] = set()
+    for block in yaml_blocks:
+        if "paths:" not in block and "openapi" not in block:
+            continue
+        try:
+            data = _yaml.safe_load(block)
+        except Exception:
+            continue
+        if not isinstance(data, dict):
+            continue
+        paths_section = data.get("paths", {})
+        if not isinstance(paths_section, dict):
+            continue
+        for path_key, methods in paths_section.items():
+            if not isinstance(methods, dict):
+                continue
+            for method in methods:
+                if method.lower() in ("get", "post", "put", "patch", "delete", "head", "options"):
+                    paths.add((str(path_key), method.lower()))
+    return paths
+
+
+def _normalize_api_path(path: str) -> str:
+    """Normalize path parameters for comparison: /score/{arn} → /score/{}"""
+    return re.sub(r"\{[^}]*\}", "{}", path.rstrip("/"))
+
+
+def _extract_agent_yaml_api_refs(data: dict[str, Any]) -> list[tuple[str, str]]:
+    """Extract API path references from an agent YAML's implementation_contract section."""
+    refs: list[tuple[str, str]] = []
+    impl = data.get("implementation_contract", {})
+    if not isinstance(impl, dict):
+        return refs
+
+    api = impl.get("api", {})
+    if isinstance(api, dict):
+        api_path = api.get("path", "")
+        api_method = api.get("method", "")
+        if api_path and api_method:
+            refs.append((str(api_path), str(api_method).lower()))
+
+    for op in impl.get("operations", []):
+        if not isinstance(op, dict):
+            continue
+        target = op.get("target", "")
+        path = op.get("path", "")
+        method = op.get("method", "")
+        if path and method:
+            refs.append((str(path), str(method).lower()))
+        elif isinstance(target, str) and re.match(r"(GET|POST|PUT|PATCH|DELETE)\s+/", target, re.IGNORECASE):
+            parts = target.split(None, 1)
+            if len(parts) == 2:
+                refs.append((parts[1], parts[0].lower()))
+
+    return refs
+
+
+def _extract_agent_yaml_operation_refs(data: dict[str, Any]) -> set[str]:
+    refs: set[str] = set()
+    for path, method in _extract_agent_yaml_api_refs(data):
+        refs.add(f"{method.upper()} {_normalize_api_path(path)}")
+
+    impl = data.get("implementation_contract", {})
+    if not isinstance(impl, dict):
+        return refs
+
+    for op in impl.get("operations", []):
+        if not isinstance(op, dict):
+            continue
+        target = op.get("target", "")
+        if isinstance(target, str) and target.strip():
+            method_path_match = re.match(r"^\s*(GET|POST|PUT|PATCH|DELETE)\s+(.+?)\s*$", target, flags=re.IGNORECASE)
+            if method_path_match:
+                refs.add(f"{method_path_match.group(1).upper()} {_normalize_api_path(method_path_match.group(2).strip())}")
+            else:
+                refs.add(target.strip())
+    return refs
+
+
+def _api_path_matches_any(
+    candidate: tuple[str, str],
+    contract_paths: set[tuple[str, str]],
+) -> bool:
+    """Check if a candidate (path, method) matches any contract path."""
+    cand_path, cand_method = _normalize_api_path(candidate[0]), candidate[1]
+    for contract_path, contract_method in contract_paths:
+        norm_contract = _normalize_api_path(contract_path)
+        if cand_method == contract_method and cand_path == norm_contract:
+            return True
+        # Also check base path match (ignoring trailing segments)
+        cand_segments = [s for s in cand_path.split("/") if s and s != "{}"]
+        contract_segments = [s for s in norm_contract.split("/") if s and s != "{}"]
+        if cand_segments and contract_segments and cand_segments[0] == contract_segments[0]:
+            if cand_method == contract_method:
+                return True
+    return False
+
+
+def _rule_agent_yaml_operations_match_contract(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    """Validate that story agent YAML operations reference endpoints from the implementation contract."""
+    import yaml as _yaml
+
+    if not path.is_dir():
+        return _named_rule_result(
+            "agent_yaml_operations_match_contract",
+            artifact_path,
+            True,
+            "contract cross-validation applies to epic directories only",
+            severity="required",
+        )
+
+    mismatches: list[str] = []
+
+    for epic_dir in sorted(d for d in path.iterdir() if d.is_dir() and d.name.startswith("E-")):
+        contract_path = epic_dir / "implementation-contract.md"
+        if not contract_path.exists():
+            continue
+        contract_text = _read_text(contract_path)
+        contract_paths = _extract_contract_api_paths(contract_text)
+        if not contract_paths:
+            continue
+
+        stories_dir = epic_dir / "stories"
+        if not stories_dir.exists():
+            continue
+
+        for yaml_file in sorted(stories_dir.glob("S-*.agent.yaml")):
+            try:
+                data = _yaml.safe_load(yaml_file.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            if not isinstance(data, dict):
+                continue
+
+            agent_refs = _extract_agent_yaml_api_refs(data)
+            for ref_path, ref_method in agent_refs:
+                if not _api_path_matches_any((ref_path, ref_method), contract_paths):
+                    contract_list = sorted(f"{m.upper()} {p}" for p, m in contract_paths)
+                    mismatches.append(
+                        f"{yaml_file.name}: {ref_method.upper()} {ref_path} "
+                        f"not in contract ({', '.join(contract_list)})"
+                    )
+
+    return _named_rule_result(
+        "agent_yaml_operations_match_contract",
+        artifact_path,
+        len(mismatches) == 0,
+        "all agent YAML operations reference endpoints from implementation contracts"
+        if len(mismatches) == 0
+        else "; ".join(mismatches[:5]),
+        severity="required",
+    )
+
+
+def _rule_story_agent_contract_semantic_equivalence(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    if not path.is_dir():
+        return _named_rule_result(
+            "story_agent_contract_semantic_equivalence",
+            artifact_path,
+            True,
+            "story/agent semantic equivalence applies to epic directories only",
+            severity="required",
+        )
+
+    failures: list[str] = []
+
+    for epic_dir in sorted(d for d in path.iterdir() if d.is_dir() and d.name.startswith("E-")):
+        stories_dir = epic_dir / "stories"
+        if not stories_dir.exists():
+            continue
+
+        for story_file in sorted(stories_dir.glob("S-*.md")):
+            if story_file.name.endswith(".prompt.md"):
+                continue
+            agent_contract = story_file.with_suffix(".agent.yaml")
+            if not agent_contract.exists():
+                continue
+
+            try:
+                data = _read_yaml(agent_contract)
+            except Exception:
+                continue
+            if not isinstance(data, dict):
+                continue
+
+            story_text = _read_text(story_file)
+            story_id, story_title = _extract_story_heading_parts(story_text)
+            story_type = _story_metadata_value(story_text, "Story Type").lower()
+            implemented = _extract_story_requirement_ids(story_text, "## Requirements Implemented")
+            referenced = _extract_story_requirement_ids(story_text, "## Requirements Referenced")
+            markdown_dependencies = _extract_story_dependencies(story_text)
+            markdown_operation_refs = _extract_story_markdown_operation_refs(story_text)
+            yaml_operation_refs = _extract_agent_yaml_operation_refs(data)
+
+            yaml_title = str(data.get("title") or "").strip()
+            yaml_story_type = str(data.get("story_type") or "").strip().lower()
+            yaml_implemented = [
+                str(item).strip()
+                for item in (data.get("requirements_implemented") or [])
+                if isinstance(item, str) and item.strip()
+            ]
+            yaml_referenced = [
+                str(item).strip()
+                for item in (data.get("requirements_referenced") or [])
+                if isinstance(item, str) and item.strip()
+            ]
+            yaml_dependencies = []
+            for dep in data.get("depends_on") or []:
+                if isinstance(dep, dict):
+                    dep_id = str(dep.get("story_id") or "").strip()
+                    if dep_id:
+                        yaml_dependencies.append(dep_id)
+
+            pair_label = f"{epic_dir.name}/{story_file.name}"
+            pair_failures: list[str] = []
+
+            if story_id and str(data.get("story_id") or "").strip() != story_id:
+                pair_failures.append(f"story_id markdown={story_id} yaml={data.get('story_id')}")
+
+            if story_title and _normalize_text(yaml_title) != _normalize_text(story_title):
+                pair_failures.append(f"title markdown='{story_title}' yaml='{yaml_title}'")
+
+            if story_type and yaml_story_type != story_type:
+                pair_failures.append(f"story_type markdown={story_type} yaml={yaml_story_type or 'missing'}")
+
+            if implemented != yaml_implemented:
+                pair_failures.append(
+                    f"requirements_implemented markdown={implemented} yaml={yaml_implemented}"
+                )
+
+            if referenced != yaml_referenced:
+                pair_failures.append(
+                    f"requirements_referenced markdown={referenced} yaml={yaml_referenced}"
+                )
+
+            if markdown_dependencies != yaml_dependencies:
+                pair_failures.append(
+                    f"dependencies markdown={markdown_dependencies} yaml={yaml_dependencies}"
+                )
+
+            if yaml_operation_refs and markdown_operation_refs and not yaml_operation_refs.issubset(markdown_operation_refs):
+                missing_refs = sorted(yaml_operation_refs - markdown_operation_refs)
+                pair_failures.append(
+                    f"operations missing from markdown context: {missing_refs}"
+                )
+
+            if pair_failures:
+                failures.append(f"{pair_label}: " + ", ".join(pair_failures))
+
+    return _named_rule_result(
+        "story_agent_contract_semantic_equivalence",
+        artifact_path,
+        len(failures) == 0,
+        "all story markdown and agent YAML pairs are semantically aligned"
+        if len(failures) == 0
+        else "; ".join(failures[:5]),
+        severity="required",
+    )
+
+
+def _rule_epic_coding_readiness(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    """Composite gate: is this epic ready for a coding agent?"""
+    import yaml as _yaml
+
+    if not path.is_dir():
+        return _named_rule_result(
+            "epic_coding_readiness",
+            artifact_path,
+            True,
+            "coding readiness applies to epic directories only",
+            severity="required",
+        )
+
+    canonical = _canonical_requirements(workspace_root)
+    failures: list[str] = []
+
+    for epic_dir in sorted(d for d in path.iterdir() if d.is_dir() and d.name.startswith("E-")):
+        epic_label = epic_dir.name
+
+        # 1. Contracts complete
+        contract_path = epic_dir / "implementation-contract.md"
+        if not contract_path.exists():
+            failures.append(f"{epic_label}: missing implementation-contract.md")
+            continue
+        contract_text = _read_text(contract_path)
+        has_data = bool(re.search(r"^##\s+Data Entities", contract_text, re.MULTILINE))
+        has_api = bool(re.search(r"^##\s+API Surface", contract_text, re.MULTILINE))
+        has_events = bool(re.search(r"^##\s+Events", contract_text, re.MULTILINE))
+        if not (has_data or has_api or has_events):
+            failures.append(f"{epic_label}: contract lacks Data Entities, API Surface, and Events sections")
+
+        # 2. No unresolved blockers
+        oq_block = _section_block(contract_text, "## Open Design Questions") or _section_block(contract_text, "## Open Questions")
+        if oq_block:
+            blocking_rows = re.findall(
+                r"\|\s*(?:OQ|ODQ)-\d+\s*\|[^|]*\|[^|]*(?:implementation\s*start|before\s*coding)[^|]*\|",
+                oq_block, re.IGNORECASE,
+            )
+            if blocking_rows:
+                failures.append(
+                    f"{epic_label}: {len(blocking_rows)} open question(s) block implementation start"
+                )
+
+        # 3. Stories have implementation targets
+        stories_dir = epic_dir / "stories"
+        if not stories_dir or not stories_dir.exists():
+            continue
+
+        contract_paths = _extract_contract_api_paths(contract_text)
+        seen_endpoints: dict[str, list[str]] = {}
+
+        for yaml_file in sorted(stories_dir.glob("S-*.agent.yaml")):
+            try:
+                data = _yaml.safe_load(yaml_file.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            if not isinstance(data, dict):
+                continue
+
+            impl = data.get("implementation_contract", {})
+            if not isinstance(impl, dict):
+                failures.append(f"{epic_label}/{yaml_file.name}: missing implementation_contract")
+                continue
+
+            components = impl.get("touched_components", [])
+            if not components or not isinstance(components, list):
+                failures.append(f"{epic_label}/{yaml_file.name}: no touched_components")
+
+            operations = impl.get("operations", [])
+            if not operations or not isinstance(operations, list):
+                failures.append(f"{epic_label}/{yaml_file.name}: no operations")
+
+            # 4. No conflicting endpoints
+            agent_refs = _extract_agent_yaml_api_refs(data)
+            for ref_path, ref_method in agent_refs:
+                key = f"{ref_method.upper()} {_normalize_api_path(ref_path)}"
+                seen_endpoints.setdefault(key, []).append(yaml_file.name)
+
+        for endpoint, owners in seen_endpoints.items():
+            if len(owners) > 2:
+                failures.append(
+                    f"{epic_label}: endpoint {endpoint} claimed by {len(owners)} stories: {owners[:3]}"
+                )
+
+    return _named_rule_result(
+        "epic_coding_readiness",
+        artifact_path,
+        len(failures) == 0,
+        "all epics pass coding readiness checks"
+        if len(failures) == 0
+        else "; ".join(failures[:8]),
+        severity="required",
+    )
+
+
+def _extract_skeleton_epic_titles(workspace_root: Path) -> dict[str, str]:
+    """Parse delivery-skeleton.md for ``### E-NNN — Title`` headings.
+
+    Returns ``{epic_id: canonical_title}``.
+    """
+    skeleton_path = workspace_root / "planning" / "delivery-skeleton.md"
+    if not skeleton_path.exists():
+        return {}
+    text = _read_text(skeleton_path)
+    result: dict[str, str] = {}
+    for match in re.finditer(r"^###\s+(E-\d{3})\s+[—-]\s+(.+?)$", text, flags=re.MULTILINE):
+        result[match.group(1)] = match.group(2).strip()
+    return result
+
+
+def _title_to_slug(title: str) -> str:
+    """Normalize a title to a lowercase hyphenated slug for folder comparison."""
+    slug = re.sub(r"[^a-z0-9]+", "-", title.lower())
+    return slug.strip("-")
+
+
+def _rule_epic_identity_matches_skeleton(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    if not path.is_dir():
+        return _named_rule_result(
+            "epic_identity_matches_skeleton",
+            artifact_path,
+            True,
+            "epic identity check applies to epic directories only",
+            severity="required",
+        )
+
+    skeleton_titles = _extract_skeleton_epic_titles(workspace_root)
+    if not skeleton_titles:
+        return _named_rule_result(
+            "epic_identity_matches_skeleton",
+            artifact_path,
+            True,
+            "no skeleton found — skipping epic identity check",
+            severity="required",
+        )
+
+    failures: list[str] = []
+    for epic_dir in sorted(d for d in path.iterdir() if d.is_dir() and d.name.startswith("E-")):
+        epic_id_match = re.match(r"(E-\d{3})", epic_dir.name)
+        if not epic_id_match:
+            continue
+        epic_id = epic_id_match.group(1)
+        canonical_title = skeleton_titles.get(epic_id)
+        if not canonical_title:
+            continue
+
+        folder_slug = epic_dir.name[len(epic_id):].lstrip("-")
+        expected_slug = _title_to_slug(canonical_title)
+        if folder_slug and expected_slug:
+            # Check that the folder slug starts with the first 3 significant words
+            expected_words = expected_slug.split("-")[:3]
+            folder_words = folder_slug.split("-")[:3]
+            if expected_words != folder_words:
+                failures.append(
+                    f"{epic_id}: folder slug '{folder_slug}' does not match "
+                    f"skeleton title '{canonical_title}' (expected slug starting with '{'-'.join(expected_words)}')"
+                )
+
+        epic_md = epic_dir / "epic.md"
+        if epic_md.exists():
+            heading = _read_text(epic_md).split("\n", 1)[0]
+            if canonical_title and _normalize_text(canonical_title) not in _normalize_text(heading):
+                failures.append(
+                    f"{epic_id}: epic.md heading '{heading.strip()}' does not contain "
+                    f"canonical title '{canonical_title}'"
+                )
+
+    return _named_rule_result(
+        "epic_identity_matches_skeleton",
+        artifact_path,
+        len(failures) == 0,
+        "all epic folders and headings match skeleton titles"
+        if len(failures) == 0
+        else "; ".join(failures[:5]),
+        severity="required",
+    )
+
+
 NAMED_RULES: dict[str, NamedRuleValidator] = {
     "requirement_has_id": _rule_requirement_has_id,
+    "source_brs_ids_preserved": _rule_source_brs_ids_preserved,
+    "atomic_requirements_summary_matches_catalog": _rule_atomic_requirements_summary_matches_catalog,
     "requirement_is_testable": _rule_requirement_is_testable,
     "all_source_requirements_present": _rule_all_source_requirements_present,
     "no_unknown_requirement_references": _rule_no_unknown_requirement_references,
@@ -2607,6 +4773,7 @@ NAMED_RULES: dict[str, NamedRuleValidator] = {
     "requirement_semantics_preserved": _rule_requirement_semantics_preserved,
     "open_questions_propagated": _rule_open_questions_propagated,
     "coverage_claim_matches_evidence": _rule_coverage_claim_matches_evidence,
+    "coverage_classifications_acceptable": _rule_coverage_classifications_acceptable,
     "architecture_lists_impacted_systems": _rule_architecture_lists_impacted_systems,
     "architecture_lists_constraints": _rule_architecture_lists_constraints,
     "architecture_lists_risks": _rule_architecture_lists_risks,
@@ -2617,6 +4784,22 @@ NAMED_RULES: dict[str, NamedRuleValidator] = {
     "nfr_assessment_has_decision": _rule_nfr_assessment_has_decision,
     "selected_epics_have_implementation_contracts": _rule_selected_epics_have_implementation_contracts,
     "selected_epics_have_coding_handoffs": _rule_selected_epics_have_coding_handoffs,
+    "all_components_from_architecture_review_present": _rule_all_components_from_architecture_review_present,
+    "all_functional_requirements_mapped": _rule_all_functional_requirements_mapped,
+    "all_impacted_components_have_decisions": _rule_all_impacted_components_have_decisions,
+    "ui_spec_confirmed_pages_have_page_sections": _rule_ui_spec_confirmed_pages_have_page_sections,
+    "ui_spec_confirmed_pages_have_required_subsections": _rule_ui_spec_confirmed_pages_have_required_subsections,
+    "ui_spec_no_confirmed_when_blockers_exist": _rule_ui_spec_no_confirmed_when_blockers_exist,
+    "ui_spec_data_binding_contract_mode_present": _rule_ui_spec_data_binding_contract_mode_present,
+    "ui_spec_every_inferred_has_open_question": _rule_ui_spec_every_inferred_has_open_question,
+    "ui_spec_shared_components_match_page_fields": _rule_ui_spec_shared_components_match_page_fields,
+    "ui_spec_no_encoding_mojibake": _rule_ui_spec_no_encoding_mojibake,
+    "epic_clarification_request_has_questions_or_explicit_no_blockers": _rule_epic_clarification_request_has_questions_or_explicit_no_blockers,
+    "solution_design_clarification_request_has_questions_or_explicit_no_blockers": _rule_solution_design_clarification_request_has_questions_or_explicit_no_blockers,
+    "epic_identity_matches_skeleton": _rule_epic_identity_matches_skeleton,
+    "story_agent_contract_semantic_equivalence": _rule_story_agent_contract_semantic_equivalence,
+    "agent_yaml_operations_match_contract": _rule_agent_yaml_operations_match_contract,
+    "epic_coding_readiness": _rule_epic_coding_readiness,
 }
 
 
@@ -2658,6 +4841,20 @@ def _validate_epic_folders_directory(path: Path, workspace_root: Path) -> list[d
 
     state = workspace.load_state(workspace_root)
     current_item = state.get("current_item")
+    active_action = state.get("active_action") or ""
+    _PRE_STORY_ACTIONS = {
+        "create-epic-shells",
+        "resolve-epic-open-questions",
+        "gate-epic-clarification",
+    }
+    action_status = state.get("action_status", {})
+    inferred_action = active_action
+    if not inferred_action:
+        for pre_action in _PRE_STORY_ACTIONS:
+            if action_status.get(pre_action) == "in_progress":
+                inferred_action = pre_action
+                break
+    skip_story_checks = inferred_action in _PRE_STORY_ACTIONS
 
     epic_dirs = sorted([d for d in path.iterdir() if d.is_dir() and d.name.startswith("E-")])
     flat_files = sorted([f for f in path.iterdir() if f.is_file() and f.name.startswith("E-")])
@@ -2696,6 +4893,22 @@ def _validate_epic_folders_directory(path: Path, workspace_root: Path) -> list[d
             else "epics/ has no E-NNN subdirectories",
         )
     )
+
+    if skip_story_checks:
+        for epic_dir in epic_dirs:
+            stories_dir = epic_dir / "stories"
+            if stories_dir.exists() and any(stories_dir.glob("S-*.md")):
+                story_files = sorted(f.name for f in stories_dir.glob("S-*.md") if not f.name.endswith(".prompt.md"))
+                checks.append(
+                    _result(
+                        "no_premature_story_files",
+                        epic_dir.name,
+                        True,
+                        f"advisory: {epic_dir.name}/stories/ contains {len(story_files)} story file(s) "
+                        f"but the current action ({inferred_action}) must not create stories — "
+                        f"these will be overwritten by create-epic-stories",
+                    )
+                )
 
     for epic_dir in epic_dirs:
         label = epic_dir.name
@@ -2802,7 +5015,7 @@ def _validate_epic_folders_directory(path: Path, workspace_root: Path) -> list[d
             ):
                 epic_reqs.add(row_match.group(1))
 
-            if epic_reqs:
+            if epic_reqs and not skip_story_checks:
                 story_reqs: set[str] = set()
                 for story_file in sorted((epic_dir / "stories").glob("S-*.md")) if (epic_dir / "stories").exists() else []:
                     if story_file.name.endswith(".prompt.md"):
@@ -2821,6 +5034,40 @@ def _validate_epic_folders_directory(path: Path, workspace_root: Path) -> list[d
                         else f"{label}: stories missing {len(missing_reqs)} requirements from skeleton: {sorted(missing_reqs)[:10]}",
                     )
                 )
+
+        # Check story count against feature count from delivery skeleton
+        if epic_id_str and skeleton_path.exists() and not skip_story_checks:
+            skeleton_text_for_features = _read_text(skeleton_path) if "skeleton_text" not in dir() else skeleton_text
+            epic_section = re.search(
+                rf"### {re.escape(epic_id_str)}\b.*?(?=^### E-\d{{3}}|\Z)",
+                skeleton_text_for_features,
+                flags=re.MULTILINE | re.DOTALL,
+            )
+            if epic_section:
+                feature_count = len(re.findall(
+                    r"^\|\s*F-\d{3}\s*\|",
+                    epic_section.group(0),
+                    flags=re.MULTILINE,
+                ))
+                story_count = len(sorted(
+                    [f for f in (epic_dir / "stories").glob("S-*.md") if not f.name.endswith(".prompt.md")]
+                )) if (epic_dir / "stories").exists() else 0
+
+                if feature_count > 0:
+                    checks.append(
+                        _result(
+                            "stories_match_feature_count",
+                            label,
+                            story_count >= feature_count,
+                            f"{label}: {story_count} stories for {feature_count} features"
+                            if story_count >= feature_count
+                            else f"{label}: only {story_count} story(ies) for {feature_count} features — "
+                                 f"each feature (F-NNN) must produce at least one story",
+                        )
+                    )
+
+        if skip_story_checks:
+            continue
 
         stories_dir = epic_dir / "stories"
         checks.append(
@@ -2849,6 +5096,10 @@ def _validate_epic_folders_directory(path: Path, workspace_root: Path) -> list[d
             for story_file in story_files:
                 text = _read_text(story_file)
                 slabel = f"{label}/{story_file.name}"
+
+                _st_match = re.search(r"\|\s*Story Type\s*\|\s*([^|]+)\|", text, re.IGNORECASE)
+                _st_value = _st_match.group(1).strip().lower() if _st_match else ""
+                _is_spike = _st_value in ("spike", "poc", "e2e", "exploration")
 
                 has_gherkin = "```gherkin" in text
                 checks.append(
@@ -2881,7 +5132,10 @@ def _validate_epic_folders_directory(path: Path, workspace_root: Path) -> list[d
                 has_integration = bool(re.search(r"(?i)integrat|external|adapter|circuit.breaker|timeout|fallback", text))
                 has_state_machine = bool(re.search(r"(?i)state.?machine|stateDiagram|status.*transition|→|->.*status", text))
 
-                if has_integration or has_state_machine:
+                if _is_spike:
+                    min_scenarios = 1
+                    complexity = "spike/poc"
+                elif has_integration or has_state_machine:
                     min_scenarios = 4
                     complexity = "integration/state"
                 elif story_layer_count >= 2 or story_req_count >= 2:
@@ -2941,8 +5195,58 @@ def _validate_epic_folders_directory(path: Path, workspace_root: Path) -> list[d
                     )
                 )
 
+                story_type_match = re.search(r"\|\s*Story Type\s*\|\s*([^|]+)\|", stext, re.IGNORECASE)
+                story_type_value = story_type_match.group(1).strip().lower() if story_type_match else ""
+                checks.append(
+                    _result(
+                        "story_has_story_type",
+                        slbl,
+                        bool(story_type_match) and len(story_type_value) > 2,
+                        f"{story_file.name}: story type declared as '{story_type_value}'"
+                        if story_type_match and len(story_type_value) > 2
+                        else f"{story_file.name}: missing Story Type field in metadata - must declare a concrete story archetype",
+                    )
+                )
+                is_spike = story_type_value in ("spike", "poc", "e2e", "exploration")
+
+                has_req_implemented = bool(re.search(r"(?i)##\s*requirements implemented", stext))
+                checks.append(
+                    _result(
+                        "story_has_requirements_implemented",
+                        slbl,
+                        has_req_implemented,
+                        f"{story_file.name}: has Requirements Implemented section"
+                        if has_req_implemented
+                        else f"{story_file.name}: missing '## Requirements Implemented' - must declare which requirements this story directly implements",
+                    )
+                )
+
+                has_req_referenced = bool(re.search(r"(?i)##\s*requirements referenced", stext))
+                checks.append(
+                    _result(
+                        "story_has_requirements_referenced",
+                        slbl,
+                        has_req_referenced,
+                        f"{story_file.name}: has Requirements Referenced section"
+                        if has_req_referenced
+                        else f"{story_file.name}: missing '## Requirements Referenced' - must declare requirements mentioned or depended on but not owned",
+                    )
+                )
+
+                has_in_scope = bool(re.search(r"(?i)##\s*in scope", stext))
+                checks.append(
+                    _result(
+                        "story_has_in_scope",
+                        slbl,
+                        has_in_scope,
+                        f"{story_file.name}: has In Scope section"
+                        if has_in_scope
+                        else f"{story_file.name}: missing '## In Scope' - must list concrete behavior this story implements",
+                    )
+                )
+
                 story_req_ids = set(re.findall(r"(?:FR|REQ|NFR)-\d{3}", stext))
-                if len(story_req_ids) > 5:
+                if not is_spike and len(story_req_ids) > 5:
                     checks.append(
                         _result(
                             "story_invest_small",
@@ -2952,7 +5256,7 @@ def _validate_epic_folders_directory(path: Path, workspace_root: Path) -> list[d
                         )
                     )
 
-                if layers_match:
+                if not is_spike and layers_match:
                     layer_list = [l.strip().lower() for l in re.split(r"[,/]", layers_match.group(1)) if l.strip().lower() not in ("draft", "must", "should", "could", "")]
                     if len(layer_list) > 3:
                         checks.append(
@@ -2964,19 +5268,20 @@ def _validate_epic_folders_directory(path: Path, workspace_root: Path) -> list[d
                             )
                         )
 
-                actor_match = re.search(r"\|\s*Actor\s*\|\s*([^|]+)\|", stext, re.IGNORECASE)
-                if actor_match:
-                    actor_text = actor_match.group(1).strip()
-                    actor_count = len([a for a in re.split(r"[,/]", actor_text) if a.strip() and a.strip().lower() not in ("system",)])
-                    if actor_count > 2:
-                        checks.append(
-                            _result(
-                                "story_slicing_actors",
-                                slbl,
-                                False,
-                                f"{story_file.name}: has {actor_count} actors — a story should focus on one actor goal. Consider splitting.",
+                if not is_spike:
+                    actor_match = re.search(r"\|\s*Actor\s*\|\s*([^|]+)\|", stext, re.IGNORECASE)
+                    if actor_match:
+                        actor_text = actor_match.group(1).strip()
+                        actor_count = len([a for a in re.split(r"[,/]", actor_text) if a.strip() and a.strip().lower() not in ("system",)])
+                        if actor_count > 2:
+                            checks.append(
+                                _result(
+                                    "story_slicing_actors",
+                                    slbl,
+                                    False,
+                                    f"{story_file.name}: has {actor_count} actors — a story should focus on one actor goal. Consider splitting.",
+                                )
                             )
-                        )
 
                 has_business_context = bool(re.search(r"(?i)##\s*business context", stext))
                 checks.append(
@@ -3029,6 +5334,44 @@ def _validate_epic_folders_directory(path: Path, workspace_root: Path) -> list[d
                     )
                 )
 
+                has_dependency_contracts = bool(re.search(r"(?i)##\s*dependency contracts", stext2))
+                checks.append(
+                    _result(
+                        "story_has_dependency_contracts",
+                        slbl2,
+                        has_dependency_contracts,
+                        f"{story_file.name}: has Dependency Contracts section"
+                        if has_dependency_contracts
+                        else f"{story_file.name}: missing '## Dependency Contracts' - must declare consumed contracts when dependencies exist",
+                    )
+                )
+
+                has_required_tests = bool(re.search(r"(?i)##\s*required tests", stext2))
+                checks.append(
+                    _result(
+                        "story_has_required_tests",
+                        slbl2,
+                        has_required_tests,
+                        f"{story_file.name}: has Required Tests section"
+                        if has_required_tests
+                        else f"{story_file.name}: missing '## Required Tests' - must state concrete minimum tests for completion",
+                    )
+                )
+
+                agent_contract = story_file.with_suffix(".agent.yaml")
+                checks.append(
+                    _result(
+                        "story_has_agent_contract",
+                        slbl2,
+                        agent_contract.exists(),
+                        f"{story_file.name}: paired agent contract present ({agent_contract.name})"
+                        if agent_contract.exists()
+                        else f"{story_file.name}: missing paired agent contract {agent_contract.name}",
+                    )
+                )
+                if agent_contract.exists():
+                    checks.extend(_validate_story_agent_contract_file(agent_contract, story_file, stext2))
+
     skeleton_path = workspace_root / "planning" / "delivery-skeleton.md"
     if skeleton_path.exists():
         skel_text = _read_text(skeleton_path)
@@ -3067,6 +5410,157 @@ def _validate_epic_folders_directory(path: Path, workspace_root: Path) -> list[d
     return checks
 
 
+def _validate_ui_specification(path: Path, workspace_root: Path) -> list[dict[str, str]]:
+    text = _read_text(path)
+    checks = []
+    checks.extend(_non_empty_file(path))
+
+    if "no frontend applications identified" in text.lower():
+        checks.append(
+            _result(
+                "ui_spec_skip_acknowledged",
+                path.name,
+                True,
+                "no frontend applications — UI spec correctly minimal",
+            )
+        )
+        return checks
+
+    landscape_path = workspace_root / "architecture" / "technical-landscape.md"
+    if landscape_path.exists():
+        landscape_text = _read_text(landscape_path).lower()
+        frontend_keywords = [
+            "portal", "dashboard", "ui", "web app", "frontend",
+            "next.js", "react", "angular", "vue", "static web app",
+        ]
+        frontend_apps: list[str] = []
+        for line in _read_text(landscape_path).splitlines():
+            if any(kw in line.lower() for kw in frontend_keywords):
+                name_match = re.match(r"^[-*]\s*(.+?)(?:\s*[—:|\(]|$)", line.strip())
+                if name_match:
+                    frontend_apps.append(name_match.group(1).strip())
+                table_match = re.match(r"^\|\s*(.+?)\s*\|", line.strip())
+                if table_match and not name_match:
+                    candidate = table_match.group(1).strip()
+                    if candidate.lower() not in {"component", "type", "repository", "technology", "status"}:
+                        frontend_apps.append(candidate)
+
+        if frontend_apps:
+            text_lower = text.lower()
+            covered = [app for app in frontend_apps if app.lower() in text_lower]
+            missing = [app for app in frontend_apps if app.lower() not in text_lower]
+            checks.append(
+                _result(
+                    "ui_spec_covers_all_apps",
+                    path.name,
+                    len(missing) == 0,
+                    f"UI spec covers all {len(frontend_apps)} frontend apps from technical landscape"
+                    if len(missing) == 0
+                    else f"UI spec missing apps: {', '.join(missing[:5])} ({len(covered)}/{len(frontend_apps)} covered)",
+                )
+            )
+
+    app_sections = re.findall(r"^##\s+(?:Application:\s*|Per Application:\s*)(.+)$", text, flags=re.MULTILINE)
+    if not app_sections:
+        app_sections = re.findall(r"^##\s+(.+?)\s*(?:Portal|Dashboard|App|UI)\s*$", text, flags=re.MULTILINE | re.IGNORECASE)
+    checks.append(
+        _result(
+            "ui_spec_has_app_sections",
+            path.name,
+            len(app_sections) >= 1,
+            f"UI spec defines {len(app_sections)} application section(s)"
+            if app_sections
+            else "UI spec has no application sections — expected '## Application: ...' or named app headings",
+        )
+    )
+
+    page_sections = re.findall(r"^###\s+Page:\s*(.+)$", text, flags=re.MULTILINE)
+    checks.append(
+        _result(
+            "ui_spec_has_pages",
+            path.name,
+            len(page_sections) >= 2,
+            f"UI spec defines {len(page_sections)} page(s)"
+            if len(page_sections) >= 2
+            else f"UI spec has only {len(page_sections)} page(s) — a multi-app initiative needs more page definitions",
+        )
+    )
+
+    has_routes = bool(re.search(r"(?:Route|route).*?/[a-z]", text))
+    checks.append(
+        _result(
+            "ui_spec_has_routes",
+            path.name,
+            has_routes,
+            "UI spec includes route definitions"
+            if has_routes
+            else "UI spec has no route definitions — pages must specify their URL routes",
+        )
+    )
+
+    has_form_fields = bool(re.search(r"\|\s*(?:Field|field)\s*\|", text) and re.search(r"\|\s*(?:Type|type)\s*\|", text))
+    checks.append(
+        _result(
+            "ui_spec_has_form_fields",
+            path.name,
+            has_form_fields,
+            "UI spec includes form field definitions with types"
+            if has_form_fields
+            else "UI spec has no form field table — forms must specify fields with types and validation",
+        )
+    )
+
+    has_states = bool(re.search(r"(?i)(?:loading|empty|error|success)\s*(?:→|->|:|\|)", text))
+    checks.append(
+        _result(
+            "ui_spec_has_states",
+            path.name,
+            has_states,
+            "UI spec defines page/component states"
+            if has_states
+            else "UI spec missing state definitions — each page must define loading/error/success behavior",
+        )
+    )
+
+    has_data_binding = bool(re.search(r"(?i)(?:data binding|endpoint|api|/api/v\d)", text))
+    checks.append(
+        _result(
+            "ui_spec_has_data_binding",
+            path.name,
+            has_data_binding,
+            "UI spec includes data binding / API endpoint references"
+            if has_data_binding
+            else "UI spec missing data binding — pages must specify which API endpoints they call",
+        )
+    )
+
+    has_traceability = bool(re.search(r"(?i)(?:traceability|FR-\d{3}.*(?:page|component|app))", text))
+    checks.append(
+        _result(
+            "ui_spec_has_traceability",
+            path.name,
+            has_traceability,
+            "UI spec includes FR traceability"
+            if has_traceability
+            else "UI spec missing traceability — every UI-bearing FR must map to a page/component",
+        )
+    )
+
+    fr_refs = set(re.findall(r"(?:FR|REQ)-\d{3}", text))
+    checks.append(
+        _result(
+            "ui_spec_covers_multiple_frs",
+            path.name,
+            len(fr_refs) >= 3,
+            f"UI spec references {len(fr_refs)} requirements"
+            if len(fr_refs) >= 3
+            else f"UI spec only references {len(fr_refs)} requirement(s) — should cover all UI-bearing FRs",
+        )
+    )
+
+    return checks
+
+
 VALIDATORS_BY_ARTIFACT = {
     "routing/routing-decision.md": _validate_routing_decision,
     "business-intake/business-intake-summary.md": _validate_business_intake_summary,
@@ -3087,6 +5581,7 @@ VALIDATORS_BY_ARTIFACT = {
     "standalone-delivery/": _validate_standalone_directory,
     "review-package/": _validate_review_package,
     "epics/": _validate_epic_folders_directory,
+    "architecture/ui-specification.md": _validate_ui_specification,
 }
 
 PROFILE_VALIDATORS: dict[str, ProfileValidator] = {
@@ -3278,10 +5773,21 @@ def _validator_for_artifact(
     return "fallback", _validate_file_default
 
 
-def run(args: object) -> None:
-    workspace_root = workspace.resolve_workspace_root(args.workspace_root)
-    state = workspace.load_state(workspace_root)
-    action_id = workspace.read_action_id_from_state_or_args(state, getattr(args, "action_id", None))
+def validate_action(
+    workspace_root: Path,
+    state: dict | None = None,
+    action_id: str | None = None,
+) -> dict:
+    """Run validation for the active action. Returns the validation result dict.
+
+    This is the pure logic extracted from ``run()`` so that other commands
+    (e.g. ``finalize-action``) can invoke validation programmatically.
+    """
+    if state is None:
+        state = workspace.load_state(workspace_root)
+    if action_id is None:
+        action_id = workspace.read_action_id_from_state_or_args(state, None)
+
     _, actions_by_id = workspace.load_stage_actions(workspace_root)
     action = actions_by_id[action_id]
 
@@ -3336,7 +5842,7 @@ def run(args: object) -> None:
                     f"{artifact_path}: {rule_check['rule_name']} advisory - {rule_check['detail']}"
                 )
 
-    result = {
+    return {
         "overall": "pass" if not failures else "fail",
         "action_id": action_id,
         "artifact_path": artifact_paths[0] if artifact_paths else None,
@@ -3345,10 +5851,27 @@ def run(args: object) -> None:
         "failures": failures,
         "advisories": advisories,
     }
+
+
+def run(args: object) -> None:
+    workspace_root = workspace.resolve_workspace_root(args.workspace_root)
+    state = workspace.load_state(workspace_root)
+    action_id = workspace.read_action_id_from_state_or_args(state, getattr(args, "action_id", None))
+
+    phase_error = workspace.check_lifecycle_phase(state, workspace.LIFECYCLE_DISPATCHED, "validate-artifact")
+    if phase_error:
+        raise RuntimeError(phase_error)
+
+    result = validate_action(workspace_root, state, action_id)
+
     workspace.save_yaml_file(
         workspace.resolve_output_path("validate-artifact", workspace_root, args.output),
         result,
     )
+
+    workspace.advance_lifecycle_phase(state, workspace.LIFECYCLE_VALIDATED)
+    workspace.save_state(workspace_root, state)
+
     workspace.append_execution_log(
         workspace_root,
         command="validate-artifact",
@@ -3356,6 +5879,7 @@ def run(args: object) -> None:
         action_id=action_id,
         details={
             "artifact_path": result["artifact_path"],
-            "failure_count": len(failures),
+            "failure_count": len(result["failures"]),
+            "failures": result["failures"],
         },
     )

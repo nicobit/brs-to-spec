@@ -14,6 +14,7 @@ _DEFAULT_ACTION_FIELDS: dict[str, Any] = {
     "iteration_mode": None,
     "item_source": None,
     "item_pattern": None,
+    "computed_inputs": [],
 }
 
 _DEFAULT_INPUTS = {
@@ -50,6 +51,7 @@ def normalize_action(action: dict[str, Any]) -> dict[str, Any]:
     normalized["policy_refs"] = list(normalized.get("policy_refs") or [])
     normalized["conditions"] = list(normalized.get("conditions") or [])
     normalized["must_include"] = list(normalized.get("must_include") or [])
+    normalized["computed_inputs"] = list(normalized.get("computed_inputs") or [])
 
     normalized["inputs"] = _merge_dict_defaults(normalized.get("inputs"), _DEFAULT_INPUTS)
     normalized["inputs"]["required"] = list(normalized["inputs"].get("required") or [])

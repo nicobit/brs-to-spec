@@ -7,6 +7,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import tempfile
 import unittest
 from unittest import mock
 
@@ -26,6 +27,8 @@ from b2s_engine import next_step, workspace  # noqa: E402
 from b2s_engine import action_contract, inputs as inputs_module  # noqa: E402
 from b2s_engine import dispatch as dispatch_module  # noqa: E402
 from b2s_engine import validation as validation_module  # noqa: E402
+from b2s_engine import dynamic_next_step as dynamic_next_step_module  # noqa: E402
+from b2s_engine import dynamic_state as dynamic_state_module  # noqa: E402
 
 
 def run_cli(*args: str) -> subprocess.CompletedProcess[str]:
@@ -699,6 +702,851 @@ class WorkflowLoadingTests(unittest.TestCase):
                 ".b2s/policies/requirements/requirement-writing-standard.md",
             ],
         )
+
+    def test_b2s_dynamic_workflow_type_is_registered(self):
+        index_path = REPO_ROOT / ".b2s" / "workflow-types" / "index.yaml"
+        payload = yaml.safe_load(index_path.read_text(encoding="utf-8"))
+        entries = {entry["id"]: entry for entry in payload["workflow_types"]}
+        self.assertIn("b2s-dynamic", entries)
+        self.assertEqual(
+            entries["b2s-dynamic"]["path"],
+            ".b2s/workflow-types/b2s-dynamic",
+        )
+
+    def test_b2s_dynamic_workflow_scaffold_files_exist_and_parse(self):
+        workflow_root = REPO_ROOT / ".b2s" / "workflow-types" / "b2s-dynamic"
+        self.assertTrue((workflow_root / "README.md").exists())
+        workflow_definition = yaml.safe_load((workflow_root / "workflow-definition.yaml").read_text(encoding="utf-8"))
+        stage_actions = yaml.safe_load((workflow_root / "stage-actions.yaml").read_text(encoding="utf-8"))
+
+        self.assertEqual(workflow_definition["framework"], "b2s")
+        self.assertEqual(stage_actions["framework"], "b2s")
+        self.assertEqual(
+            [stage["id"] for stage in workflow_definition["stages"]],
+            [
+                "0-dynamic-assessment",
+                "1-dynamic-selection",
+                "2-dynamic-stop-review",
+            ],
+        )
+        self.assertEqual(
+            [action["action_id"] for action in stage_actions["actions"][:3]],
+            [
+                "assess-dynamic-gaps",
+                "select-dynamic-next-action",
+                "evaluate-dynamic-stop-condition",
+            ],
+        )
+
+    def test_b2s_dynamic_action_references_and_prompt_exist(self):
+        workflow_root = REPO_ROOT / ".b2s" / "workflow-types" / "b2s-dynamic"
+        actions = yaml.safe_load((workflow_root / "stage-actions.yaml").read_text(encoding="utf-8"))["actions"]
+        for action in actions:
+            skill_ref = action.get("skill_ref")
+            if skill_ref:
+                self.assertTrue(
+                    (REPO_ROOT / skill_ref).exists(),
+                    msg=f"missing skill_ref target for {action['action_id']}: {skill_ref}",
+                )
+            artifact_template_ref = action.get("artifact_template_ref")
+            if artifact_template_ref:
+                self.assertTrue(
+                    (REPO_ROOT / artifact_template_ref).exists(),
+                    msg=f"missing artifact_template_ref target for {action['action_id']}: {artifact_template_ref}",
+                )
+
+        self.assertTrue((REPO_ROOT / ".b2s" / "prompts" / "run-workflow-dynamic.md").exists())
+
+    def test_load_state_exposes_additive_dynamic_defaults_for_non_dynamic_workflows(self):
+        ws = FIXTURES_ROOT / "no-local-workflow"
+        state = workspace.load_state(ws)
+        self.assertIn("dynamic_goal", state)
+        self.assertIn("dynamic_gap_backlog", state)
+        self.assertEqual(state["dynamic_goal"], None)
+        self.assertEqual(state["dynamic_gap_backlog"], [])
+        self.assertEqual(state["dynamic_iteration_count"], 0)
+
+    def test_dynamic_state_helper_updates_only_dynamic_fields(self):
+        state = {
+            "workflow_type": "b2s-dynamic",
+            "current_stage": "0-dynamic-assessment",
+        }
+        dynamic_state_module.ensure_dynamic_state_defaults(state)
+        dynamic_state_module.update_dynamic_state(
+            state,
+            dynamic_goal="clarify architecture impact",
+            dynamic_macro_phase="requirements-and-architecture",
+            dynamic_iteration_count=2,
+        )
+        self.assertTrue(dynamic_state_module.is_dynamic_workflow(state))
+        self.assertEqual(state["dynamic_goal"], "clarify architecture impact")
+        self.assertEqual(state["dynamic_macro_phase"], "requirements-and-architecture")
+        self.assertEqual(state["dynamic_iteration_count"], 2)
+        self.assertEqual(state["current_stage"], "0-dynamic-assessment")
+
+    def test_dynamic_state_helper_knows_when_to_return_to_assessment(self):
+        state = {
+            "workflow_type": "b2s-dynamic",
+        }
+        self.assertTrue(
+            dynamic_state_module.should_return_to_dynamic_assessment(
+                state,
+                "create-solution-decisions",
+            )
+        )
+        self.assertFalse(
+            dynamic_state_module.should_return_to_dynamic_assessment(
+                state,
+                "select-dynamic-next-action",
+            )
+        )
+        self.assertFalse(
+            dynamic_state_module.should_return_to_dynamic_assessment(
+                state,
+                "create-solution-decisions",
+                awaiting_human=True,
+            )
+        )
+
+    def test_dynamic_state_helper_resets_orchestration_cycle_statuses(self):
+        state = {
+            "action_status": {
+                "assess-dynamic-gaps": "accepted",
+                "select-dynamic-next-action": "accepted",
+                "evaluate-dynamic-stop-condition": "accepted",
+                "create-solution-decisions": "accepted",
+            },
+            "artifact_status": {
+                "orchestration/dynamic-gap-assessment.md": "accepted",
+                "orchestration/dynamic-next-action-decision.md": "accepted",
+                "orchestration/dynamic-stop-decision.md": "accepted",
+                "architecture/solution-decisions.md": "accepted",
+            },
+        }
+        actions_by_id = {
+            "assess-dynamic-gaps": {"outputs": {"primary": "orchestration/dynamic-gap-assessment.md", "secondary": []}},
+            "select-dynamic-next-action": {"outputs": {"primary": "orchestration/dynamic-next-action-decision.md", "secondary": []}},
+            "evaluate-dynamic-stop-condition": {"outputs": {"primary": "orchestration/dynamic-stop-decision.md", "secondary": []}},
+        }
+
+        dynamic_state_module.reset_dynamic_orchestration_cycle(state, actions_by_id)
+
+        self.assertNotIn("assess-dynamic-gaps", state["action_status"])
+        self.assertNotIn("select-dynamic-next-action", state["action_status"])
+        self.assertNotIn("evaluate-dynamic-stop-condition", state["action_status"])
+        self.assertIn("create-solution-decisions", state["action_status"])
+        self.assertNotIn("orchestration/dynamic-gap-assessment.md", state["artifact_status"])
+        self.assertNotIn("orchestration/dynamic-next-action-decision.md", state["artifact_status"])
+        self.assertNotIn("orchestration/dynamic-stop-decision.md", state["artifact_status"])
+        self.assertIn("architecture/solution-decisions.md", state["artifact_status"])
+
+    def test_dynamic_selector_bootstraps_when_gap_assessment_is_missing(self):
+        ws = FIXTURES_ROOT / "no-local-workflow"
+        state = {
+            "workflow_type": "b2s-dynamic",
+            "current_stage": "1-dynamic-selection",
+        }
+        result = dynamic_next_step_module.select_next_dynamic_action(ws, state)
+        self.assertEqual(result["overall"], "pass")
+        self.assertEqual(result["selected_action"], "assess-dynamic-gaps")
+        self.assertEqual(result["selected_stage"], "0-dynamic-assessment")
+        self.assertEqual(result["ready_actions"], ["assess-dynamic-gaps"])
+
+    def test_dynamic_selector_routes_to_selection_stage_after_assessment(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp)
+            (workspace_root / "orchestration").mkdir(parents=True, exist_ok=True)
+            (workspace_root / "orchestration" / "dynamic-gap-assessment.md").write_text(
+                "\n".join(
+                    [
+                        "# Dynamic Gap Assessment",
+                        "",
+                        "## Macro Phase",
+                        "",
+                        "| Field | Value |",
+                        "|---|---|",
+                        "| Current macro phase | solution-design |",
+                        "| Assessment confidence | high |",
+                        "| Iteration count | 3 |",
+                        "",
+                        "## Ranked Gaps",
+                        "",
+                        "| Gap ID | Category | Severity | Summary | Evidence | Suggested Actions |",
+                        "|---|---|---|---|---|---|",
+                        "| DYN-GAP-002 | planning_gap | high | Need plan sequencing | planning missing | create-delivery-skeleton, create-elaboration-plan |",
+                        "| DYN-GAP-001 | solution_design_gap | critical | Need design choices | solution decisions missing | create-solution-decisions, create-ui-specification |",
+                        "",
+                        "## Notes",
+                        "",
+                        "Test fixture.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            state = {
+                "workflow_type": "b2s-dynamic",
+                "current_stage": "1-dynamic-selection",
+                "action_status": {
+                    "assess-dynamic-gaps": "accepted",
+                },
+            }
+
+            result = dynamic_next_step_module.select_next_dynamic_action(workspace_root, state)
+
+            self.assertEqual(result["overall"], "pass")
+            self.assertEqual(result["selected_action"], "select-dynamic-next-action")
+            self.assertEqual(result["selected_stage"], "1-dynamic-selection")
+            self.assertEqual(result["dynamic_macro_phase"], "solution-design")
+            self.assertEqual(result["dynamic_confidence"], "high")
+            self.assertEqual(len(result["dynamic_gap_backlog"]), 2)
+
+    def test_dynamic_selector_does_not_reuse_stale_next_action_after_reassessment(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp)
+            (workspace_root / "orchestration").mkdir(parents=True, exist_ok=True)
+            (workspace_root / "orchestration" / "dynamic-gap-assessment.md").write_text(
+                "\n".join(
+                    [
+                        "# Dynamic Gap Assessment",
+                        "",
+                        "## Macro Phase",
+                        "",
+                        "| Field | Value |",
+                        "|---|---|",
+                        "| Current macro phase | requirements-and-architecture |",
+                        "| Assessment confidence | medium |",
+                        "| Iteration count | 2 |",
+                        "",
+                        "## Ranked Gaps",
+                        "",
+                        "| Gap ID | Category | Severity | Summary | Evidence | Suggested Actions |",
+                        "|---|---|---|---|---|---|",
+                        "| DYN-GAP-002 | repository_mapping_gap | high | Need epic mapping next | no epics present | create-epic-shells |",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            (workspace_root / "orchestration" / "dynamic-next-action-decision.md").write_text(
+                "\n".join(
+                    [
+                        "# Dynamic Next Action Decision",
+                        "",
+                        "## Decision",
+                        "",
+                        "| Field | Value |",
+                        "|---|---|",
+                        "| Selected action | create-atomic-requirements |",
+                        "| Persona | product-owner |",
+                        "| Current macro phase | requirements-and-architecture |",
+                        "| Primary gap addressed | DYN-GAP-001 |",
+                        "| Decision confidence | medium |",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            (workspace_root / "orchestration" / "dynamic-stop-decision.md").write_text(
+                "\n".join(
+                    [
+                        "# Dynamic Stop Decision",
+                        "",
+                        "## Decision",
+                        "",
+                        "| Field | Value |",
+                        "|---|---|",
+                        "| Outcome | continue |",
+                        "| Current macro phase | requirements-and-architecture |",
+                        "| Decision confidence | medium |",
+                        "| Stop reason | other |",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            state = {
+                "workflow_type": "b2s-dynamic",
+                "current_stage": "0-dynamic-assessment",
+                "action_status": {
+                    "assess-dynamic-gaps": "accepted",
+                },
+            }
+
+            result = dynamic_next_step_module.select_next_dynamic_action(workspace_root, state)
+
+            self.assertEqual(result["overall"], "pass")
+            self.assertEqual(result["selected_action"], "select-dynamic-next-action")
+            self.assertEqual(result["selected_stage"], "1-dynamic-selection")
+
+    def test_dynamic_selector_routes_to_stop_review_after_selection(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp)
+            (workspace_root / "orchestration").mkdir(parents=True, exist_ok=True)
+            (workspace_root / "orchestration" / "dynamic-gap-assessment.md").write_text(
+                "\n".join(
+                    [
+                        "# Dynamic Gap Assessment",
+                        "",
+                        "## Ranked Gaps",
+                        "",
+                        "| Gap ID | Category | Severity | Summary | Evidence | Suggested Actions |",
+                        "|---|---|---|---|---|---|",
+                        "| DYN-GAP-003 | ui_gap | high | UI detail missing | no page mapping | invent-new-action, create-ui-specification |",
+                        "",
+                        "## Notes",
+                        "",
+                        "Test fixture.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            state = {
+                "workflow_type": "b2s-dynamic",
+                "current_stage": "2-dynamic-stop-review",
+                "action_status": {
+                    "assess-dynamic-gaps": "accepted",
+                    "select-dynamic-next-action": "accepted",
+                },
+            }
+
+            result = dynamic_next_step_module.select_next_dynamic_action(workspace_root, state)
+
+            self.assertEqual(result["overall"], "pass")
+            self.assertEqual(result["selected_action"], "evaluate-dynamic-stop-condition")
+            self.assertEqual(result["selected_stage"], "2-dynamic-stop-review")
+
+    def test_dynamic_selector_picks_first_eligible_action_after_stop_review(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp)
+            (workspace_root / "orchestration").mkdir(parents=True, exist_ok=True)
+            (workspace_root / "orchestration" / "dynamic-gap-assessment.md").write_text(
+                "\n".join(
+                    [
+                        "# Dynamic Gap Assessment",
+                        "",
+                        "## Ranked Gaps",
+                        "",
+                        "| Gap ID | Category | Severity | Summary | Evidence | Suggested Actions |",
+                        "|---|---|---|---|---|---|",
+                        "| DYN-GAP-010 | planning_gap | high | Planning is missing | no plan artifact | create-delivery-skeleton, create-elaboration-plan |",
+                        "",
+                        "## Notes",
+                        "",
+                        "Integration test fixture.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            (workspace_root / "orchestration" / "dynamic-next-action-decision.md").write_text(
+                "\n".join(
+                    [
+                        "# Dynamic Next Action Decision",
+                        "",
+                        "## Decision",
+                        "",
+                        "| Field | Value |",
+                        "|---|---|",
+                        "| Selected action | create-delivery-skeleton |",
+                        "| Persona | delivery-lead |",
+                        "| Current macro phase | planning-and-epic-shaping |",
+                        "| Primary gap addressed | planning_gap |",
+                        "| Decision confidence | medium |",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            (workspace_root / "orchestration" / "dynamic-stop-decision.md").write_text(
+                "\n".join(
+                    [
+                        "# Dynamic Stop Decision",
+                        "",
+                        "## Decision",
+                        "",
+                        "| Field | Value |",
+                        "|---|---|",
+                        "| Outcome | continue |",
+                        "| Current macro phase | planning-and-epic-shaping |",
+                        "| Decision confidence | medium |",
+                        "| Stop reason | other |",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            state = {
+                "workflow_type": "b2s-dynamic",
+                "current_stage": "2-dynamic-stop-review",
+                "action_status": {
+                    "assess-dynamic-gaps": "accepted",
+                    "select-dynamic-next-action": "accepted",
+                    "evaluate-dynamic-stop-condition": "accepted",
+                },
+            }
+
+            result = dynamic_next_step_module.select_next_dynamic_action(workspace_root, state)
+
+            self.assertEqual(result["overall"], "pass")
+            self.assertEqual(result["selected_action"], "create-delivery-skeleton")
+            self.assertEqual(result["selected_stage"], "2-dynamic-stop-review")
+            self.assertEqual(result["dynamic_gap_category"], "planning_gap")
+
+    def test_next_step_uses_dynamic_selector_for_dynamic_workflow_type(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp)
+            workspace.ensure_runtime_layout(workspace_root)
+            workflow_dir = workspace_root / ".b2s" / "workflow"
+            workflow_dir.mkdir(parents=True, exist_ok=True)
+
+            dynamic_workflow_root = REPO_ROOT / ".b2s" / "workflow-types" / "b2s-dynamic"
+            shutil.copyfile(
+                dynamic_workflow_root / "stage-actions.yaml",
+                workflow_dir / "stage-actions.yaml",
+            )
+            shutil.copyfile(
+                dynamic_workflow_root / "workflow-definition.yaml",
+                workflow_dir / "workflow-definition.yaml",
+            )
+
+            state = workspace.load_state(workspace_root)
+            state["workflow_type"] = "b2s-dynamic"
+            state["current_stage"] = "2-dynamic-stop-review"
+            state["action_status"] = {
+                "assess-dynamic-gaps": "accepted",
+                "select-dynamic-next-action": "accepted",
+                "evaluate-dynamic-stop-condition": "accepted",
+            }
+            workspace.save_state(workspace_root, state)
+
+            (workspace_root / "orchestration").mkdir(parents=True, exist_ok=True)
+            (workspace_root / "orchestration" / "dynamic-gap-assessment.md").write_text(
+                "\n".join(
+                    [
+                        "# Dynamic Gap Assessment",
+                        "",
+                        "## Ranked Gaps",
+                        "",
+                        "| Gap ID | Category | Severity | Summary | Evidence | Suggested Actions |",
+                        "|---|---|---|---|---|---|",
+                        "| DYN-GAP-010 | planning_gap | high | Planning is missing | no plan artifact | create-delivery-skeleton, create-elaboration-plan |",
+                        "",
+                        "## Notes",
+                        "",
+                        "Integration test fixture.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            (workspace_root / "orchestration" / "dynamic-next-action-decision.md").write_text(
+                "\n".join(
+                    [
+                        "# Dynamic Next Action Decision",
+                        "",
+                        "## Decision",
+                        "",
+                        "| Field | Value |",
+                        "|---|---|",
+                        "| Selected action | create-delivery-skeleton |",
+                        "| Persona | delivery-lead |",
+                        "| Current macro phase | planning-and-epic-shaping |",
+                        "| Primary gap addressed | planning_gap |",
+                        "| Decision confidence | medium |",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            (workspace_root / "orchestration" / "dynamic-stop-decision.md").write_text(
+                "\n".join(
+                    [
+                        "# Dynamic Stop Decision",
+                        "",
+                        "## Decision",
+                        "",
+                        "| Field | Value |",
+                        "|---|---|",
+                        "| Outcome | continue |",
+                        "| Current macro phase | planning-and-epic-shaping |",
+                        "| Decision confidence | medium |",
+                        "| Stop reason | other |",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            result = next_step.select_next_action(workspace_root, state)
+
+            self.assertEqual(result["overall"], "pass")
+            self.assertEqual(result["selected_action"], "create-delivery-skeleton")
+            self.assertEqual(result["selected_stage"], "2-dynamic-stop-review")
+
+    def test_dynamic_selector_pauses_when_stop_decision_requests_human_input(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp)
+            (workspace_root / "orchestration").mkdir(parents=True, exist_ok=True)
+            (workspace_root / "orchestration" / "dynamic-gap-assessment.md").write_text(
+                "\n".join(
+                    [
+                        "# Dynamic Gap Assessment",
+                        "",
+                        "## Ranked Gaps",
+                        "",
+                        "| Gap ID | Category | Severity | Summary | Evidence | Suggested Actions |",
+                        "|---|---|---|---|---|---|",
+                        "| DYN-GAP-011 | planning_gap | high | Planning is blocked | external dependency | create-delivery-skeleton |",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            (workspace_root / "orchestration" / "dynamic-next-action-decision.md").write_text(
+                "\n".join(
+                    [
+                        "# Dynamic Next Action Decision",
+                        "",
+                        "## Decision",
+                        "",
+                        "| Field | Value |",
+                        "|---|---|",
+                        "| Selected action | create-delivery-skeleton |",
+                        "| Persona | delivery-lead |",
+                        "| Current macro phase | planning-and-epic-shaping |",
+                        "| Primary gap addressed | planning_gap |",
+                        "| Decision confidence | low |",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            (workspace_root / "orchestration" / "dynamic-stop-decision.md").write_text(
+                "\n".join(
+                    [
+                        "# Dynamic Stop Decision",
+                        "",
+                        "## Decision",
+                        "",
+                        "| Field | Value |",
+                        "|---|---|",
+                        "| Outcome | pause_for_human |",
+                        "| Current macro phase | planning-and-epic-shaping |",
+                        "| Decision confidence | low |",
+                        "| Stop reason | human_clarification_required |",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            state = {
+                "workflow_type": "b2s-dynamic",
+                "current_stage": "2-dynamic-stop-review",
+                "action_status": {
+                    "assess-dynamic-gaps": "accepted",
+                    "select-dynamic-next-action": "accepted",
+                    "evaluate-dynamic-stop-condition": "accepted",
+                },
+            }
+
+            result = dynamic_next_step_module.select_next_dynamic_action(workspace_root, state)
+
+            self.assertEqual(result["overall"], "fail")
+            self.assertEqual(result["selected_action"], None)
+            self.assertIn("human_clarification_required", result["blocking_reason"])
+
+    def test_dynamic_selector_stops_when_stop_decision_ends_loop(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp)
+            (workspace_root / "orchestration").mkdir(parents=True, exist_ok=True)
+            (workspace_root / "orchestration" / "dynamic-gap-assessment.md").write_text(
+                "\n".join(
+                    [
+                        "# Dynamic Gap Assessment",
+                        "",
+                        "## Ranked Gaps",
+                        "",
+                        "| Gap ID | Category | Severity | Summary | Evidence | Suggested Actions |",
+                        "|---|---|---|---|---|---|",
+                        "| DYN-GAP-015 | readiness_gap | low | Only minor refinements remain | validation mostly complete | create-epic-shells |",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            (workspace_root / "orchestration" / "dynamic-next-action-decision.md").write_text(
+                "\n".join(
+                    [
+                        "# Dynamic Next Action Decision",
+                        "",
+                        "## Decision",
+                        "",
+                        "| Field | Value |",
+                        "|---|---|",
+                        "| Selected action | create-epic-shells |",
+                        "| Persona | delivery-lead |",
+                        "| Current macro phase | planning-and-epic-shaping |",
+                        "| Primary gap addressed | readiness_gap |",
+                        "| Decision confidence | high |",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            (workspace_root / "orchestration" / "dynamic-stop-decision.md").write_text(
+                "\n".join(
+                    [
+                        "# Dynamic Stop Decision",
+                        "",
+                        "## Decision",
+                        "",
+                        "| Field | Value |",
+                        "|---|---|",
+                        "| Outcome | stop |",
+                        "| Current macro phase | handoff-readiness |",
+                        "| Decision confidence | high |",
+                        "| Stop reason | macro_phase_ready |",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            state = {
+                "workflow_type": "b2s-dynamic",
+                "current_stage": "2-dynamic-stop-review",
+                "action_status": {
+                    "assess-dynamic-gaps": "accepted",
+                    "select-dynamic-next-action": "accepted",
+                    "evaluate-dynamic-stop-condition": "accepted",
+                },
+            }
+
+            result = dynamic_next_step_module.select_next_dynamic_action(workspace_root, state)
+
+            self.assertEqual(result["overall"], "pass")
+            self.assertEqual(result["selected_action"], None)
+            self.assertEqual(result["reason"], "dynamic stop decision ended the loop")
+
+    def test_dynamic_selector_stops_when_iteration_budget_is_reached(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp)
+            (workspace_root / "orchestration").mkdir(parents=True, exist_ok=True)
+            (workspace_root / "orchestration" / "dynamic-gap-assessment.md").write_text(
+                "\n".join(
+                    [
+                        "# Dynamic Gap Assessment",
+                        "",
+                        "## Ranked Gaps",
+                        "",
+                        "| Gap ID | Category | Severity | Summary | Evidence | Suggested Actions |",
+                        "|---|---|---|---|---|---|",
+                        "| DYN-GAP-020 | planning_gap | high | Planning still incomplete | no plan artifact | create-delivery-skeleton |",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            state = {
+                "workflow_type": "b2s-dynamic",
+                "current_stage": "0-dynamic-assessment",
+                "dynamic_iteration_count": 8,
+                "action_status": {
+                    "assess-dynamic-gaps": "accepted",
+                },
+            }
+
+            result = dynamic_next_step_module.select_next_dynamic_action(workspace_root, state)
+
+            self.assertEqual(result["overall"], "fail")
+            self.assertEqual(result["selected_action"], None)
+            self.assertEqual(result["blocking_reason"], "iteration_budget")
+            self.assertEqual(result["dynamic_stop_reason"], "iteration_budget")
+
+    def test_dynamic_selector_stops_when_same_top_gap_repeats(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp)
+            (workspace_root / "orchestration").mkdir(parents=True, exist_ok=True)
+            (workspace_root / "orchestration" / "dynamic-gap-assessment.md").write_text(
+                "\n".join(
+                    [
+                        "# Dynamic Gap Assessment",
+                        "",
+                        "## Ranked Gaps",
+                        "",
+                        "| Gap ID | Category | Severity | Summary | Evidence | Suggested Actions |",
+                        "|---|---|---|---|---|---|",
+                        "| DYN-GAP-030 | architecture_gap | critical | Architecture uncertainty persists | same unresolved boundary | review-initial-architecture |",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            state = {
+                "workflow_type": "b2s-dynamic",
+                "current_stage": "0-dynamic-assessment",
+                "dynamic_last_assessment": {
+                    "gap_id": "DYN-GAP-030",
+                },
+                "dynamic_repeat_gap_count": 1,
+                "action_status": {
+                    "assess-dynamic-gaps": "accepted",
+                },
+            }
+
+            result = dynamic_next_step_module.select_next_dynamic_action(workspace_root, state)
+
+            self.assertEqual(result["overall"], "fail")
+            self.assertEqual(result["selected_action"], None)
+            self.assertEqual(result["blocking_reason"], "no_progress")
+            self.assertEqual(result["dynamic_stop_reason"], "no_progress")
+            self.assertEqual(result["dynamic_repeat_gap_count"], 2)
+
+    def test_dynamic_selector_rejects_action_outside_current_macro_phase(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp)
+            (workspace_root / "orchestration").mkdir(parents=True, exist_ok=True)
+            (workspace_root / "orchestration" / "dynamic-gap-assessment.md").write_text(
+                "\n".join(
+                    [
+                        "# Dynamic Gap Assessment",
+                        "",
+                        "## Macro Phase",
+                        "",
+                        "| Field | Value |",
+                        "|---|---|",
+                        "| Current macro phase | solution-design |",
+                        "| Assessment confidence | medium |",
+                        "| Iteration count | 2 |",
+                        "",
+                        "## Ranked Gaps",
+                        "",
+                        "| Gap ID | Category | Severity | Summary | Evidence | Suggested Actions |",
+                        "|---|---|---|---|---|---|",
+                        "| DYN-GAP-040 | solution_design_gap | high | Solution details missing | missing decisions | create-solution-decisions |",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            (workspace_root / "orchestration" / "dynamic-next-action-decision.md").write_text(
+                "\n".join(
+                    [
+                        "# Dynamic Next Action Decision",
+                        "",
+                        "## Decision",
+                        "",
+                        "| Field | Value |",
+                        "|---|---|",
+                        "| Selected action | create-delivery-skeleton |",
+                        "| Persona | delivery-lead |",
+                        "| Current macro phase | solution-design |",
+                        "| Primary gap addressed | DYN-GAP-040 |",
+                        "| Decision confidence | medium |",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            (workspace_root / "orchestration" / "dynamic-stop-decision.md").write_text(
+                "\n".join(
+                    [
+                        "# Dynamic Stop Decision",
+                        "",
+                        "## Decision",
+                        "",
+                        "| Field | Value |",
+                        "|---|---|",
+                        "| Outcome | continue |",
+                        "| Current macro phase | solution-design |",
+                        "| Decision confidence | medium |",
+                        "| Stop reason | other |",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            state = {
+                "workflow_type": "b2s-dynamic",
+                "current_stage": "2-dynamic-stop-review",
+                "action_status": {
+                    "assess-dynamic-gaps": "accepted",
+                    "select-dynamic-next-action": "accepted",
+                    "evaluate-dynamic-stop-condition": "accepted",
+                },
+            }
+
+            result = dynamic_next_step_module.select_next_dynamic_action(workspace_root, state)
+
+            self.assertEqual(result["overall"], "fail")
+            self.assertEqual(result["selected_action"], None)
+            self.assertIn("outside the current macro phase", result["blocking_reason"])
+
+    def test_dynamic_selector_fails_for_unknown_gap_category(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp)
+            (workspace_root / "orchestration").mkdir(parents=True, exist_ok=True)
+            (workspace_root / "orchestration" / "dynamic-gap-assessment.md").write_text(
+                "\n".join(
+                    [
+                        "# Dynamic Gap Assessment",
+                        "",
+                        "## Ranked Gaps",
+                        "",
+                        "| Gap ID | Category | Severity | Summary | Evidence | Suggested Actions |",
+                        "|---|---|---|---|---|---|",
+                        "| DYN-GAP-050 | invented_gap | high | Unknown category drift | test evidence | create-solution-decisions |",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            state = {
+                "workflow_type": "b2s-dynamic",
+                "current_stage": "1-dynamic-selection",
+                "action_status": {
+                    "assess-dynamic-gaps": "accepted",
+                },
+            }
+
+            result = dynamic_next_step_module.select_next_dynamic_action(workspace_root, state)
+
+            self.assertEqual(result["overall"], "fail")
+            self.assertEqual(result["selected_action"], None)
+            self.assertIn("unsupported categories", result["blocking_reason"])
+
+    def test_next_step_bootstraps_dynamic_workflow_before_assessment_exists(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp)
+            workspace.ensure_runtime_layout(workspace_root)
+            workflow_dir = workspace_root / ".b2s" / "workflow"
+            workflow_dir.mkdir(parents=True, exist_ok=True)
+
+            dynamic_workflow_root = REPO_ROOT / ".b2s" / "workflow-types" / "b2s-dynamic"
+            shutil.copyfile(
+                dynamic_workflow_root / "stage-actions.yaml",
+                workflow_dir / "stage-actions.yaml",
+            )
+            shutil.copyfile(
+                dynamic_workflow_root / "workflow-definition.yaml",
+                workflow_dir / "workflow-definition.yaml",
+            )
+
+            state = workspace.load_state(workspace_root)
+            state["workflow_type"] = "b2s-dynamic"
+            state["current_stage"] = "1-dynamic-selection"
+            workspace.save_state(workspace_root, state)
+
+            result = next_step.select_next_action(workspace_root, state)
+
+            self.assertEqual(result["overall"], "pass")
+            self.assertEqual(result["selected_action"], "assess-dynamic-gaps")
+            self.assertEqual(result["selected_stage"], "0-dynamic-assessment")
+
+    def test_dynamic_workspace_loads_local_and_b2s_flow_specialist_actions(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp)
+            workspace.ensure_runtime_layout(workspace_root)
+            workflow_dir = workspace_root / ".b2s" / "workflow"
+            workflow_dir.mkdir(parents=True, exist_ok=True)
+            dynamic_workflow_root = REPO_ROOT / ".b2s" / "workflow-types" / "b2s-dynamic"
+            shutil.copyfile(
+                dynamic_workflow_root / "stage-actions.yaml",
+                workflow_dir / "stage-actions.yaml",
+            )
+            shutil.copyfile(
+                dynamic_workflow_root / "workflow-definition.yaml",
+                workflow_dir / "workflow-definition.yaml",
+            )
+            workspace.save_json_file(
+                workflow_dir / "workflow-type.json",
+                {"workflow_type": "b2s-dynamic"},
+            )
+
+            actions, by_id = workspace.load_stage_actions(workspace_root)
+
+            self.assertIn("select-dynamic-next-action", by_id)
+            self.assertIn("create-solution-decisions", by_id)
+            self.assertIn("create-delivery-skeleton", by_id)
+            self.assertGreater(len(actions), 3)
 
 
 if __name__ == "__main__":

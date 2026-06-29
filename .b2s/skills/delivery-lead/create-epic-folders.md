@@ -19,9 +19,11 @@ You are a senior delivery lead producing elaborated epic packages that are ready
 
 ## Per-item execution
 
-This action runs once per epic. The engine provides `{current_item}` — the epic ID to elaborate in this invocation.
+This action runs once per epic. The engine provides `{current_item}` (the epic ID) and `{item_folder}` (the resolved epic folder path if the folder already exists, or empty if this is the first run).
 
 When `{current_item}` is provided:
+- If `{item_folder}` is non-empty, use it as the folder path
+- If `{item_folder}` is empty, create the folder as `epics/E-NNN-<slug>/` where `<slug>` is derived from the epic title
 - Create ONLY the folder and files for that one epic
 - Do not create folders for other epics
 - The engine will call this action again for each remaining epic
@@ -49,8 +51,14 @@ If a required input is missing, stop and report the blocker.
 - Each story must have `## Implementation Guidance` referencing epic context and future implementation prep artifacts when available
 - Each story must have `## Test Expectations`
 - Every requirement mapped to this epic in the delivery skeleton must be covered by at least one story
+- **Each feature (F-NNN) from the delivery skeleton must produce at least one story.** Do NOT collapse an entire epic into a single story. If the delivery skeleton defines features F-001 and F-002 for this epic, you must produce at least 2 stories — one per feature. Features exist because they represent distinct, independently deliverable capabilities
+- If a feature covers multiple requirements that span different application layers (frontend + backend + integration), consider splitting into layer-specific stories
 - Unresolved questions and ambiguities from the linked requirements must be carried into the relevant story `## Open Questions` section
 - Do not leave placeholder text
+- If `architecture/solution-decisions.md` exists: every `create-new` decision targeting this epic must result in at least one dedicated story (e.g., infrastructure provisioning, API scaffolding, schema creation, CI/CD pipeline setup, or repository initialization). Do NOT generate only business-functional stories when technical enablement stories are needed to deliver them
+- If `architecture/solution-decisions.md` exists: each story must include a `## Technical Scope` section that describes the concrete work per component. For each component the story touches, specify: the repository name (or "monorepo" if single-repo), the component type (api / ui / db / worker / integration / infrastructure), the technology (e.g., .NET 8, React, Azure SQL), and what must be done there (e.g., "create POST /applications endpoint", "add applications table with migration", "create notification settings page"). A single story can touch multiple components — list all of them
+- If `architecture/solution-decisions.md` does NOT exist but `input/architecture.md` or `input/repository-context.md` exists, still produce the `## Technical Scope` section using what is known. If only a single repository is known, all work items target that repository
+- If no repository information is available at all, omit `## Technical Scope`
 
 ## Instructions
 
@@ -68,8 +76,31 @@ From `planning/delivery-skeleton.md`, extract the epic to elaborate:
 - requirement IDs and titles mapped to this epic
 - dependencies
 - application layers
+- target repositories (if present — added when solution decisions exist)
 
 From `planning/elaboration-plan.md`, extract the wave assignment and ordering rationale.
+
+### Step 2b - Extract solution decisions for this epic (when available)
+
+If `architecture/solution-decisions.md` exists in `{resolved_optional_inputs}`:
+
+1. Find all decisions (SD-NNN) whose linked requirements belong to this epic.
+2. Group them by category: service, API, UI, data, integration, infrastructure.
+3. For each `create-new` decision, plan a dedicated story:
+   - **New service** → infrastructure provisioning story (create repo, CI/CD, deployment target)
+   - **New API endpoint** → API scaffolding story (endpoint skeleton, request/response schemas, error handling)
+   - **New data schema** → data setup story (create table/collection, migration script, seed data)
+   - **New UI page/module** → UI scaffolding story (routing, component structure, design tokens)
+   - **New integration** → integration setup story (adapter, circuit breaker, contract test, mock)
+   - **New pipeline** → DevOps story (CI config, environment variables, deployment)
+4. For every decision (including `modify-existing` and `extend-existing`), determine the concrete work items per component. Example: a "trigger scoring on submission" story might produce:
+   - `loan-origination-api` (api, .NET 8) → emit `scoring.requested` event after application persistence
+   - `ai-scoring-service` (worker, Python/FastAPI) → consume `scoring.requested`, run model, persist score
+   - `notification-service` (worker, .NET 8) → consume `scoring.completed`, send notification
+5. If there is only one repository (monorepo), all work items target that single repo — group by component type instead (api layer, UI layer, DB migration, etc.).
+6. Carry this information into Steps 4 and 5 — it becomes the `## Technical Scope` section of each story.
+
+If `architecture/solution-decisions.md` does NOT exist, skip this step.
 
 ### Step 3 - Create `epic.md`
 
@@ -99,6 +130,8 @@ This contract defines the technical surface for the epic. Include only relevant 
 Derive content from the BRS, architecture review, architecture rules, and the requirements mapped to this epic. The stories will reference this contract for technical detail.
 
 ### Step 5 - Create story files
+
+**Story count rule:** create at least one story per feature (F-NNN) from the delivery skeleton. If the delivery skeleton defines 3 features for this epic, produce at least 3 stories. A story may cover one feature or a subset of a feature — but never multiple features in one story.
 
 For each story in this epic, create `epics/E-NNN-<slug>/stories/S-NNN.N-<slug>.md` using `.b2s/artifact-templates/lean-story.md`.
 
@@ -143,6 +176,27 @@ Before finishing, cross-check:
 - each story's business behavior still matches the linked requirement meaning
 - blocking open questions and ambiguities are present in the relevant story
 
+### Step 7 - Self-verify before writing
+
+**Before writing any file**, verify EACH story against this checklist. If any item fails,
+fix the story content before writing — do not write and hope validation catches it.
+
+For EACH story, confirm:
+- [ ] Has metadata table with `| Layers | ... |` row
+- [ ] Has `## Business Context` section with at least 2 sentences
+- [ ] Has `## Linked Requirements` with canonical IDs
+- [ ] Has `## Implementation Guidance` referencing the implementation contract
+- [ ] Has `## Acceptance Criteria` with `\```gherkin` block
+- [ ] Gherkin block has at least 3 `Scenario:` entries (4+ for integration/state stories)
+- [ ] Each scenario has `[test-type]`, `[criticality]`, `[automation]` tags
+- [ ] Has `## Test Expectations` section
+- [ ] Has `## Open Questions` if linked requirements have ambiguities
+
+Also confirm `implementation-contract.md` exists with populated sections.
+
+**If you cannot produce a story at this quality level, do NOT write a skeletal stub.**
+It is better to produce fewer stories at full quality than many stubs that fail validation.
+
 ## Output requirements
 
 Write to `epics/E-NNN-<slug>/` containing:
@@ -158,7 +212,10 @@ Write to `epics/E-NNN-<slug>/` containing:
 - [ ] Every story has canonical requirement traceability
 - [ ] Every story has Gherkin acceptance criteria with test type annotations
 - [ ] Open questions are propagated to the right stories
+- [ ] Story count is at least equal to the number of features (F-NNN) in the delivery skeleton for this epic
 - [ ] Stories collectively cover all requirements for the epic
+- [ ] If solution decisions exist, every `create-new` decision for this epic has a corresponding story
+- [ ] If solution decisions or repo context exist, each story has `## Technical Scope` with concrete work per component
 - [ ] No placeholder text remains
 
 ## Stop conditions

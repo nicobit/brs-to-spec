@@ -22,6 +22,15 @@ _ENGINE_SALT = "b2s-engine-v2-integrity"
 ACTION_STATUSES_COMPLETE = {"ai_validated", "accepted"}
 ACTION_STATUSES_TERMINAL = ACTION_STATUSES_COMPLETE | {"failed"}
 ACTION_STATUS_IN_PROGRESS = "in_progress"
+ACTION_STATUS_WAVE_COMPLETE = "wave_complete"
+
+# Action lifecycle phases — enforced ordering within a single action execution.
+LIFECYCLE_IDLE = "idle"
+LIFECYCLE_DISPATCHED = "dispatched"
+LIFECYCLE_INPUTS_COLLECTED = "inputs_collected"
+LIFECYCLE_VALIDATED = "validated"
+
+LIFECYCLE_ORDER = [LIFECYCLE_IDLE, LIFECYCLE_DISPATCHED, LIFECYCLE_INPUTS_COLLECTED, LIFECYCLE_VALIDATED]
 
 DEFAULT_OUTPUTS = {
     "next-step": ".b2s/state/next-step.json",
@@ -30,7 +39,9 @@ DEFAULT_OUTPUTS = {
     "update-state": ".b2s/tmp/current-state-update.json",
     "repair-state": ".b2s/tmp/current-state-update.json",
     "reset-to-phase": ".b2s/tmp/current-state-update.json",
+    "finalize-action": ".b2s/tmp/finalize-action.json",
     "run-action": ".b2s/tmp/run-action.json",
+    "reopen-action": ".b2s/tmp/run-action.json",
     "retry-action": ".b2s/tmp/current-state-update.json",
     "rerun-last-action": ".b2s/tmp/rerun-last-action.json",
     "approve-current-gate": ".b2s/tmp/current-gate.json",
@@ -104,7 +115,7 @@ def load_json_file(path: Path) -> dict[str, Any]:
 
 def save_json_file(path: Path, data: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+    path.write_text(json.dumps(data, indent=2, default=str), encoding="utf-8")
 
 
 def load_yaml_file(path: Path) -> dict[str, Any]:
@@ -126,6 +137,22 @@ def load_state(workspace_root: Path) -> dict[str, Any]:
     state.setdefault("quality_gates_triggered", [])
     state.setdefault("optional_artifacts_requested", [])
     state.setdefault("current_gate", None)
+    state.setdefault("dynamic_goal", None)
+    state.setdefault("dynamic_macro_phase", None)
+    state.setdefault("dynamic_gap_backlog", [])
+    state.setdefault("dynamic_focus_area", None)
+    state.setdefault("dynamic_iteration_count", 0)
+    state.setdefault("dynamic_last_assessment", None)
+    state.setdefault("dynamic_last_selected_action", None)
+    state.setdefault("dynamic_stop_reason", None)
+    state.setdefault("dynamic_confidence", None)
+    state.setdefault("dynamic_repeat_gap_count", 0)
+    state.setdefault("current_wave", 0)
+    if "action_lifecycle_phase" not in state:
+        if state.get("active_action"):
+            state["action_lifecycle_phase"] = LIFECYCLE_INPUTS_COLLECTED
+        else:
+            state["action_lifecycle_phase"] = LIFECYCLE_IDLE
     return state
 
 
@@ -229,6 +256,39 @@ def append_execution_log(
         handle.write(json.dumps(entry, ensure_ascii=True) + "\n")
 
 
+def check_lifecycle_phase(
+    state: dict[str, Any],
+    required_phase: str,
+    command: str,
+) -> str | None:
+    """Return an error message if the current lifecycle phase prevents running ``command``.
+
+    Returns None when the phase is acceptable.
+    Only enforced when the state has an ``active_action`` — otherwise the
+    command is assumed to be a standalone invocation (e.g. tests, manual runs)
+    and the check is skipped.
+    """
+    if not state.get("active_action"):
+        return None
+    current = state.get("action_lifecycle_phase")
+    if current is None:
+        return None
+    required_idx = LIFECYCLE_ORDER.index(required_phase) if required_phase in LIFECYCLE_ORDER else -1
+    current_idx = LIFECYCLE_ORDER.index(current) if current in LIFECYCLE_ORDER else -1
+    if current_idx < required_idx:
+        return (
+            f"Cannot run `{command}`: action lifecycle phase is '{current}' "
+            f"but must be at least '{required_phase}'. "
+            f"Run the preceding step first."
+        )
+    return None
+
+
+def advance_lifecycle_phase(state: dict[str, Any], new_phase: str) -> None:
+    """Set the lifecycle phase. Use LIFECYCLE_IDLE to reset after update-state."""
+    state["action_lifecycle_phase"] = new_phase
+
+
 def resolve_output_path(command: str, workspace_root: Path, output: Path | None) -> Path:
     if output is not None:
         if output.is_absolute():
@@ -253,11 +313,50 @@ def _resolve_workflow_path(filename: str, workspace_root: Path | None) -> Path:
     return FRAMEWORK_ROOT / "workflow" / filename
 
 
+def _workflow_type_for_workspace(workspace_root: Path | None) -> str | None:
+    if workspace_root is None:
+        return None
+
+    record_path = workspace_root / ".b2s" / "workflow" / "workflow-type.json"
+    if record_path.exists():
+        try:
+            payload = load_json_file(record_path)
+        except Exception:
+            payload = {}
+        workflow_type = payload.get("workflow_type")
+        if workflow_type:
+            return workflow_type
+
+    state_path = state_dir(workspace_root) / "workflow-state.json"
+    if state_path.exists():
+        try:
+            payload = load_json_file(state_path)
+        except Exception:
+            payload = {}
+        workflow_type = payload.get("workflow_type")
+        if workflow_type:
+            return workflow_type
+
+    return None
+
+
 def load_stage_actions(
     workspace_root: Path | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, dict[str, Any]]]:
     payload = load_yaml_file(_resolve_workflow_path("stage-actions.yaml", workspace_root))
-    actions = action_contract.normalize_actions(payload["actions"])
+    combined_actions = list(payload["actions"])
+
+    if _workflow_type_for_workspace(workspace_root) == "b2s-dynamic":
+        dynamic_specialist_path = (
+            FRAMEWORK_ROOT / "workflow-types" / "b2s-flow" / "stage-actions.yaml"
+        )
+        specialist_payload = load_yaml_file(dynamic_specialist_path)
+        existing_ids = {action["action_id"] for action in combined_actions}
+        for action in specialist_payload["actions"]:
+            if action["action_id"] not in existing_ids:
+                combined_actions.append(action)
+
+    actions = action_contract.normalize_actions(combined_actions)
     by_id = {action["action_id"]: action for action in actions}
     return actions, by_id
 
@@ -359,6 +458,64 @@ def _parse_elaboration_waves(workspace_root: Path) -> list[list[str]] | None:
         waves.append(current_wave_epics)
 
     return waves if waves else None
+
+
+def current_wave_index(state: dict[str, Any]) -> int:
+    """Return the 0-based wave index from state, defaulting to 0."""
+    return state.get("current_wave", 0)
+
+
+def items_for_wave(workspace_root: Path, wave_index: int) -> list[str]:
+    """Return the epic IDs for a specific wave, or all items if no waves defined."""
+    waves = _parse_elaboration_waves(workspace_root)
+    if not waves:
+        return []
+    if wave_index < len(waves):
+        return waves[wave_index]
+    return []
+
+
+def total_waves(workspace_root: Path) -> int:
+    """Return the total number of waves, or 0 if no elaboration plan."""
+    waves = _parse_elaboration_waves(workspace_root)
+    return len(waves) if waves else 0
+
+
+def all_wave_items(workspace_root: Path) -> list[str]:
+    """Return all item IDs across all waves in wave order."""
+    waves = _parse_elaboration_waves(workspace_root)
+    if not waves:
+        return []
+    result: list[str] = []
+    for wave in waves:
+        result.extend(wave)
+    return result
+
+
+def resolve_item_folder(workspace_root: Path, item_id: str | None) -> str | None:
+    """Resolve a bare item ID (e.g. 'E-002') to its actual folder path under epics/.
+
+    Scans ``epics/`` for a directory whose name starts with the item ID.
+    When multiple matches exist (e.g. ``E-002`` and ``E-002-ai-pre-screening``),
+    prefers the slugged variant (``E-002-<slug>``) over the bare ID folder.
+    Returns the workspace-relative POSIX path (e.g. 'epics/E-002-ai-pre-screening/') or
+    None if no matching folder exists or no item_id is given.
+    """
+    if not item_id:
+        return None
+    epics_dir = workspace_root / "epics"
+    if not epics_dir.is_dir():
+        return None
+    candidates = [
+        entry for entry in sorted(epics_dir.iterdir())
+        if entry.is_dir() and entry.name.startswith(item_id)
+    ]
+    if not candidates:
+        return None
+    # Prefer the slugged folder (E-002-<slug>) over the bare ID (E-002)
+    slugged = [c for c in candidates if c.name != item_id]
+    winner = slugged[0] if slugged else candidates[0]
+    return winner.relative_to(workspace_root).as_posix() + "/"
 
 
 def extract_items_from_source(workspace_root: Path, source_path: str, pattern: str) -> list[str]:

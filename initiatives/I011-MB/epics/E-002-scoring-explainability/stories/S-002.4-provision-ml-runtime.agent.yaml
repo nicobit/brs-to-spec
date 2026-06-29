@@ -1,0 +1,53 @@
+story_id: S-002.4
+title: "Provision ML runtime infra (AKS)"
+story_type: "generic"
+layer: "infrastructure"
+
+requirements_implemented:
+  - NFR-002
+
+requirements_referenced:
+  - C-004
+
+depends_on:
+  - story_id: S-002.2
+    reason: storage and retention configuration
+    consumes_contract:
+      type: "api"
+      summary: "ExplainabilityStore storage contract"
+
+blocks: []
+
+in_scope:
+  - "Provision cluster, configure storage and retention policies"
+
+out_of_scope:
+  - "Application deployment pipelines beyond smoke checks"
+
+implementation_contract:
+  touched_components:
+    - "Platform / AKS cluster"
+  touched_files_or_areas:
+    - "infra/aks/"
+  data_inputs:
+    - name: "node_pool_size"
+      type: "number"
+      required: true
+      validation: "positive integer"
+  operations:
+    - type: "provision"
+      target: "AKS cluster"
+      expected_result: "Cluster provisioned and accessible"
+  success_behavior:
+    - "Cluster and storage endpoints are reachable"
+  error_handling:
+    - "Provisioning errors are logged and retried per platform policy"
+
+required_tests:
+  integration:
+    - "cluster readiness tests"
+  e2e:
+    - "connectivity from scoring service to ExplainabilityStore"
+
+done_evidence:
+  - "Provisioning runbook and smoke test results"

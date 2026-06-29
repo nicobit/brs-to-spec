@@ -1,0 +1,65 @@
+story_id: S-002.1
+title: "Implement Scoring Service processor"
+story_type: "backend-endpoint"
+layer: "backend"
+
+requirements_implemented:
+  - FR-007
+
+requirements_referenced:
+  - FR-008
+  - FR-030
+
+depends_on:
+  - story_id: S-002.3
+    reason: credit inputs may be provided by Experian adapter
+    consumes_contract:
+      type: "external"
+      summary: "Experian credit report mapping"
+  - story_id: S-002.2
+    reason: persist explainability traces
+    consumes_contract:
+      type: "api"
+      summary: "ExplainabilityStore write API"
+
+blocks: []
+
+in_scope:
+  - "Consume application.submitted events; compute and persist SCORE"
+
+out_of_scope:
+  - "Model training and hyperparameter tuning"
+
+implementation_contract:
+  touched_components:
+    - "Scoring Service"
+  touched_files_or_areas:
+    - "services/scoring/"
+  data_inputs:
+    - name: "application_arn"
+      type: "string"
+      required: true
+      validation: "uuid format"
+  operations:
+    - type: "event handling"
+      target: "application.submitted"
+      expected_result: "SCORE persisted and application.scored emitted"
+  success_behavior:
+    - "Emit application.scored with explainability_ref"
+  error_handling:
+    - "On Experian timeout, mark refer-to-underwriter and record audit event"
+
+required_tests:
+  unit:
+    - "threshold and rule tests"
+  integration:
+    - "event handler with mocked Experian and ExplainabilityStore"
+  api:
+    - "validate application.scored payload"
+  e2e:
+    - "end-to-end scoring flow"
+  accessibility:
+    - "Not applicable"
+
+done_evidence:
+  - "application.scored event and SCORE record persisted"

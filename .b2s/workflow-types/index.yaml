@@ -61,3 +61,27 @@ workflow_types:
     delivery_modes:
       - OpenSpec
       - Standalone
+
+  - id: b2s-flow
+    path: ".b2s/workflow-types/b2s-flow"
+    description: "Lean progressive decomposition with mandatory technical landscape analysis and solution decisions before backlog generation. Stories are grounded in explicit create-vs-modify decisions."
+    suitable_for:
+      - "Initiatives touching multiple repositories or services"
+      - "Teams that need explicit technical decisions before writing stories"
+      - "Brownfield projects where knowing what exists is critical"
+      - "Architecture-aware delivery with solution design gate"
+    delivery_modes:
+      - OpenSpec
+      - Standalone
+
+  - id: b2s-dynamic
+    path: ".b2s/workflow-types/b2s-dynamic"
+    description: "Experimental additive scaffold for dynamic, loop-based BRS-to-spec orchestration. Reuses existing artifact contracts while introducing dynamic gap assessment and next-action selection concepts."
+    suitable_for:
+      - "High-uncertainty BRS-to-spec initiatives"
+      - "Brownfield projects where the best next refinement step may change as understanding improves"
+      - "Teams exploring agentic orchestration without replacing artifact-centered control"
+      - "Experimental workflow evaluation before broader adoption"
+    delivery_modes:
+      - OpenSpec
+      - Standalone

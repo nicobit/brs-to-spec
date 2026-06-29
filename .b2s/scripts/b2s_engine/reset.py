@@ -57,6 +57,7 @@ def run(args: object) -> None:
         state["delivery_mode"] = None
         state["execution_mode"] = None
         state["quality_gates_triggered"] = []
+    workspace.advance_lifecycle_phase(state, workspace.LIFECYCLE_IDLE)
     workspace.save_state(workspace_root, state)
     workspace.save_json_file(
         workspace.resolve_output_path("reset-to-phase", workspace_root, args.output),

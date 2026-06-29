@@ -19,10 +19,10 @@ You are a senior architect formalizing architectural constraints into a binding,
 
 ## Preconditions
 
-Before starting, verify:
-- `architecture/architecture-review.md` exists
-- at least one BRS source file is readable
-- `business-analysis/business-rules.md` exists when available for alignment
+Before starting, verify that all files listed in `{resolved_required_inputs}` exist and are readable.
+
+Optional context:
+- `domain/business-rules.md` (for alignment when available)
 
 If the architecture review is missing, stop and report the blocker.
 
@@ -35,7 +35,7 @@ Read these files in full before writing anything:
 - BRS source files under `{workspace_root}/input/`
 
 If available, read:
-- `{workspace_root}/business-analysis/business-rules.md`
+- `{workspace_root}/domain/business-rules.md`
 
 Do not start writing until all available inputs are read completely.
 

@@ -1,0 +1,19 @@
+{
+  "overall": "pass",
+  "action_id": "create-epic-stories",
+  "previous_state_summary": {
+    "current_stage": "4-epic-elaboration",
+    "next_action": "create-epic-stories",
+    "action_status": "in_progress"
+  },
+  "applied_changes": {
+    "action_reopened": "create-epic-stories",
+    "gate_cleared": null,
+    "artifacts_cleared": [
+      "epics/"
+    ],
+    "next_action": "create-epic-stories"
+  },
+  "next_action": "create-epic-stories",
+  "gate_state": null
+}

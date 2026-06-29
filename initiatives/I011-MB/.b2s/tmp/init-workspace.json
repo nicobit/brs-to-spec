@@ -1,0 +1,21 @@
+{
+  "overall": "pass",
+  "initiative_id": "I011-MB",
+  "workspace_root": "C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I011-MB",
+  "workflow_type": "b2s-flow",
+  "workflow_files": [
+    ".b2s/workflow/stage-actions.yaml",
+    ".b2s/workflow/workflow-definition.yaml",
+    ".b2s/workflow/workflow-type.json"
+  ],
+  "created": [
+    "input\\brs.md",
+    ".b2s/state/workflow-state.json",
+    ".b2s/state/open-decisions.md",
+    ".b2s/workflow/stage-actions.yaml",
+    ".b2s/workflow/workflow-definition.yaml",
+    ".b2s/workflow/workflow-type.json"
+  ],
+  "next_action": "route-initiative",
+  "message": "Initiative I011-MB workspace created with workflow type 'b2s-flow'. Fill in input\\brs.md then run the workflow."
+}

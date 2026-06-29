@@ -1,0 +1,32 @@
+story_id: S-004.1
+title: Digital acceptance via DocuSign
+story_type: backend-endpoint
+layer: backend
+requirements_implemented:
+  - FR-022
+requirements_referenced: []
+in_scope:
+  - Verify webhook signature
+out_of_scope:
+  - DocuSign account provisioning
+depends_on: []
+implementation_contract:
+  path: ../../implementation-contract.md
+  touched_components:
+    - acceptance-service
+  operations:
+    - type: http
+      target: POST /api/offers/{offer_id}/accept
+      description: acceptance webhook
+required_tests:
+  unit:
+    - webhook signature verification unit tests
+  integration:
+    - DocuSign adapter integration tests
+  api:
+    - POST /api/offers/{offer_id}/accept contract tests
+operations:
+  - id: record-acceptance
+    method: POST
+    path: /api/offers/{offer_id}/accept
+    description: Record acceptance callback from DocuSign

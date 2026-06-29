@@ -1,0 +1,42 @@
+id: S-001.2
+title: "Intake API: submit application"
+story_id: S-001.2
+story_type: backend-endpoint
+layer: backend
+requirements_implemented:
+  - FR-001
+  - FR-002
+  - FR-003
+requirements_referenced:
+  - NFR-004
+in_scope:
+  - POST /api/intake/submit validation and persistence
+out_of_scope:
+  - Email delivery
+depends_on: []
+implementation_contract:
+  api:
+    - path: /api/intake/submit
+      method: POST
+      operationId: submitApplication
+  events:
+    - application.submitted
+  touched_components:
+    - Intake API service
+  operations:
+    - type: api
+      target: POST /api/intake/submit
+  api_contract:
+    - OpenAPI conformance
+    - Response schema validation
+required_tests:
+  unit:
+    - validation and ARN generation
+  integration:
+    - persistence and event publication
+  api_contract:
+    submitApplication:
+      - response: 201
+      - body_contains: arn
+  api:
+    - contract

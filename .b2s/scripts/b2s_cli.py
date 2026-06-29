@@ -32,6 +32,8 @@ def build_parser() -> argparse.ArgumentParser:
         "update-state": state.run,
         "repair-state": state.repair_state,
         "reset-to-phase": reset.run,
+        "finalize-action": state.finalize_action,
+        "reopen-action": gates.run_action,
         "run-action": gates.run_action,
         "retry-action": gates.retry_action,
         "rerun-last-action": gates.rerun_last_action,
@@ -53,7 +55,7 @@ def build_parser() -> argparse.ArgumentParser:
             required=False,
             help="Machine-readable output path for the command.",
         )
-        if name in {"collect-inputs", "validate-artifact", "update-state"}:
+        if name in {"collect-inputs", "validate-artifact", "update-state", "finalize-action"}:
             subparser.add_argument(
                 "--action-id",
                 type=str,
@@ -78,7 +80,7 @@ def build_parser() -> argparse.ArgumentParser:
                     "Run `list-workflow-types` to see available options."
                 ),
             )
-        if name in {"run-action", "retry-action"}:
+        if name in {"run-action", "reopen-action", "retry-action"}:
             subparser.add_argument(
                 "--action-id",
                 type=str,

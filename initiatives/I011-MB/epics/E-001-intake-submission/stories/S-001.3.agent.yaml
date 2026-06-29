@@ -1,0 +1,32 @@
+id: S-001.3.agent
+story_id: S-001.3
+title: "Confirmation Email & ARN display"
+story_type: event-consumer
+layer: backend
+requirements_implemented:
+  - FR-004
+requirements_referenced:
+  - FR-001
+in_scope:
+  - Send confirmation email and expose ARN in response
+out_of_scope:
+  - Email provider implementation details
+depends_on:
+  - story_id: S-001.1
+    reason: needs ARN from submission
+    consumed_contract: epics/E-001-intake-submission/implementation-contract.md
+implementation_contract:
+  path: epics/E-001-intake-submission/implementation-contract.md
+  version: 1
+  touched_components:
+    - Confirmation service
+  events:
+    - application.submitted
+  operations:
+    - type: event
+      target: application.submitted
+required_tests:
+  integration:
+    - email provider integration
+  unit:
+    - template rendering
