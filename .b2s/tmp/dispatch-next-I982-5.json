@@ -1,0 +1,9 @@
+{
+  "status": "blocked",
+  "initiative_id": "I982-ISA",
+  "current_stage": "2-dynamic-stop-review",
+  "blocking_reason": "human_clarification_required",
+  "message": "Workflow is blocked: human_clarification_required",
+  "next_cli_commands": [],
+  "action": null
+}

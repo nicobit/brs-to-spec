@@ -344,19 +344,7 @@ def load_stage_actions(
     workspace_root: Path | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, dict[str, Any]]]:
     payload = load_yaml_file(_resolve_workflow_path("stage-actions.yaml", workspace_root))
-    combined_actions = list(payload["actions"])
-
-    if _workflow_type_for_workspace(workspace_root) == "b2s-dynamic":
-        dynamic_specialist_path = (
-            FRAMEWORK_ROOT / "workflow-types" / "b2s-flow" / "stage-actions.yaml"
-        )
-        specialist_payload = load_yaml_file(dynamic_specialist_path)
-        existing_ids = {action["action_id"] for action in combined_actions}
-        for action in specialist_payload["actions"]:
-            if action["action_id"] not in existing_ids:
-                combined_actions.append(action)
-
-    actions = action_contract.normalize_actions(combined_actions)
+    actions = action_contract.normalize_actions(payload["actions"])
     by_id = {action["action_id"]: action for action in actions}
     return actions, by_id
 

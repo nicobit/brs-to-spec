@@ -1,0 +1,18 @@
+{
+  "status": "continue",
+  "action_id": "orchestrate-dynamic-iteration",
+  "validation": {
+    "overall": "pass",
+    "failure_count": 0,
+    "failures": [],
+    "advisories": []
+  },
+  "state_update": {
+    "action_id": "orchestrate-dynamic-iteration",
+    "next_action": "orchestrate-dynamic-iteration",
+    "current_stage": "0-dynamic-assessment"
+  },
+  "gate": null,
+  "continue": true,
+  "per_item_boundary": false
+}

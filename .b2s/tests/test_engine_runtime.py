@@ -368,7 +368,7 @@ class EngineRuntimeTests(unittest.TestCase):
         )
         self.assertTrue(result)
 
-    def test_next_step_persists_dynamic_selector_metadata_in_state(self) -> None:
+    def test_next_step_persists_dynamic_iteration_metadata_in_state(self) -> None:
         workspace_module.ensure_runtime_layout(self.workspace_root)
         workflow_dir = self.workspace_root / ".b2s" / "workflow"
         workflow_dir.mkdir(parents=True, exist_ok=True)
@@ -384,34 +384,27 @@ class EngineRuntimeTests(unittest.TestCase):
 
         state = self.read_json(".b2s/state/workflow-state.json")
         state["workflow_type"] = "b2s-dynamic"
-        state["current_stage"] = "1-dynamic-selection"
-        state["action_status"] = {
-            "assess-dynamic-gaps": "accepted",
-        }
+        state["current_stage"] = "0-dynamic-loop"
         (self.workspace_root / ".b2s" / "state" / "workflow-state.json").write_text(
             json.dumps(state, indent=2),
             encoding="utf-8",
         )
 
         (self.workspace_root / "orchestration").mkdir(parents=True, exist_ok=True)
-        (self.workspace_root / "orchestration" / "dynamic-gap-assessment.md").write_text(
+        (self.workspace_root / "orchestration" / "iteration-log.md").write_text(
             textwrap.dedent(
                 """\
-                # Dynamic Gap Assessment
+                # Iteration Log
 
-                ## Macro Phase
+                ## Goal State
+
+                Minimal test goal.
+
+                ## Iteration 1
 
                 | Field | Value |
                 |---|---|
-                | Current macro phase | planning-and-epic-shaping |
-                | Assessment confidence | medium |
-                | Iteration count | 4 |
-
-                ## Ranked Gaps
-
-                | Gap ID | Category | Severity | Summary | Evidence | Suggested Actions |
-                |---|---|---|---|---|---|
-                | DYN-GAP-021 | planning_gap | high | Delivery plan missing | no planning artifacts yet | create-delivery-skeleton, create-elaboration-plan |
+                | Continue | yes |
                 """
             ),
             encoding="utf-8",
@@ -422,19 +415,15 @@ class EngineRuntimeTests(unittest.TestCase):
         next_step_result = self.read_json(".b2s/state/next-step.json")
         updated_state = self.read_json(".b2s/state/workflow-state.json")
 
-        self.assertEqual(next_step_result["selected_action"], "select-dynamic-next-action")
-        self.assertEqual(next_step_result["selected_stage"], "1-dynamic-selection")
-        self.assertEqual(updated_state["dynamic_macro_phase"], "planning-and-epic-shaping")
-        self.assertEqual(updated_state["dynamic_confidence"], "medium")
-        self.assertEqual(updated_state["dynamic_focus_area"], None)
-        self.assertEqual(updated_state["dynamic_goal"], None)
-        self.assertEqual(updated_state["dynamic_last_selected_action"], "select-dynamic-next-action")
+        self.assertEqual(next_step_result["selected_action"], "orchestrate-dynamic-iteration")
+        self.assertEqual(next_step_result["selected_stage"], "0-dynamic-loop")
+        self.assertEqual(updated_state["dynamic_last_selected_action"], "orchestrate-dynamic-iteration")
         self.assertEqual(updated_state["dynamic_iteration_count"], 1)
-        self.assertEqual(updated_state["dynamic_last_assessment"]["selected_action"], "select-dynamic-next-action")
+        self.assertEqual(updated_state["dynamic_last_assessment"]["selected_action"], "orchestrate-dynamic-iteration")
         self.assertEqual(updated_state["dynamic_last_assessment"]["gap_id"], None)
-        self.assertEqual(len(updated_state["dynamic_gap_backlog"]), 1)
+        self.assertEqual(updated_state["current_stage"], "0-dynamic-loop")
 
-    def test_next_step_bootstraps_dynamic_workspace_without_assessment_artifact(self) -> None:
+    def test_next_step_bootstraps_dynamic_workspace_without_iteration_log(self) -> None:
         workspace_module.ensure_runtime_layout(self.workspace_root)
         workflow_dir = self.workspace_root / ".b2s" / "workflow"
         workflow_dir.mkdir(parents=True, exist_ok=True)
@@ -450,7 +439,7 @@ class EngineRuntimeTests(unittest.TestCase):
 
         state = self.read_json(".b2s/state/workflow-state.json")
         state["workflow_type"] = "b2s-dynamic"
-        state["current_stage"] = "1-dynamic-selection"
+        state["current_stage"] = "0-dynamic-loop"
         (self.workspace_root / ".b2s" / "state" / "workflow-state.json").write_text(
             json.dumps(state, indent=2),
             encoding="utf-8",
@@ -462,11 +451,11 @@ class EngineRuntimeTests(unittest.TestCase):
         updated_state = self.read_json(".b2s/state/workflow-state.json")
 
         self.assertEqual(next_step_result["overall"], "pass")
-        self.assertEqual(next_step_result["selected_action"], "assess-dynamic-gaps")
-        self.assertEqual(next_step_result["selected_stage"], "0-dynamic-assessment")
-        self.assertEqual(updated_state["current_stage"], "0-dynamic-assessment")
-        self.assertEqual(updated_state["next_action"], "assess-dynamic-gaps")
-        self.assertEqual(updated_state["dynamic_last_selected_action"], "assess-dynamic-gaps")
+        self.assertEqual(next_step_result["selected_action"], "orchestrate-dynamic-iteration")
+        self.assertEqual(next_step_result["selected_stage"], "0-dynamic-loop")
+        self.assertEqual(updated_state["current_stage"], "0-dynamic-loop")
+        self.assertEqual(updated_state["next_action"], "orchestrate-dynamic-iteration")
+        self.assertEqual(updated_state["dynamic_last_selected_action"], "orchestrate-dynamic-iteration")
 
     def test_should_auto_accept_clarification_gate_when_no_blockers(self) -> None:
         gate_state = {
@@ -2110,14 +2099,14 @@ class EngineRuntimeTests(unittest.TestCase):
                 |---|---|
                 | Delivery mode | OpenSpec |
                 | Execution mode | Standard |
-                | Recommended workflow type | agile-delivery-light-flow |
+                | Recommended workflow type | b2s-flow |
                 """
             ),
             encoding="utf-8",
         )
         state = {}
         state_module._parse_routing_fields(self.workspace_root, state)
-        self.assertEqual(state.get("workflow_type_recommended"), "agile-delivery-light-flow")
+        self.assertEqual(state.get("workflow_type_recommended"), "b2s-flow")
 
     def test_epic_review_summary_uses_validation_and_story_counts(self) -> None:
         (self.workspace_root / "epics" / "E-001-submit-request" / "stories").mkdir(parents=True, exist_ok=True)

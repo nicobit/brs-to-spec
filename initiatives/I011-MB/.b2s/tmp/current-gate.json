@@ -1,8 +1,0 @@
-{
-  "overall": "pass",
-  "gate_id": "epic-clarification",
-  "artifact_path": "epics/",
-  "decision": "approved",
-  "blocking_reason": null,
-  "next_action": "create-epic-shells"
-}

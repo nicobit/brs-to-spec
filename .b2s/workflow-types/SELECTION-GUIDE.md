@@ -10,7 +10,7 @@
 | `agile-delivery-flow` | Progressive decomposition with governance, capability mapping, per-story quality gates, and dispatch routing | OpenSpec, Standalone |
 | `agile-delivery-light-flow` | Lean progressive decomposition with planning-first output and on-demand coding handoff | OpenSpec, Standalone |
 | `b2s-flow` | Lean progressive decomposition with mandatory technical landscape and solution decisions before backlog | OpenSpec, Standalone |
-| `b2s-dynamic` | Experimental loop-based BRS-to-spec orchestration for high-uncertainty initiatives | OpenSpec, Standalone |
+| `b2s-dynamic` | Independent adaptive loop for high-uncertainty initiatives where the AI chooses the next needed artifact | OpenSpec, Standalone |
 
 ## Decision guide
 
@@ -31,7 +31,7 @@ multi-team coordination?**
 explicit decisions about what to create vs. modify before writing stories?**
 → Use `b2s-flow`
 
-**Is the initiative highly uncertain, likely to revisit architecture or planning decisions repeatedly, and you want to evaluate loop-based orchestration experimentally?**
+**Is the initiative highly uncertain, likely to revisit architecture or planning decisions repeatedly, and better served by AI choosing the next artifact dynamically?**
 → Use `b2s-dynamic`
 
 **Does the initiative need architecture impact mapped per requirement, capability
@@ -82,13 +82,15 @@ pre-analysis?**
 
 `b2s-dynamic`:
 ```
-0-dynamic-assessment → 1-dynamic-selection → 2-dynamic-stop-review
-  → experimental loop orchestration scaffold
+0-dynamic-loop → 1-dynamic-closure
+  → adaptive one-artifact-per-iteration loop
 ```
 
 Note:
-- `b2s-dynamic` is currently an experimental scaffold, not a full replacement for `b2s-flow`
-- it is intended for controlled evaluation, not broad default adoption
+- `b2s-dynamic` is independent from `b2s-flow` at runtime
+- it is best when fixed staged decomposition would create unnecessary artifacts
+- it should produce only the minimum developer-facing artifacts needed to reach
+  implementation completeness
 
 `agile-delivery-flow`:
 ```

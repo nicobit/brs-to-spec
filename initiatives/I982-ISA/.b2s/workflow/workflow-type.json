@@ -1,0 +1,9 @@
+{
+  "workflow_type": "b2s-dynamic",
+  "source_path": "C:\\Users\\nicol\\source\\brs-to-spec\\.b2s\\workflow-types\\b2s-dynamic",
+  "copied_at": "2026-07-01T21:00:19.086745+00:00",
+  "files_copied": [
+    "stage-actions.yaml",
+    "workflow-definition.yaml"
+  ]
+}

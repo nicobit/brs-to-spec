@@ -20,9 +20,8 @@ DYNAMIC_STATE_DEFAULTS: dict[str, Any] = {
 }
 
 DYNAMIC_ORCHESTRATOR_ACTION_IDS = {
-    "assess-dynamic-gaps",
-    "select-dynamic-next-action",
-    "evaluate-dynamic-stop-condition",
+    "orchestrate-dynamic-iteration",
+    "finalize-dynamic-initiative",
 }
 
 
@@ -77,6 +76,13 @@ def reset_dynamic_orchestration_cycle(
         for artifact_path in outputs.get("secondary", []):
             state.get("artifact_status", {}).pop(artifact_path, None)
     return state
+
+
+def dynamic_loop_start_stage_id(
+    actions_by_id: dict[str, dict[str, Any]] | None = None,
+) -> str:
+    """Return the correct loop-entry stage for the active dynamic workflow flavor."""
+    return "0-dynamic-loop"
 
 
 def dynamic_state_snapshot(state: dict[str, Any]) -> dict[str, Any]:

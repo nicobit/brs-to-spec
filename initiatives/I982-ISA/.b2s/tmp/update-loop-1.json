@@ -1,0 +1,18 @@
+{
+  "overall": "fail",
+  "action_id": "evaluate-dynamic-stop-condition",
+  "previous_state_summary": {
+    "current_stage": "2-dynamic-stop-review",
+    "next_action": "evaluate-dynamic-stop-condition"
+  },
+  "applied_changes": {
+    "current_stage": "2-dynamic-stop-review",
+    "artifact_status": {
+      "orchestration/dynamic-gap-assessment.md": "ai_validated",
+      "orchestration/dynamic-next-action-decision.md": "ai_validated",
+      "orchestration/dynamic-stop-decision.md": "failed"
+    }
+  },
+  "next_action": null,
+  "gate_state": null
+}

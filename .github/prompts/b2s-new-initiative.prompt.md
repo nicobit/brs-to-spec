@@ -19,9 +19,15 @@ Run this command to retrieve the available workflow types:
 python .b2s/scripts/b2s_cli.py list-workflow-types
 ```
 
-Present each workflow type to the user as a selectable option (use radio-button style selection when possible). Show the **id**, **description**, and **suitable_for** hints for each type.
+From the returned list, present only these two workflow types to the user as selectable options:
+- `b2s-flow`
+- `b2s-dynamic`
 
-**Default:** `agile-delivery-light-flow` — recommend this as the default choice unless the user's initiative clearly needs one of the other workflow types. Mark it as "(Recommended)" in the selection list.
+Show the **id**, **description**, and **suitable_for** hints for each of those two options.
+
+**Default:** `b2s-flow` — recommend this as the default choice. Mark it as "(Recommended)" in the selection list.
+
+Position `b2s-dynamic` as the option for uncertainty-heavy initiatives where the AI should decide the next needed artifact adaptively.
 
 Wait for the user to pick one before proceeding.
 

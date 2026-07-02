@@ -77,7 +77,7 @@ _Describe what overhead is introduced if more work than needed is selected._
 
 | Field | Value |
 |---|---|
-| Recommended workflow type | {{enterprise-modular / fast-path}} |
+| Recommended workflow type | {{enterprise-modular / technical-spec-modular / agile-delivery-flow / agile-delivery-light-flow / b2s-flow / b2s-dynamic / fast-path}} |
 | Rationale | {{one sentence}} |
 | Current workflow type | {{read from .b2s/workflow/workflow-type.json}} |
 | Match | {{yes / no — yes if recommended == current}} |

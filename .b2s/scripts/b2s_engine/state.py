@@ -37,6 +37,8 @@ def _parse_routing_fields(workspace_root, state: dict) -> None:
         "technical-spec-modular",
         "agile-delivery-flow",
         "agile-delivery-light-flow",
+        "b2s-flow",
+        "b2s-dynamic",
         "fast-path",
     }:
         state["workflow_type_recommended"] = workflow_type_recommended
@@ -572,7 +574,7 @@ def run(args: object) -> None:
         awaiting_human=state.get("awaiting_human", False),
     ):
         dynamic_state.reset_dynamic_orchestration_cycle(state, actions_by_id)
-        state["current_stage"] = "0-dynamic-assessment"
+        state["current_stage"] = dynamic_state.dynamic_loop_start_stage_id(actions_by_id)
         state["dynamic_stop_reason"] = None
 
     if not state.get("awaiting_human"):
@@ -763,7 +765,7 @@ def finalize_action(args: object) -> None:
         state, action_id, awaiting_human=state.get("awaiting_human", False),
     ):
         dynamic_state.reset_dynamic_orchestration_cycle(state, actions_by_id)
-        state["current_stage"] = "0-dynamic-assessment"
+        state["current_stage"] = dynamic_state.dynamic_loop_start_stage_id(actions_by_id)
         state["dynamic_stop_reason"] = None
 
     if not state.get("awaiting_human"):

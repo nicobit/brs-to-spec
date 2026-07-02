@@ -1,0 +1,191 @@
+version: 1
+framework: b2s
+description: >
+  Stage action registry for the experimental b2s-dynamic scaffold.
+  This workflow currently adds orchestration artifacts and dynamic control
+  concepts without changing the shared selector behavior used by existing
+  workflow types.
+
+actions:
+
+  - action_id: assess-dynamic-gaps
+    stage_id: "0-dynamic-assessment"
+    title: "Assess dynamic gaps"
+    source_event_template: "EVT-TPL-DYN-001"
+    persona: orchestrator
+    skill_ref: ".b2s/skills/orchestrator/assess-dynamic-gaps.md"
+    artifact_template_ref: ".b2s/artifact-templates/dynamic-gap-assessment.md"
+    inputs:
+      required:
+        - "input/brs.md"
+      optional:
+        - "input/architecture.md"
+        - "requirements/atomic-requirements.md"
+        - "architecture/architecture-review.md"
+        - "architecture/architecture-rules.md"
+        - "architecture/technical-landscape.md"
+        - "architecture/impacted-systems.md"
+        - "architecture/ui-specification.md"
+        - "architecture/solution-decisions.md"
+        - "planning/delivery-skeleton.md"
+        - "planning/elaboration-plan.md"
+        - "epics/"
+    outputs:
+      primary: "orchestration/dynamic-gap-assessment.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: structured-document
+    artifact_criticality: medium
+    blocked_by_stage: []
+    blocked_by_action: []
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "0-dynamic-assessment"
+
+  - action_id: select-dynamic-next-action
+    stage_id: "1-dynamic-selection"
+    title: "Select dynamic next action"
+    source_event_template: "EVT-TPL-DYN-002"
+    persona: orchestrator
+    skill_ref: ".b2s/skills/orchestrator/select-dynamic-next-action.md"
+    artifact_template_ref: ".b2s/artifact-templates/dynamic-next-action-decision.md"
+    inputs:
+      required:
+        - "orchestration/dynamic-gap-assessment.md"
+      optional:
+        - "requirements/atomic-requirements.md"
+        - "architecture/architecture-review.md"
+        - "architecture/architecture-rules.md"
+        - "architecture/technical-landscape.md"
+        - "architecture/impacted-systems.md"
+        - "architecture/ui-specification.md"
+        - "architecture/solution-decisions.md"
+        - "planning/delivery-skeleton.md"
+        - "planning/elaboration-plan.md"
+        - "epics/"
+    outputs:
+      primary: "orchestration/dynamic-next-action-decision.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: structured-document
+    artifact_criticality: medium
+    blocked_by_stage: []
+    blocked_by_action:
+      - "assess-dynamic-gaps"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "1-dynamic-selection"
+
+  - action_id: evaluate-dynamic-stop-condition
+    stage_id: "2-dynamic-stop-review"
+    title: "Evaluate dynamic stop condition"
+    source_event_template: "EVT-TPL-DYN-003"
+    persona: orchestrator
+    skill_ref: ".b2s/skills/orchestrator/evaluate-dynamic-stop-condition.md"
+    artifact_template_ref: ".b2s/artifact-templates/dynamic-stop-decision.md"
+    inputs:
+      required:
+        - "orchestration/dynamic-gap-assessment.md"
+        - "orchestration/dynamic-next-action-decision.md"
+      optional:
+        - "requirements/atomic-requirements.md"
+        - "architecture/architecture-review.md"
+        - "architecture/technical-landscape.md"
+        - "architecture/solution-decisions.md"
+        - "planning/elaboration-plan.md"
+    outputs:
+      primary: "orchestration/dynamic-stop-decision.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    validation_profile: structured-document
+    artifact_criticality: medium
+    blocked_by_stage: []
+    blocked_by_action:
+      - "select-dynamic-next-action"
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: ai_validated
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state:
+        current_stage: "2-dynamic-stop-review"
+
+  - action_id: create-brs
+    stage_id: "human-triggered"
+    title: "Create BRS"
+    source_event_template: "EVT-TPL-033"
+    persona: product-owner
+    skill_ref: ".b2s/skills/product-owner/create-brs.md"
+    artifact_template_ref: ".b2s/artifact-templates/brs.md"
+    inputs:
+      required: []
+      optional:
+        - "input/input-package.md"
+    outputs:
+      primary: "input/brs.md"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    blocked_by_stage: []
+    blocked_by_action: []
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: draft
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}
+
+  - action_id: spec-correction
+    stage_id: "human-triggered"
+    title: "Spec correction"
+    source_event_template: "EVT-TPL-039"
+    persona: reviewer
+    skill_ref: ".b2s/skills/reviewer/spec-correction.md"
+    artifact_template_ref: null
+    inputs:
+      required: []
+      optional: []
+    outputs:
+      primary: "corrections/"
+      secondary: []
+    must_include: []
+    validation_rules: {}
+    blocked_by_stage: []
+    blocked_by_action: []
+    conditions: []
+    human_gate:
+      required: false
+    selection_mode: serial
+    status_model:
+      artifact_on_pass: draft
+      artifact_on_gate_accept: accepted
+      artifact_on_fail: failed
+    on_pass:
+      update_state: {}

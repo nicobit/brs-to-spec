@@ -1,9 +1,0 @@
-epic_id: E-004
-status:
-  resolution_mode: full
-  last_updated: "2026-06-28"
-source_context:
-  implementation_contract: epics/E-004-offer-acceptance-disbursement/implementation-contract.md
-  ui_specification: architecture/ui-specification.md
-answers: []
-unresolved: []

@@ -83,9 +83,13 @@ Recommend a workflow type based on these rules:
   - No regulatory or compliance requirements are present
   - No mention of multiple teams or parallel streams
 
-- Recommend `agile-delivery-light-flow` by default when the initiative needs
-  architecture-aware planning, epic/story decomposition, and traceability, but
-  does NOT clearly require full regulated-enterprise depth.
+- Recommend `b2s-flow` by default when the initiative needs architecture-aware
+  planning, epic/story decomposition, and traceability, and there is no strong
+  reason to prefer another workflow.
+
+- Recommend `b2s-dynamic` when the initiative is uncertainty-heavy and the best
+  next artifact should be chosen adaptively to close implementation blockers,
+  rather than produced through a fixed staged decomposition.
 
 - Recommend `agile-delivery-flow` when the initiative needs stronger domain
   analysis, richer cross-artifact traceability, or separate testing/readiness

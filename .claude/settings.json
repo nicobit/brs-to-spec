@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ' *)",
+      "Bash(.venv/Scripts/python.exe .b2s/scripts/b2s_cli.py dispatch-next --workspace-root \"initiatives/I982-ISA\")",
+      "Bash(.venv/Scripts/python.exe -c ' *)",
+      "Bash(.venv/Scripts/python.exe -m pytest .b2s/tests/ -x -q)",
+      "Bash(.venv/Scripts/python.exe -m pytest .b2s/tests/ -q)"
+    ]
+  }
+}

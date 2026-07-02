@@ -1,0 +1,43 @@
+overall: pass
+action_id: orchestrate-dynamic-iteration
+artifact_path: orchestration/iteration-log.md
+checks:
+- name: file_exists
+  target: orchestration/iteration-log.md
+  result: pass
+  detail: artifact exists
+- name: validation_dispatch
+  target: iteration-log.md
+  result: pass
+  detail: 'template: orchestration/iteration-log.md'
+- name: non_empty_file
+  target: iteration-log.md
+  result: pass
+  detail: artifact has content
+- name: tmpl_section_goal_state
+  target: iteration-log.md
+  result: pass
+  detail: '## Goal State section present'
+- name: tmpl_has_tables
+  target: iteration-log.md
+  result: pass
+  detail: artifact contains at least one table
+- name: tmpl_table_populated_goal_state
+  target: iteration-log.md
+  result: pass
+  detail: '''## Goal State'' has content (table rows: 17, prose lines: 33)'
+- name: tmpl_content_depth
+  target: iteration-log.md
+  result: pass
+  detail: artifact has 91 lines (minimum 20)
+- name: tmpl_placeholders_absent
+  target: iteration-log.md
+  result: pass
+  detail: no known placeholder markers found
+- name: validation_audit
+  target: orchestration/iteration-log.md
+  result: pass
+  detail: validation coverage is acceptable (dispatch=template, downstream_consumers=1)
+named_rule_results: []
+failures: []
+advisories: []

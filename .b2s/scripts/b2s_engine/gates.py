@@ -211,7 +211,7 @@ def approve_current_gate(args: object) -> None:
         rerun_action=rerun_action,
     ):
         dynamic_state.reset_dynamic_orchestration_cycle(state, actions_by_id)
-        state["current_stage"] = "0-dynamic-assessment"
+        state["current_stage"] = dynamic_state.dynamic_loop_start_stage_id(actions_by_id)
         state["dynamic_stop_reason"] = None
 
     preview = next_step.select_next_action(workspace_root, state)

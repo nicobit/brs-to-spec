@@ -1,0 +1,130 @@
+{
+  "status": "ready",
+  "initiative_id": "I982-ISA",
+  "current_stage": "0-dynamic-loop",
+  "workflow_source": "local",
+  "message": "Ready to execute `orchestrate-dynamic-iteration` - Orchestrate dynamic iteration. Load b2s skill prompt at `.b2s/skills/orchestrator/orchestrate-dynamic-iteration.md` and execute it, then run validate-artifact -> update-state -> dispatch-next.",
+  "action": {
+    "action_id": "orchestrate-dynamic-iteration",
+    "title": "Orchestrate dynamic iteration",
+    "stage_id": "0-dynamic-loop",
+    "persona": "orchestrator",
+    "prompt_family": "b2s",
+    "skill_ref": ".b2s/skills/orchestrator/orchestrate-dynamic-iteration.md",
+    "requested_skill_ref": ".b2s/skills/orchestrator/orchestrate-dynamic-iteration.md",
+    "fallback_skill_ref": null,
+    "fallback_used": false,
+    "skill_path": "C:\\Users\\nicol\\source\\brs-to-spec\\.b2s\\skills\\orchestrator\\orchestrate-dynamic-iteration.md",
+    "skill_exists": true,
+    "artifact_template_ref": ".b2s/artifact-templates/dynamic-iteration-log.md",
+    "output_paths": [
+      "orchestration/iteration-log.md"
+    ],
+    "required_inputs": [
+      {
+        "path": "input/brs.md",
+        "exists": true,
+        "matches": [
+          "input/brs.md"
+        ]
+      }
+    ],
+    "optional_inputs": [
+      {
+        "path": "input/architecture.md",
+        "exists": true,
+        "matches": [
+          "input/architecture.md"
+        ]
+      },
+      {
+        "path": "input/loop-steer.md",
+        "exists": false,
+        "matches": []
+      },
+      {
+        "path": "orchestration/iteration-log.md",
+        "exists": true,
+        "matches": [
+          "orchestration/iteration-log.md"
+        ]
+      },
+      {
+        "path": "coding-packages/",
+        "exists": false,
+        "matches": []
+      },
+      {
+        "path": "requirements/",
+        "exists": false,
+        "matches": []
+      },
+      {
+        "path": "architecture/",
+        "exists": true,
+        "matches": [
+          "architecture/"
+        ]
+      },
+      {
+        "path": "planning/",
+        "exists": false,
+        "matches": []
+      },
+      {
+        "path": "quality-gates/",
+        "exists": false,
+        "matches": []
+      }
+    ],
+    "policy_inputs": [],
+    "missing_required_inputs": [],
+    "missing_policy_inputs": [],
+    "inputs_ready": true,
+    "prompt_placeholders": {
+      "required_inputs": [
+        "input/brs.md"
+      ],
+      "optional_inputs": [
+        "input/architecture.md",
+        "input/loop-steer.md",
+        "orchestration/iteration-log.md",
+        "coding-packages/",
+        "requirements/",
+        "architecture/",
+        "planning/",
+        "quality-gates/"
+      ],
+      "resolved_required_inputs": [
+        "input/brs.md"
+      ],
+      "resolved_optional_inputs": [
+        "input/architecture.md",
+        "orchestration/iteration-log.md",
+        "architecture/"
+      ],
+      "resolved_policy_inputs": [],
+      "primary_output": "orchestration/iteration-log.md",
+      "secondary_outputs": [],
+      "artifact_template_ref": ".b2s/artifact-templates/dynamic-iteration-log.md",
+      "prompt_family": "b2s",
+      "template_mode": "strict",
+      "current_item": null,
+      "item_folder": null
+    },
+    "computed_inputs": [],
+    "rendered_skill_text": "# Skill \u2014 Orchestrate Dynamic Iteration\n\n## Identity\n\n```text\nskill_id:    orchestrator.orchestrate-dynamic-iteration\npersona:     orchestrator\naction_id:   orchestrate-dynamic-iteration\nproduces:    orchestration/iteration-log.md\n             + one artifact per iteration (path decided by the orchestrator)\n```\n\n## North star\n\nAn AI coding assistant can implement every capability in this initiative\nwithout asking a single clarifying question.\n\nEvery iteration closes one gap toward that bar. Nothing else matters.\n\n## Inputs \u2014 read all that exist before starting\n\n**Always read:**\n- `input/brs.md` \u2014 the primary source of truth. Read it in full, every iteration.\n- `orchestration/iteration-log.md` \u2014 orientation from prior iterations (if exists)\n\n**Read if they exist:**\n- `input/architecture.md` \u2014 technology stack, deployment topology, integration points\n- `input/loop-steer.md` \u2014 human steering notes written between iterations\n- Every file under `coding-packages/` \u2014 what has already been produced\n- Every file under `requirements/`, `architecture/`, `planning/`, `quality-gates/`\n\nDo not start until all existing files are read completely.\n\n## Step 1 \u2014 Orient\n\n### If this is iteration 1 (no iteration-log.md exists yet):\n\nDerive the **goal state** from the input files. Do not use a template \u2014\nderive it from what this BRS actually describes.\n\nAnswer these questions from the inputs:\n\n1. What are the concrete implementable capabilities? List them in the order\n   a developer would need to build them (domain model before business rules,\n   business rules before integrations, integrations before UI, UI before CI).\n\n2. For each capability: what does a developer need to implement it correctly?\n   Think like a senior engineer reviewing a junior's work before they start:\n   - Entity definitions and state machines?\n   - API contracts (request/response/errors)?\n   - Integration contracts (auth, timeout, circuit breaker, fallback)?\n   - Business rules and edge cases?\n   - Acceptance criteria (Gherkin, traceable to BRS IDs)?\n   - Test expectations (unit / integration / API / e2e)?\n   - CI pipeline gate?\n   - Security, compliance, or regulatory constraints specific to this capability?\n\n3. What are the non-negotiable best practices for this initiative type?\n   Apply these automatically \u2014 do not wait to be asked:\n   - **Regulated / fintech:** idempotency keys on all state transitions,\n     immutable audit log (append-only, tamper-evident), explainable AI\n     (no black-box models \u2014 FCA requirement), circuit breakers on every\n     external call, GDPR right-to-erasure compatible data model, PII\n     minimisation in logs, cooling-off enforcement at state machine level.\n   - **Event-driven:** at-least-once delivery, dead-letter queue handling,\n     ordering guarantees where required, idempotent consumers.\n   - **Multi-tenant:** data isolation, per-tenant RBAC, no cross-tenant\n     data leakage in queries or events.\n   - **Public API:** versioning strategy, rate limiting, contract stability,\n     deprecation policy.\n   - Apply whichever set fits. A single initiative may trigger multiple sets.\n\n4. What open questions in the inputs would block a developer?\n   A blocking question is one where a developer would have to guess or\n   ask before writing code. List them specifically \u2014 name the FR, name\n   the missing fact, name what breaks if it stays unresolved.\n\nRecord the goal state as the `## Goal State` section of `orchestration/iteration-log.md`.\n\n### If this is iteration N (iteration-log.md exists):\n\nRead the last `## Iteration N` block. What was produced? What gap was closed?\nWhat is the declared next gap? Check whether prior artifacts actually closed\ntheir declared gaps by reading the produced files. Adjust if needed.\n\nRead `input/loop-steer.md`. If it contains new human input since the last\niteration, incorporate it before selecting the next gap.\n\n## Step 2 \u2014 Gap\n\nIdentify the **single highest-value gap** toward the north star.\n\nA gap is not a coverage dimension. A gap is a specific, concrete missing fact:\n\n> \"An AI coder cannot implement FR-009 without knowing the Experian API\n>  error response schema for rate-limiting (HTTP 429) and the circuit\n>  breaker threshold.\"\n\n> \"The loan application state machine has 6 states but only 3 transitions\n>  are defined \u2014 the AUTO_DECLINE \u2192 30-day cooling-off enforcement path\n>  has no implementation contract.\"\n\n> \"FR-022 requires DocuSign e-signature but no webhook callback contract\n>  exists for offer acceptance confirmation \u2014 the coder would have to\n>  guess the event payload schema.\"\n\nRank gaps by: **blocks the most downstream work first**.\nDomain model gaps block everything. Integration contract gaps block\nthe capability that uses them. UI gaps block only UI.\n\n### Stop conditions\n\n**Pause for human:** the gap requires a fact that cannot be derived from\nthe inputs. Write a specific developer question \u2014 not \"objectives missing\"\nbut exactly what a developer would ask before writing the code.\n\n**Stop (complete):** every capability in the goal state has a coding package\nwhere a developer can implement it without asking a question. Set\n`continue: false, reason: complete`.\n\n**Stop (budget):** iteration count exceeds 20 and critical gaps remain.\nSet `continue: false, reason: budget`. List remaining gaps explicitly.\n\n## Step 3 \u2014 Synthesize\n\nDecide what artifact to produce to close this gap.\n\nDo not default to a fixed artifact type. Produce what closes this specific gap.\nThe artifact can be:\n\n- A **coding package** (or a section of one) \u2014 the primary deliverable\n- A **domain model** \u2014 entity definitions, field constraints, state machine,\n  business rules, with Mermaid diagrams where they aid implementability\n- An **integration contract** \u2014 API schema (OpenAPI), auth mechanism,\n  timeout, retry, circuit breaker, fallback behaviour, error response\n  catalogue, observability signals, compliance notes\n- **Acceptance criteria** \u2014 Gherkin scenarios traceable to FR-NNN IDs,\n  one scenario per testable behaviour, including error paths and edge cases\n- A **test plan** \u2014 what to test (unit / integration / API / e2e),\n  what to assert, criticality, automation tag, CI gate mapping\n- A **CI pipeline definition** \u2014 stages, gates, what must pass before merge,\n  environment-specific behaviour (staging vs. production)\n- A **best-practice analysis** \u2014 for this initiative type: what a senior\n  engineer adds that the BRS doesn't mention (e.g. idempotency, GDPR\n  erasure, cooling-off state enforcement, audit trail immutability strategy)\n- A **traceability map** \u2014 FR-NNN \u2192 artifact \u2192 AC-NNN \u2192 test \u2192 CI gate\n\nYou may combine types within one artifact if that is what closes the gap.\n\n**Structure guidance:** reference `.b2s/artifact-templates/` for structure\npatterns appropriate to the artifact type you are producing. Use them as\nadvisory \u2014 adapt to what this gap actually needs. Available templates include:\n`integration-spec.md`, `epic-coding-handoff.md`, `coding-prompt.md`,\n`entity-model.md`, `business-rules.md`, `bdd-scenarios.md`,\n`test-plan-per-story.md`, `consumed-api-spec.md`, `api-contract.md`,\n`data-contract.md`, `event-contract.md`, `observability-plan.md`.\n\n**Output path:** decide the path based on what you are producing:\n- Coding packages \u2192 `coding-packages/CP-NNN-<slug>/`\n- Architecture artifacts \u2192 `architecture/<name>.md`\n- Requirements artifacts \u2192 `requirements/<name>.md`\n- Quality artifacts \u2192 `quality-gates/<name>.md`\n\n## Step 4 \u2014 Produce\n\nWrite the artifact. Rules:\n\n- Ground every statement in the BRS or input/architecture.md.\n  Do not invent requirements.\n- Preserve all BRS requirement IDs (FR-NNN, NFR-NNN, OBJ-NNN) for\n  traceability. Every artifact must trace to at least one BRS ID.\n- Apply mandatory best practices from Step 1 automatically \u2014 do not\n  wait to be asked. If the BRS says \"circuit breakers required (NFR-007)\"\n  and you are writing an integration contract, include the circuit breaker\n  specification without prompting.\n- Be specific enough that an AI coding assistant produces production-quality\n  code, not a scaffold. Concrete field names, concrete error codes, concrete\n  timeout values, concrete Gherkin scenarios \u2014 not \"define appropriate\n  error handling\".\n- State explicit boundaries: what NOT to implement in this artifact's scope.\n  A coding agent that does not know what to exclude will over-build.\n- For acceptance criteria: every scenario must have a Given/When/Then with\n  concrete values, not placeholders. The coding agent implements exactly\n  what is specified.\n- For integration contracts: always include the failure mode catalogue \u2014\n  timeout, 5xx, auth failure, rate limit, unavailable \u2014 with the specific\n  fallback behaviour for each. \"Refer to underwriter\" is not enough \u2014\n  name the state the application transitions to.\n\n## Step 5 \u2014 Log\n\nAppend one `## Iteration N` block to `orchestration/iteration-log.md`.\n\nInclude:\n- Date\n- Gap closed (specific \u2014 same format as the gap you identified in Step 2)\n- Artifact produced (full path)\n- Confidence delta (what a developer can now do that they could not before)\n- Next gap (the specific next gap, already identified while producing this artifact)\n- Continue decision: `yes` or `no \u2014 <reason>`\n- One short reasoning paragraph: why this gap, what it resolves, what\n  a developer can now implement\n\nIf this is iteration 1, write the `## Goal State` section first, then\nthe first `## Iteration 1` block.\n\n## Constraints\n\n- One artifact per iteration. No batching.\n- Never modify `input/brs.md` or any file under `input/`.\n- Never invent requirements not present in the inputs.\n- Pause with a specific developer question. Generic pauses (\"objectives missing\",\n  \"requirements unclear\") are not acceptable \u2014 name the FR, name the missing\n  fact, name what breaks.\n- Every produced artifact must be self-contained: a developer reads that one\n  file and knows exactly what to build, in what order, and how to verify it.\n- Traceability is mandatory: every artifact section must reference the BRS\n  requirement IDs it addresses.\n- Do not produce orchestration meta-artifacts (gap backlogs, coverage ledgers,\n  spec anchors). The iteration log is the only orchestration artifact.\n  Everything else is a developer-facing deliverable.\n\n## Done criteria for this iteration\n\n- [ ] All input files read in full\n- [ ] Goal state recorded (iteration 1) or referenced (iteration N)\n- [ ] One specific gap identified with developer-level precision\n- [ ] One artifact produced that closes that gap\n- [ ] Artifact is self-contained and traceable to BRS IDs\n- [ ] Best practices for this initiative type are applied inline\n- [ ] Iteration log updated with gap, artifact, delta, next gap, continue\n- [ ] Continue decision is explicit with a reason\n\n## Notes for the staged engine\n\n- Do not mention dispatcher status, result files, or validation mechanics\n- Validation and state updates are handled by the .b2s engine after this skill runs\n- The dispatcher will re-invoke this skill on the next dispatch-next call\n  if continue: yes is set in the iteration log\n- If continue: false is set, the dispatcher will transition to finalize-dynamic-initiative\n",
+    "has_human_gate": false,
+    "gate_owner": null
+  },
+  "after_skill_commands": [
+    "python .b2s/scripts/b2s_cli.py validate-artifact --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I982-ISA\"",
+    "python .b2s/scripts/b2s_cli.py update-state --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I982-ISA\"",
+    "python .b2s/scripts/b2s_cli.py dispatch-next --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I982-ISA\""
+  ],
+  "next_cli_commands": [
+    "python .b2s/scripts/b2s_cli.py validate-artifact --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I982-ISA\"",
+    "python .b2s/scripts/b2s_cli.py update-state --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I982-ISA\"",
+    "python .b2s/scripts/b2s_cli.py dispatch-next --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I982-ISA\""
+  ]
+}

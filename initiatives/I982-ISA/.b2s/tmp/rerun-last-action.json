@@ -1,0 +1,19 @@
+{
+  "overall": "pass",
+  "action_id": "evaluate-dynamic-stop-condition",
+  "previous_state_summary": {
+    "current_stage": "2-dynamic-stop-review",
+    "last_completed_action": "evaluate-dynamic-stop-condition",
+    "action_status": "ai_validated"
+  },
+  "applied_changes": {
+    "action_reopened": "evaluate-dynamic-stop-condition",
+    "gate_cleared": null,
+    "artifacts_cleared": [
+      "orchestration/dynamic-stop-decision.md"
+    ],
+    "next_action": "evaluate-dynamic-stop-condition"
+  },
+  "next_action": "evaluate-dynamic-stop-condition",
+  "gate_state": null
+}

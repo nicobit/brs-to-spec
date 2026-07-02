@@ -1,0 +1,61 @@
+overall: fail
+action_id: evaluate-dynamic-stop-condition
+artifact_path: orchestration/dynamic-stop-decision.md
+checks:
+- name: file_exists
+  target: orchestration/dynamic-stop-decision.md
+  result: pass
+  detail: artifact exists
+- name: validation_dispatch
+  target: dynamic-stop-decision.md
+  result: pass
+  detail: 'template: orchestration/dynamic-stop-decision.md'
+- name: non_empty_file
+  target: dynamic-stop-decision.md
+  result: pass
+  detail: artifact has content
+- name: tmpl_section_summary
+  target: dynamic-stop-decision.md
+  result: pass
+  detail: '## Summary section present'
+- name: tmpl_section_decision
+  target: dynamic-stop-decision.md
+  result: pass
+  detail: '## Decision section present'
+- name: tmpl_section_supporting_evidence
+  target: dynamic-stop-decision.md
+  result: pass
+  detail: '## Supporting Evidence section present'
+- name: tmpl_section_next_step_guidance
+  target: dynamic-stop-decision.md
+  result: pass
+  detail: '## Next Step Guidance section present'
+- name: tmpl_has_tables
+  target: dynamic-stop-decision.md
+  result: pass
+  detail: artifact contains at least one table
+- name: tmpl_table_populated_decision
+  target: dynamic-stop-decision.md
+  result: pass
+  detail: '''## Decision'' has content (table rows: 5, prose lines: 0)'
+- name: tmpl_table_populated_supporting_evidence
+  target: dynamic-stop-decision.md
+  result: pass
+  detail: '''## Supporting Evidence'' has content (table rows: 4, prose lines: 0)'
+- name: tmpl_content_depth
+  target: dynamic-stop-decision.md
+  result: fail
+  detail: 'artifact too shallow: 18 lines, expected at least 20 based on template'
+- name: tmpl_placeholders_absent
+  target: dynamic-stop-decision.md
+  result: pass
+  detail: no known placeholder markers found
+- name: validation_audit
+  target: orchestration/dynamic-stop-decision.md
+  result: pass
+  detail: validation coverage is acceptable (dispatch=template, downstream_consumers=0)
+named_rule_results: []
+failures:
+- 'orchestration/dynamic-stop-decision.md: tmpl_content_depth failed - artifact too
+  shallow: 18 lines, expected at least 20 based on template'
+advisories: []

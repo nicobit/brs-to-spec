@@ -1,0 +1,16 @@
+{
+  "overall": "pass",
+  "action_id": null,
+  "previous_state_summary": {
+    "current_stage": "1-dynamic-selection",
+    "next_action": null
+  },
+  "applied_changes": {
+    "state_validated": true,
+    "current_stage": "0-dynamic-assessment",
+    "repaired_action_count": 3,
+    "repaired_artifact_count": 3
+  },
+  "next_action": "create-atomic-requirements",
+  "gate_state": null
+}

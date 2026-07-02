@@ -1,0 +1,112 @@
+{
+  "status": "ready",
+  "initiative_id": "I001-GIO",
+  "current_stage": "1-requirements-and-architecture",
+  "workflow_source": "local",
+  "message": "Ready to execute `review-initial-architecture` - Review initial architecture. Load b2s skill prompt at `.b2s/skills/architect/review-initial-architecture.md` and execute it, then run validate-artifact -> update-state -> dispatch-next.",
+  "action": {
+    "action_id": "review-initial-architecture",
+    "title": "Review initial architecture",
+    "stage_id": "1-requirements-and-architecture",
+    "persona": "architect",
+    "prompt_family": "b2s",
+    "skill_ref": ".b2s/skills/architect/review-initial-architecture.md",
+    "requested_skill_ref": ".b2s/skills/architect/review-initial-architecture.md",
+    "fallback_skill_ref": null,
+    "fallback_used": false,
+    "skill_path": "C:\\Users\\nicol\\source\\brs-to-spec\\.b2s\\skills\\architect\\review-initial-architecture.md",
+    "skill_exists": true,
+    "artifact_template_ref": ".b2s/artifact-templates/architecture-review.md",
+    "output_paths": [
+      "architecture/architecture-review.md"
+    ],
+    "required_inputs": [
+      {
+        "path": "requirements/atomic-requirements.md",
+        "exists": true,
+        "matches": [
+          "requirements/atomic-requirements.md"
+        ]
+      },
+      {
+        "path": "governance/delivery-constitution.md",
+        "exists": true,
+        "matches": [
+          "governance/delivery-constitution.md"
+        ]
+      },
+      {
+        "path": "input/brs.md",
+        "exists": true,
+        "matches": [
+          "input/brs.md"
+        ]
+      }
+    ],
+    "optional_inputs": [
+      {
+        "path": "input/brs/*.md",
+        "exists": false,
+        "matches": []
+      },
+      {
+        "path": "input/architecture.md",
+        "exists": true,
+        "matches": [
+          "input/architecture.md"
+        ]
+      },
+      {
+        "path": "domain/business-rules.md",
+        "exists": false,
+        "matches": []
+      }
+    ],
+    "policy_inputs": [],
+    "missing_required_inputs": [],
+    "missing_policy_inputs": [],
+    "inputs_ready": true,
+    "prompt_placeholders": {
+      "required_inputs": [
+        "requirements/atomic-requirements.md",
+        "governance/delivery-constitution.md",
+        "input/brs.md"
+      ],
+      "optional_inputs": [
+        "input/brs/*.md",
+        "input/architecture.md",
+        "domain/business-rules.md"
+      ],
+      "resolved_required_inputs": [
+        "requirements/atomic-requirements.md",
+        "governance/delivery-constitution.md",
+        "input/brs.md"
+      ],
+      "resolved_optional_inputs": [
+        "input/architecture.md"
+      ],
+      "resolved_policy_inputs": [],
+      "primary_output": "architecture/architecture-review.md",
+      "secondary_outputs": [],
+      "artifact_template_ref": ".b2s/artifact-templates/architecture-review.md",
+      "prompt_family": "b2s",
+      "template_mode": "strict",
+      "current_item": null,
+      "item_folder": null
+    },
+    "computed_inputs": [],
+    "rendered_skill_text": "# Skill - Review Initial Architecture\n\n## Identity\n\n```text\nskill_id:    architect.review-initial-architecture\npersona:     architect\naction_id:   review-initial-architecture\nproduces:    architecture/architecture-review.md\n```\n\n## When this skill is used\n\nRun this after atomic requirements are created. It produces the initiative-specific architecture authority used by downstream planning and readiness work.\n\n## Role for this task\n\nYou are a senior architect performing an initiative-specific architecture review focused on fit, constraints, brownfield impact, open decisions, assumptions, and quality attributes.\n\n## Preconditions\n\nBefore starting, verify that all files listed in `- requirements/atomic-requirements.md\n- governance/delivery-constitution.md\n- input/brs.md` exist and are readable.\n\nOptional context:\n- `input/architecture.md`\n- `domain/business-rules.md`\n\nIf `input/architecture.md` is missing, proceed with a BRS-driven review and flag the weaker basis explicitly.\n\n## Instructions\n\n### Step 1 - Read all inputs\n\nRead every file listed in `- requirements/atomic-requirements.md\n- governance/delivery-constitution.md\n- input/brs.md` in full before writing anything.\nIf `- input/architecture.md` is not empty, read those files in full as well.\nRead every policy file listed in `[]` in full before assessing the architecture.\nDo not start writing until all required inputs and policy inputs are read completely.\n\n### Step 2 - Assess\n\nAssess:\n- initiative-architecture fit by major feature area\n- architectural constraints with rationale and violation consequences\n- brownfield impact\n- open decisions and default assumptions\n- active assumptions and what changes if they are false\n- known unknowns\n- quality attributes such as performance, security, scalability, and availability\n\nApply the architecture principles from `[]`:\n- make impacted systems and boundaries explicit\n- surface technical debt and constraints clearly\n- avoid assuming new platforms or patterns without source support\n\n## Output requirements\n\nWrite `architecture/architecture-review.md` using `.b2s/artifact-templates/architecture-review.md`.\n\n### Column contract \u2014 use the template columns exactly\n\nThe artifact template defines the column structure for each section. Use the exact column names from the template. Key sections:\n\n- **Initiative-Architecture Fit**: `Feature Area | Existing Components Touched | New Components / Boundaries | Contract Changes | Blast Radius`\n- **Architecture Constraints**: `ID | Constraint | Rationale | Violation Consequence | Source`\n- **Brownfield Impact**: `Component | Change Type | Consumers | Backward Compatible? | Migration Required | Rollback Possible` \u2014 must include `**Regression surface:**` and `**Rollback sensitivity:**` lines below the table (not template placeholder text)\n- **Quality Attribute Assessment**: one flat table with columns `Attribute | Requirement (from BRS) | Assessment | Risk` \u2014 rows for Performance, Security, Scalability, Availability. Do NOT split into sub-headings per attribute.\n- **Open Decisions**: `DEC-NNN | Question | Owner | Default Assumption | Required Before`\n- **Active Assumptions**: `Assumption | Source | If False, Then`\n- **Known Unknowns**: `Unknown | Impact | Discovery Path`\n\n## Done criteria\n\n- [ ] Every major feature area is assessed for architecture fit\n- [ ] Every constraint has rationale and violation consequence\n- [ ] Brownfield impact is explicitly assessed\n- [ ] Open decisions have owners and default assumptions\n- [ ] Active assumptions include `If False, Then` consequences\n- [ ] Status is `Draft`\n\n## Notes for the staged engine\n\n- Do not mention event pass/fail metadata\n- This prompt writes only the architecture review artifact\n",
+    "has_human_gate": true,
+    "gate_owner": "architect"
+  },
+  "after_skill_commands": [
+    "python .b2s/scripts/b2s_cli.py validate-artifact --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I001-GIO\"",
+    "python .b2s/scripts/b2s_cli.py update-state --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I001-GIO\"",
+    "python .b2s/scripts/b2s_cli.py dispatch-next --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I001-GIO\""
+  ],
+  "next_cli_commands": [
+    "python .b2s/scripts/b2s_cli.py validate-artifact --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I001-GIO\"",
+    "python .b2s/scripts/b2s_cli.py update-state --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I001-GIO\"",
+    "python .b2s/scripts/b2s_cli.py dispatch-next --workspace-root \"C:\\Users\\nicol\\source\\brs-to-spec\\initiatives\\I001-GIO\""
+  ]
+}

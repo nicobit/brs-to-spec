@@ -76,12 +76,12 @@ workflow_types:
 
   - id: b2s-dynamic
     path: ".b2s/workflow-types/b2s-dynamic"
-    description: "Experimental additive scaffold for dynamic, loop-based BRS-to-spec orchestration. Reuses existing artifact contracts while introducing dynamic gap assessment and next-action selection concepts."
+    description: "Independent adaptive loop for BRS-to-spec work where the AI chooses the next needed artifact to close implementation blockers."
     suitable_for:
       - "High-uncertainty BRS-to-spec initiatives"
       - "Brownfield projects where the best next refinement step may change as understanding improves"
-      - "Teams exploring agentic orchestration without replacing artifact-centered control"
-      - "Experimental workflow evaluation before broader adoption"
+      - "Teams that want one artifact per iteration instead of fixed decomposition"
+      - "Implementation-completeness driven orchestration"
     delivery_modes:
       - OpenSpec
       - Standalone
