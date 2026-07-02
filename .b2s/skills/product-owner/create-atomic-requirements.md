@@ -11,11 +11,11 @@ produces:    requirements/atomic-requirements.md
 
 ## When this skill is used
 
-After the delivery constitution is created. This is the first analytical phase — extracting precise, traceable, atomic requirements from the BRS.
+After the delivery constitution is created. This is the first analytical phase - extracting and decomposing the BRS into a complete, traceable, atomic requirements catalogue.
 
 ## Role for this task
 
-You are a Business Requirements Analyst. You extract atomic, traceable requirements from the BRS. You do not create epics, features, or stories. You do not merge unrelated requirements. You do not invent missing behaviour.
+You are a Business Requirements Analyst. You turn the BRS into a complete, atomic, traceable requirements catalogue. You may decompose broad BRS statements into smaller atomic requirements when that decomposition is strongly supported by the source text. You do not create epics, features, or stories. You do not merge unrelated requirements. You do not fabricate unsupported business behaviour.
 
 ## Preconditions
 
@@ -37,24 +37,21 @@ If a required input is missing, stop and report the blocker.
 
 - Do not create epics, features, or stories
 - Do not merge unrelated requirements into one entry
-- Do not invent missing behaviour — mark it as an ambiguity or open question
+- Do not fabricate unsupported business behaviour - when the BRS is too vague, mark the gap as an ambiguity, assumption, or open question
 - Keep each requirement atomic and independently testable
 - Every requirement must be traceable to a BRS section
 - Preserve every original `FR-`, `NFR-`, and `OBJ-` identifier from the BRS in the output
 - Treat each explicit constraint bullet from the BRS constraints section as a first-class `C-NNN` requirement entry
 - Use the source-first identity model for this artifact: `OBJ-*`, `FR-*`, `NFR-*`, and `C-*` are the primary catalogue IDs
-- If you introduce optional canonical `REQ-` aliases for downstream traceability, you must provide an explicit source mapping table
+- If you introduce canonical `REQ-*` decomposition children for downstream traceability, you must provide an explicit source mapping table
 - Never let architecture inputs overwrite or dilute a concrete BRS statement
 - Validate the extraction against the delivery constitution
-- **Write every requirement text in EARS notation** (see EARS reference below)
-- **Never defer, skip, or stub a requirement that has concrete text in the BRS.** If the BRS
-  contains a description for `FR-NNN`, you MUST extract it into a full requirement entry with
-  EARS notation in this run. Do not write `DEFERRED`, `Preserved — see input/brs.md`,
-  `(missing — fill in BRS)`, or any similar stub. The only valid reason to defer is when the
-  BRS entry itself is genuinely empty or contains only a placeholder.
-- **Process every FR in the BRS.** Do not stop partway. If the BRS has 30 FRs, the output
-  must contain 30 (or more) fully extracted requirement entries with EARS text. A "Preserved REQ
-  entries" table pointing back to the BRS is not acceptable output.
+- Write every requirement text in EARS notation (see EARS reference below)
+- Default to complete decomposition, not minimal extraction. If a BRS statement bundles multiple distinct capabilities, outcomes, validations, thresholds, states, or exception paths, split it into separate atomic requirements as long as each split is strongly grounded in the source text
+- Inference is allowed only as controlled decomposition. You may derive an atomic requirement when it is a necessary or strongly implied part of a broader BRS statement, but you must label it clearly as inferred and cite the source ID or section it came from
+- Never present inferred requirements as verbatim source requirements. Direct and inferred requirements must remain distinguishable in the artifact
+- Never defer, skip, or stub a requirement that has concrete text in the BRS. If the BRS contains a description for `FR-NNN`, you MUST extract it into a full requirement entry with EARS notation in this run, or decompose it into mapped child requirements in this run. Do not write `DEFERRED`, `Preserved - see input/brs.md`, `(missing - fill in BRS)`, or any similar stub. The only valid reason to defer is when the BRS entry itself is genuinely empty or contains only a placeholder
+- Process every FR in the BRS. Do not stop partway. If the BRS has 30 FRs, the output must contain 30 or more fully extracted or decomposed requirement entries with EARS text. A "Preserved REQ entries" table pointing back to the BRS is not acceptable output
 
 ## Instructions
 
@@ -71,17 +68,20 @@ Build a source inventory first:
 - List every `OBJ-`, `FR-`, and `NFR-` identifier from the BRS
 - Note every explicit constraint from the BRS constraints section and assign sequential `C-NNN` identifiers in source order
 - Treat this inventory as exhaustive scope for the extraction
+- For each source item, decide whether its downstream extraction mode is `Direct`, `Direct + Decomposed`, or `Needs Clarification`
 
-Then, for each BRS section, extract individual requirements using the **compact format**.
+Then, for each BRS section, extract individual requirements using the compact format.
 
-**Use the original BRS ID as the heading ID** — `FR-001`, `NFR-001`, `OBJ-001`, `C-001`.
-Do NOT rename them to `REQ-NNN`. The original prefixes tell the validation engine the
-requirement type. If you use `REQ-NNN`, you must include a `(Source: FR-NNN)` in the title.
+Use the original BRS ID as the heading ID for direct source requirements - `FR-001`, `NFR-001`, `OBJ-001`, `C-001`.
+When one source requirement must be decomposed into several atomic requirements, keep the original source ID preserved in `## Source Inventory` and `## Source ID Mapping`, and create explicit canonical `REQ-NNN` entries for the decomposed children.
+Do not silently replace a source requirement with only child requirements; the source record must still be visible and mapped.
 
 ```markdown
-### FR-001 — {{Short title}}
+### FR-001 - {{Short title}}
 
 **Source:** {{BRS section}} | **Actor:** {{actor}} | **Deps:** {{FR-NNN or None}}
+
+> **Derivation:** Direct | Inferred from FR-001 because {{reason}}
 
 WHEN {{trigger}},
 THE SYSTEM SHALL {{behaviour with concrete values from BRS}}.
@@ -91,12 +91,31 @@ THE SYSTEM SHALL {{behaviour with concrete values from BRS}}.
 ```
 
 Each entry has:
-- `### FR-NNN — Title` heading (use the original BRS ID as the heading ID)
-- One **Source/Actor/Deps** metadata line
-- One or more **EARS statements** as the body (see Step 2b)
-- Optional `> **Ambiguities:**` and `> **Blocking:**` blockquotes — omit if none
+- `### FR-NNN - Title` heading when the source item is already atomic enough to stand on its own
+- or `### REQ-NNN - Title` heading when a broader source requirement is decomposed into multiple atomic child requirements
+- One `**Source:** ... | **Actor:** ... | **Deps:** ...` metadata line
+- One `> **Derivation:** ...` blockquote that states whether the entry is direct or inferred from a specific source item
+- One or more EARS statements as the body (see Step 2b)
+- Optional `> **Ambiguities:**` and `> **Blocking:**` blockquotes - omit if none
 
-Do NOT use a `| Field | Value |` table per entry. Do NOT add a separate `#### Requirement Text` sub-heading. The EARS text IS the entry body.
+Do not use a `| Field | Value |` table per entry. Do not add a separate `#### Requirement Text` sub-heading. The EARS text is the entry body.
+
+### Step 2a - Decompose broad source requirements
+
+When a BRS item contains multiple atomic obligations, split it into smaller requirements if the split is strongly supported by the text. Common decomposition triggers:
+
+- distinct actor-visible outcomes
+- separate validation rules
+- separate time limits or measurable thresholds
+- distinct state transitions
+- distinct fallback or error-handling obligations
+- optional behavior that is clearly called out as conditional
+
+Use this rule:
+
+- If the BRS explicitly names the smaller behavior, extract it as `Direct`
+- If the smaller behavior is not separately listed but is clearly necessary to honor the broader source statement, extract it as `Inferred from <Source ID>`
+- If the smaller behavior would require domain guessing, do not invent it - record an ambiguity or open question instead
 
 ### Step 2b - Write EARS statements
 
@@ -112,19 +131,20 @@ Use EARS (Easy Approach to Requirements Syntax). Choose the pattern that fits:
 | Complex | Combine patterns | Multiple conditions or triggers |
 
 Rules:
-- Use concrete values from the BRS: field names, thresholds, time limits, HTTP codes, enum values — not vague outcomes like "handle it appropriately"
-- One BRS requirement may produce multiple EARS statements (e.g., happy path + error case)
-- Each EARS statement must be independently testable — a tester reading only that statement can write a test case
-- Do NOT rewrite as prose — use the EARS keywords (`WHEN`, `THE SYSTEM SHALL`, `IF`, `THEN`) explicitly
+- Use concrete values from the BRS: field names, thresholds, time limits, HTTP codes, enum values - not vague outcomes like "handle it appropriately"
+- One BRS requirement may produce multiple EARS statements or multiple child requirements
+- Each EARS statement must be independently testable - a tester reading only that statement can write a test case
+- Do not rewrite as prose - use the EARS keywords (`WHEN`, `THE SYSTEM SHALL`, `IF`, `THEN`) explicitly
 
-### Step 2a - Preserve source identifiers
+### Step 2c - Preserve source identifiers
 
 For every original BRS identifier:
 
 - Keep the source ID visible in the catalogue as a first-class traceability record
-- Do not skip any `FR-`, `NFR-`, or `OBJ-` entry, even if you also create an optional `REQ-` alias elsewhere
+- Do not skip any `FR-`, `NFR-`, or `OBJ-` entry, even if you also create one or more `REQ-` children from it
+- If a source requirement is decomposed into several canonical `REQ-` entries, record that one-to-many mapping explicitly in `## Source ID Mapping`
 - If several source requirements are intentionally grouped into one canonical `REQ-`, record that grouping explicitly in `## Source ID Mapping`
-- If a source requirement cannot yet be turned into an implementation-ready `REQ-`, keep the source ID and mark it as deferred, out of scope, or blocked — never silently drop it
+- If a source requirement cannot yet be turned into a trustworthy implementation-ready requirement set, keep the source ID and mark the missing detail as an ambiguity, assumption, or blocking question - never silently drop it
 
 ### Step 3 - Identify open questions and assumptions
 
@@ -148,6 +168,8 @@ Before you write the artifact, verify:
 
 - every `OBJ-`, `FR-`, and `NFR-` from the BRS appears somewhere in the output
 - every explicit constraint bullet appears as a `C-NNN` entry and in Source Inventory
+- every broad BRS requirement has either a direct atomic entry or an explicit one-to-many decomposition into `REQ-NNN` children
+- every inferred `REQ-NNN` names the source requirement it was derived from
 - any grouped `REQ-` entries still preserve exact source IDs through explicit mapping
 - architecture-derived additions are marked as derived context, not substituted for missing BRS requirements
 - counts in `## Summary` match the actual catalogue contents
@@ -163,12 +185,13 @@ Write `requirements/atomic-requirements.md` using `.b2s/artifact-templates/atomi
 - [ ] Each requirement is atomic and independently testable
 - [ ] Each requirement text uses EARS notation with concrete values
 - [ ] Each requirement catalogue heading uses the source-first ID model (`OBJ-*`, `FR-*`, `NFR-*`, `C-*`) unless an explicit exception is documented
-- [ ] Any optional canonical `REQ-NNN` aliases have an explicit source mapping
+- [ ] Any canonical `REQ-NNN` decomposition children have an explicit source mapping
+- [ ] Every inferred child requirement is clearly labeled as inferred from a named source requirement
 - [ ] Open questions are catalogued with blocking status
 - [ ] Assumptions are catalogued with risk assessment
 - [ ] Summary metrics are accurate
-- [ ] No placeholder text remains — no `DEFERRED`, no `Preserved — see`, no `(missing — fill in BRS)`
-- [ ] Every FR with concrete BRS text has a full EARS extraction — no stubs, no "will be converted later"
+- [ ] No placeholder text remains - no `DEFERRED`, no `Preserved - see`, no `(missing - fill in BRS)`
+- [ ] Every FR with concrete BRS text has a full EARS extraction or mapped decomposition - no stubs, no "will be converted later"
 
 ## Stop conditions
 

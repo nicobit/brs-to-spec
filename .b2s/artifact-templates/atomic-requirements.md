@@ -19,6 +19,8 @@
 | Business objectives | N |
 | Functional | N |
 | Non-functional | N |
+| Direct requirements | N |
+| Inferred requirements | N |
 | Data | N |
 | Integration | N |
 | Security | N |
@@ -31,12 +33,12 @@
 
 ## Source Inventory
 
-| Source ID | Type | Title / Summary | Preserved In |
-|---|---|---|---|
-| OBJ-001 | Objective | {{Business objective summary}} | OBJ-001 |
-| FR-001 | Functional | {{Original BRS functional requirement title}} | FR-001 |
-| NFR-001 | Non-functional | {{Original BRS non-functional requirement title}} | NFR-001 |
-| C-001 | Constraint | {{Constraint summary}} | C-001 |
+| Source ID | Type | Title / Summary | Extraction Mode | Preserved In |
+|---|---|---|---|---|
+| OBJ-001 | Objective | {{Business objective summary}} | Direct / Direct + Decomposed / Needs Clarification | OBJ-001 |
+| FR-001 | Functional | {{Original BRS functional requirement title}} | Direct / Direct + Decomposed / Needs Clarification | FR-001 or REQ-001, REQ-002 |
+| NFR-001 | Non-functional | {{Original BRS non-functional requirement title}} | Direct / Direct + Decomposed / Needs Clarification | NFR-001 |
+| C-001 | Constraint | {{Constraint summary}} | Direct / Direct + Decomposed / Needs Clarification | C-001 |
 
 ---
 
@@ -45,6 +47,8 @@
 ### FR-001 - {{Short title}}
 
 **Source:** {{BRS section}} | **Actor:** {{actor}} | **Deps:** {{FR-NNN or None}}
+
+> **Derivation:** Direct | Inferred from FR-001 because {{reason}}
 
 WHEN {{trigger}},
 THE SYSTEM SHALL {{behaviour with concrete values from BRS}}.
@@ -61,10 +65,10 @@ THEN THE SYSTEM SHALL {{fallback behaviour}}.
 
 | Source ID | Optional REQ Alias | Mapping Type | Notes |
 |---|---|---|---|
-| FR-001 | {{REQ-001 or blank}} | Direct / Grouped / Deferred / Alias omitted | {{Why this source ID maps here}} |
-| NFR-001 | {{REQ-00N or blank}} | Direct / Grouped / Deferred / Alias omitted | {{Why this source ID maps here}} |
-| OBJ-001 | {{REQ-00N or blank}} | Context / Grouped / Deferred / Alias omitted | {{How the objective is preserved}} |
-| C-001 | {{REQ-00N or blank}} | Direct / Constraint / Deferred / Alias omitted | {{How the constraint is preserved}} |
+| FR-001 | {{REQ-001 or blank}} | Direct / Decomposed / Grouped / Deferred / Alias omitted | {{Why this source ID maps here}} |
+| NFR-001 | {{REQ-00N or blank}} | Direct / Decomposed / Grouped / Deferred / Alias omitted | {{Why this source ID maps here}} |
+| OBJ-001 | {{REQ-00N or blank}} | Context / Decomposed / Grouped / Deferred / Alias omitted | {{How the objective is preserved}} |
+| C-001 | {{REQ-00N or blank}} | Direct / Constraint / Decomposed / Deferred / Alias omitted | {{How the constraint is preserved}} |
 
 ---
 
@@ -86,7 +90,7 @@ THEN THE SYSTEM SHALL {{fallback behaviour}}.
 
 ## Traceability Notes
 
-{{Notes on BRS coverage, optional REQ aliases, grouped mappings, deferred items, or sections that produced no implementation-ready requirement. Silent loss is not allowed.}}
+{{Notes on BRS coverage, direct vs inferred decomposition, optional REQ aliases, grouped mappings, deferred items, or sections that produced no implementation-ready requirement. Silent loss is not allowed.}}
 
 ## Loss Check
 
@@ -96,6 +100,7 @@ THEN THE SYSTEM SHALL {{fallback behaviour}}.
 | Every `NFR-` from BRS preserved | Yes / No | |
 | Every `OBJ-` from BRS preserved | Yes / No | |
 | Every explicit constraint preserved | Yes / No | |
+| Every inferred requirement has named source basis | Yes / No | |
 | Every optional `REQ-` alias has source mapping | Yes / No | |
 | Any intentionally deferred item explained | Yes / No | |
 
