@@ -1,0 +1,25 @@
+[
+  {
+    "id": 1,
+    "content": "Foundation",
+    "start": "2026-01-15",
+    "end": "2026-03-31",
+    "type": "range",
+    "title": "Foundation milestone"
+  },
+  {
+    "id": 2,
+    "content": "Public beta",
+    "start": "2026-04-01",
+    "end": "2026-06-30",
+    "type": "range",
+    "title": "Public beta milestone"
+  },
+  {
+    "id": 3,
+    "content": "General availability",
+    "start": "2026-09-30",
+    "type": "point",
+    "title": "General availability deadline"
+  }
+]

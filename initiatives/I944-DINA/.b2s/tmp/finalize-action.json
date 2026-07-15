@@ -1,0 +1,18 @@
+{
+  "status": "continue",
+  "action_id": "create-solution-decisions",
+  "validation": {
+    "overall": "pass",
+    "failure_count": 0,
+    "failures": [],
+    "advisories": []
+  },
+  "state_update": {
+    "action_id": "create-solution-decisions",
+    "next_action": "resolve-solution-design-open-questions",
+    "current_stage": "2-solution-design"
+  },
+  "gate": null,
+  "continue": true,
+  "per_item_boundary": false
+}

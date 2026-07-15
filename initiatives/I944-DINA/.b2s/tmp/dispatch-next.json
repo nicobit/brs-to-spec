@@ -1,0 +1,39 @@
+{
+  "status": "awaiting_gate",
+  "initiative_id": "I944-DINA",
+  "current_stage": "2-solution-design",
+  "gate_id": "solution-design-review",
+  "gate_owner": "architect",
+  "artifact_path": "architecture/solution-design-clarification-request.md",
+  "review_summary": {
+    "question_count": 1,
+    "clarification_file": "input/clarifications/solution-design.yaml",
+    "questions": [
+      {
+        "question_id": "SDQ-001",
+        "component": "Investor Registry / Onchain registry",
+        "decision_area": "Source-of-truth",
+        "prompt": "Does the onchain registry ever become the legal source-of-truth?",
+        "impact": "If onchain becomes legal source, data residency, ownership, reconciliation, and legal controls change significantly; contracts and evidence strategies must be adapted.",
+        "required_for": "delivery-planning"
+      }
+    ],
+    "no_blockers": false
+  },
+  "interaction_mode": "collect_answers",
+  "clarification_file": "input/clarifications/solution-design.yaml",
+  "message": "Waiting for architect to provide clarification answers for solution design blockers. Record answers in `input/clarifications/solution-design.yaml` then approve the gate to rerun `create-solution-decisions`.",
+  "next_cli_commands": [
+    "python .b2s/scripts/b2s_cli.py approve-current-gate --workspace-root <path>",
+    "python .b2s/scripts/b2s_cli.py reject-current-gate --workspace-root <path>"
+  ],
+  "action": null,
+  "integrity_warnings": [
+    {
+      "action_id": "gate-architecture-review",
+      "status": "accepted",
+      "issue": "unlogged",
+      "detail": "action 'gate-architecture-review' is 'accepted' but has no verified engine log entry (artifacts exist on disk \u2014 status may have been set outside the engine)"
+    }
+  ]
+}

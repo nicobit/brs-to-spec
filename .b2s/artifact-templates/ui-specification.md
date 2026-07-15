@@ -25,6 +25,7 @@
 - If information is unresolved, emit `needs-clarification` and create an open UI question.
 - Do not mark any page as `confirmed` unless its route guard, API contract mode, fields, states, and success/error navigation are all fully specified and no blocking open questions reference it.
 - Pages with status `partial` or `blocked` have unresolved dependencies listed in their `Blocking dependencies` field. These must be resolved before the page can be treated as implementation scope. Resolution happens when the epic containing the page enters active elaboration.
+- Open UI questions may block different stages. Use `Required Before` to distinguish initiative-blocking questions (`delivery-planning`) from deferred implementation-detail blockers (`epic-elaboration` or `coding-handoff`).
 
 ---
 
@@ -348,9 +349,9 @@ Rules:
 
 ## Open UI Questions
 
-| ID          | Type                                                                                                                                                                                                           | Question     | Affected Routes  | Affected FRs | Blocking?  | Owner           | Suggested Resolution     |
-| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ---------------- | ------------ | ---------- | --------------- | ------------------------ |
-| {{UIQ-NNN}} | {{validation/permission/navigation/content/API contract/state-error/responsive-accessibility/repository mapping/application mapping/route coverage/backend-UI boundary/design system/third-party integration}} | {{question}} | {{page1, page2}} | {{FR-NNN}}   | {{Yes/No}} | {{who decides}} | {{suggested resolution}} |
+| ID          | Type                                                                                                                                                                                                           | Question     | Affected Routes  | Affected FRs | Blocking?  | Required Before                                       | Owner           | Suggested Resolution     |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ---------------- | ------------ | ---------- | ----------------------------------------------------- | --------------- | ------------------------ |
+| {{UIQ-NNN}} | {{validation/permission/navigation/content/API contract/state-error/responsive-accessibility/repository mapping/application mapping/route coverage/backend-UI boundary/design system/third-party integration}} | {{question}} | {{page1, page2}} | {{FR-NNN}}   | {{Yes/No}} | {{delivery-planning / epic-elaboration / coding-handoff / n/a}} | {{who decides}} | {{suggested resolution}} |
 
 ---
 

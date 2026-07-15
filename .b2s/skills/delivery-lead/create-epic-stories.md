@@ -153,6 +153,14 @@ Each story file MUST contain these sections in this order, using these exact hea
 
 `## UI Behaviour` is included only when Layers includes Frontend and the implementation contract contains `## UI Surface`.
 
+In `## Linked Requirements`, add a `Basis` column:
+
+- `direct` when the linked requirement is a direct source requirement
+- `inferred` when the linked requirement is an inferred decomposition child
+
+Do not hide inferred requirements behind a generic linked-requirements table.
+Their basis must remain visible at story level.
+
 ### Step 5 - Self-verify before writing
 
 Before writing any file, verify each story against this checklist:
@@ -161,6 +169,7 @@ Before writing any file, verify each story against this checklist:
 - [ ] `## User Story` contains "As a", a named actor, "so that", and is 20+ characters
 - [ ] `## Business Context` has at least 2 full sentences
 - [ ] `## Linked Requirements` exists as its own markdown table
+- [ ] `## Linked Requirements` includes a correct `Basis` column for every row
 - [ ] `## Requirements Implemented` is explicit
 - [ ] `## Requirements Referenced` captures behavior mentioned but owned elsewhere
 - [ ] `## In Scope` lists concrete behavior, not vague themes

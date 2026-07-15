@@ -105,6 +105,16 @@ For each feature:
 
 ### Step 5 - Build coverage table
 
+Keep inferred requirement visibility explicit in this table. Add a `Basis`
+column for every row:
+
+- `direct` when the requirement is a direct source requirement from the atomic catalog
+- `inferred` when the requirement is an inferred decomposition child
+
+Do not hide inferred requirements inside a generic covered row. Their inferred
+status must remain visible in the coverage table so downstream planning and
+epic/story generation do not treat them as original source requirements.
+
 Create the Requirement Coverage table. Take the complete list from Step 2 and map EVERY ID to a feature and epic. Do NOT truncate this table — it must contain exactly as many rows as there are requirements.
 
 Mark any genuinely uncovered requirements as **Not Covered** with a note — but this should be rare. If more than 10% are Not Covered, go back to Step 4 and add features.
@@ -121,6 +131,7 @@ Write `planning/delivery-skeleton.md` using `.b2s/artifact-templates/delivery-sk
 
 - [ ] Every requirement from atomic-requirements.md appears in the coverage table
 - [ ] Every requirement maps to at least one feature
+- [ ] Every coverage row includes a correct `Basis` value (`direct` or `inferred`)
 - [ ] Every feature belongs to an epic
 - [ ] Epic dependencies are documented
 - [ ] Risk levels are derived from architecture review

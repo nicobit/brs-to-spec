@@ -23,6 +23,10 @@ When presenting this gate, you MUST:
 
 1. Summarize whether the epic has any unresolved blocking questions
 2. If blockers exist, list them clearly
+3. For each blocker, explain:
+   - what is missing
+   - why it matters now
+   - what next artifact is blocked
 3. Tell the human that answers must be captured in:
 
 ```text

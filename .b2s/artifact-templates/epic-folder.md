@@ -1,4 +1,4 @@
-# E-NNN — {{Epic Title}}
+# E-NNN â€” {{Epic Title}}
 
 ## Metadata
 
@@ -33,17 +33,17 @@
 
 ## High-Level Acceptance Criteria
 
-- AC-E-001: {{epic-level testable criterion — observable business outcome}}
+- AC-E-001: {{epic-level testable criterion â€” observable business outcome}}
 - AC-E-002: {{epic-level testable criterion}}
 
 ---
 
 ## Source Traceability
 
-| Source | Reference | Notes |
-|---|---|---|
-| BRS | §N | {{section or clause}} |
-| Requirement | FR-NNN | {{requirement title}} |
+| Source | Reference | Basis | Notes |
+|---|---|---|---|
+| BRS | Â§N | source-text | {{section or clause}} |
+| Requirement | FR-NNN | direct / inferred | {{requirement title}} |
 
 ---
 
@@ -73,7 +73,7 @@
 
 ## Foundation / Setup
 
-{{List any project scaffolding, infrastructure, or deployment setup needed before stories in this epic can be implemented. Examples: create frontend project, configure CI/CD pipeline, provision cloud resources, set up test environments. If none needed, write "No foundation setup required — existing infrastructure applies."}}
+{{List any project scaffolding, infrastructure, or deployment setup needed before stories in this epic can be implemented. Examples: create frontend project, configure CI/CD pipeline, provision cloud resources, set up test environments. If none needed, write "No foundation setup required â€” existing infrastructure applies."}}
 
 ---
 
@@ -90,4 +90,4 @@
 *This section is populated automatically by the advisory review step when enabled in the delivery constitution. Do not write this section manually. Each enabled persona appends its findings below.*
 
 ---
-*Status: Draft — set to Accepted only after epic review gate. Never self-accept.*
+*Status: Draft â€” set to Accepted only after epic review gate. Never self-accept.*

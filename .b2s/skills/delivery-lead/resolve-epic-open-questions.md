@@ -81,6 +81,13 @@ If blockers remain:
 - write a short summary explaining why story generation is blocked
 - populate the Blocking Questions table
 - keep each row concise and specific
+- classify each row with exactly one `Blocker Type`:
+  - `missing-evidence`
+  - `missing-decision`
+  - `missing-ownership`
+  - `missing-user-intent`
+- make `Why It Matters Now` specific to the current epic
+- make `Blocks Next Artifact` explicit so the pause reason says what cannot be generated safely
 
 If no blockers remain:
 - write the explicit text:
@@ -95,6 +102,8 @@ Before finalizing, verify:
 - every question listed is relevant to the current epic
 - no answered question is repeated as unresolved
 - every question explains why the answer is needed
+- every question has the correct blocker taxonomy
+- every question names the next artifact blocked by the missing answer
 - the answer location references `input/clarifications/{current_item}.yaml`
 
 ## Output requirements

@@ -2954,6 +2954,558 @@ class ValidationProfileUnitTests(unittest.TestCase):
             self.assertEqual(by_rule["atomic_requirements_summary_matches_catalog"]["result"], "fail")
             self.assertEqual(by_rule["atomic_requirements_summary_matches_catalog"]["severity"], "optional")
 
+    def test_atomic_requirements_derivation_visible_rule_fails_when_inference_is_not_traceable(self) -> None:
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp)
+            artifact = workspace_root / "requirements" / "atomic-requirements.md"
+            artifact.parent.mkdir(parents=True, exist_ok=True)
+            artifact.write_text(
+                textwrap.dedent(
+                    """\
+                    # Atomic Requirements
+
+                    ## Summary
+
+                    | Metric | Value |
+                    |---|---|
+                    | Total requirements | 2 |
+                    | Direct requirements | 1 |
+                    | Inferred requirements | 1 |
+
+                    ## Requirement Catalogue
+
+                    ### FR-001 - Submit intake
+
+                    **Source:** Functional requirements | **Actor:** Analyst | **Deps:** None
+
+                    > **Derivation:** Direct
+
+                    WHEN an analyst submits an intake request,
+                    THE SYSTEM SHALL store the request.
+
+                    ### REQ-001 - Validate duplicate intake
+
+                    **Source:** FR-001 | **Actor:** System | **Deps:** FR-001
+
+                    > **Derivation:** Inferred because duplicate prevention is needed
+
+                    IF a duplicate intake is detected,
+                    THEN THE SYSTEM SHALL reject the request.
+                    """
+                ),
+                encoding="utf-8",
+            )
+
+            result = validation_module._rule_atomic_requirements_derivation_visible(
+                artifact,
+                workspace_root,
+                {},
+                "requirements/atomic-requirements.md",
+                [],
+            )
+            self.assertEqual(result["result"], "fail")
+            self.assertIn("inferred entries missing source IDs", result["detail"])
+            self.assertIn("REQ-001", result["detail"])
+
+    def test_atomic_requirements_decomposition_traceable_rule_fails_without_source_mapping(self) -> None:
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp)
+            artifact = workspace_root / "requirements" / "atomic-requirements.md"
+            artifact.parent.mkdir(parents=True, exist_ok=True)
+            artifact.write_text(
+                textwrap.dedent(
+                    """\
+                    # Atomic Requirements
+
+                    ## Requirement Catalogue
+
+                    ### REQ-001 - Validate duplicate intake
+
+                    **Source:** FR-001 | **Actor:** System | **Deps:** FR-001
+
+                    > **Derivation:** Direct
+
+                    IF a duplicate intake is detected,
+                    THEN THE SYSTEM SHALL reject the request.
+                    """
+                ),
+                encoding="utf-8",
+            )
+
+            result = validation_module._rule_atomic_requirements_decomposition_traceable(
+                artifact,
+                workspace_root,
+                {},
+                "requirements/atomic-requirements.md",
+                [],
+            )
+            self.assertEqual(result["result"], "fail")
+            self.assertIn("Source ID Mapping", result["detail"])
+
+    def test_atomic_requirements_direct_inferred_summary_and_traceability_rules_pass_for_mapped_catalog(self) -> None:
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp)
+            artifact = workspace_root / "requirements" / "atomic-requirements.md"
+            artifact.parent.mkdir(parents=True, exist_ok=True)
+            artifact.write_text(
+                textwrap.dedent(
+                    """\
+                    # Atomic Requirements
+
+                    ## Summary
+
+                    | Metric | Value |
+                    |---|---|
+                    | Total requirements | 3 |
+                    | Business objectives | 0 |
+                    | Functional | 2 |
+                    | Non-functional | 1 |
+                    | Direct requirements | 2 |
+                    | Inferred requirements | 1 |
+                    | Constraints | 0 |
+
+                    ## Source Inventory
+
+                    | Source ID | Type | Title / Summary | Extraction Mode | Preserved In |
+                    |---|---|---|---|---|
+                    | FR-001 | Functional | Submit intake | Direct + Decomposed | FR-001, REQ-001 |
+                    | NFR-001 | Non-functional | Encrypt intake data | Direct | NFR-001 |
+
+                    ## Requirement Catalogue
+
+                    ### FR-001 - Submit intake
+
+                    **Source:** Functional requirements | **Actor:** Analyst | **Deps:** None
+
+                    > **Derivation:** Direct
+
+                    WHEN an analyst submits an intake request,
+                    THE SYSTEM SHALL store the request.
+
+                    ### REQ-001 - Validate duplicate intake
+
+                    **Source:** FR-001 | **Actor:** System | **Deps:** FR-001
+
+                    > **Derivation:** Inferred from FR-001 because duplicate prevention is implied by the submission rule
+
+                    IF a duplicate intake is detected,
+                    THEN THE SYSTEM SHALL reject the request.
+
+                    ### NFR-001 - Encrypt intake data
+
+                    **Source:** Non-functional requirements | **Actor:** Platform | **Deps:** FR-001
+
+                    > **Derivation:** Direct
+
+                    THE SYSTEM SHALL encrypt intake data at rest.
+
+                    ## Source ID Mapping
+
+                    | Source ID | Optional REQ Alias | Mapping Type | Notes |
+                    |---|---|---|---|
+                    | FR-001 | REQ-001 | Decomposed | Duplicate validation split from submission requirement |
+                    | NFR-001 |  | Direct | Preserved as direct source requirement |
+                    """
+                ),
+                encoding="utf-8",
+            )
+
+            derivation = validation_module._rule_atomic_requirements_derivation_visible(
+                artifact,
+                workspace_root,
+                {},
+                "requirements/atomic-requirements.md",
+                [],
+            )
+            traceability = validation_module._rule_atomic_requirements_decomposition_traceable(
+                artifact,
+                workspace_root,
+                {},
+                "requirements/atomic-requirements.md",
+                [],
+            )
+            summary = validation_module._rule_atomic_requirements_direct_inferred_summary_matches(
+                artifact,
+                workspace_root,
+                {},
+                "requirements/atomic-requirements.md",
+                [],
+            )
+
+            self.assertEqual(derivation["result"], "pass")
+            self.assertEqual(traceability["result"], "pass")
+            self.assertEqual(summary["result"], "pass")
+
+    def test_delivery_skeleton_requirement_basis_visible_detects_mismatch(self) -> None:
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp)
+            (workspace_root / "requirements").mkdir(parents=True, exist_ok=True)
+            (workspace_root / "planning").mkdir(parents=True, exist_ok=True)
+            (workspace_root / "requirements" / "atomic-requirements.md").write_text(
+                textwrap.dedent(
+                    """\
+                    # Atomic Requirements
+
+                    ## Requirement Catalogue
+
+                    ### FR-001 - Submit intake
+
+                    **Source:** Functional requirements | **Actor:** Analyst | **Deps:** None
+
+                    > **Derivation:** Direct
+
+                    WHEN an analyst submits an intake request,
+                    THE SYSTEM SHALL store the request.
+
+                    ### REQ-001 - Validate duplicate intake
+
+                    **Source:** FR-001 | **Actor:** System | **Deps:** FR-001
+
+                    > **Derivation:** Inferred from FR-001 because duplicate prevention is implied
+
+                    IF a duplicate intake is detected,
+                    THEN THE SYSTEM SHALL reject the request.
+                    """
+                ),
+                encoding="utf-8",
+            )
+            (workspace_root / "planning" / "delivery-skeleton.md").write_text(
+                textwrap.dedent(
+                    """\
+                    # Delivery Skeleton
+
+                    ## Requirement Coverage
+
+                    | REQ / FR | Feature | Epic | Basis | Status |
+                    |---|---|---|---|---|
+                    | FR-001 | F-001 | E-001 | direct | Covered |
+                    | REQ-001 | F-001 | E-001 | direct | Covered |
+                    """
+                ),
+                encoding="utf-8",
+            )
+
+            result = validation_module._rule_delivery_skeleton_requirement_basis_visible(
+                workspace_root / "planning" / "delivery-skeleton.md",
+                workspace_root,
+                {},
+                "planning/delivery-skeleton.md",
+                [],
+            )
+            self.assertEqual(result["result"], "fail")
+            self.assertIn("REQ-001", result["detail"])
+            self.assertIn("expected=inferred", result["detail"])
+
+    def test_solution_decisions_traceability_and_inferred_visibility_rules_pass(self) -> None:
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp)
+            (workspace_root / "requirements").mkdir(parents=True, exist_ok=True)
+            (workspace_root / "architecture").mkdir(parents=True, exist_ok=True)
+            (workspace_root / "requirements" / "atomic-requirements.md").write_text(
+                textwrap.dedent(
+                    """\
+                    # Atomic Requirements
+
+                    ## Requirement Catalogue
+
+                    ### FR-001 - Submit intake
+
+                    **Source:** Functional requirements | **Actor:** Analyst | **Deps:** None
+
+                    > **Derivation:** Direct
+
+                    WHEN an analyst submits an intake request,
+                    THE SYSTEM SHALL store the request.
+
+                    ### REQ-001 - Validate duplicate intake
+
+                    **Source:** FR-001 | **Actor:** System | **Deps:** FR-001
+
+                    > **Derivation:** Inferred from FR-001 because duplicate prevention is implied
+
+                    IF a duplicate intake is detected,
+                    THEN THE SYSTEM SHALL reject the request.
+                    """
+                ),
+                encoding="utf-8",
+            )
+            (workspace_root / "architecture" / "solution-decisions.md").write_text(
+                textwrap.dedent(
+                    """\
+                    # Solution Decisions
+
+                    ## Service Decisions
+
+                    | ID | Component | Decision | Target Repository | Technology | Rationale | AR Constraints |
+                    |---|---|---|---|---|---|---|
+                    | SD-001 | Intake API | modify-existing | repo-a | Python | Supports intake submission | AR-001 |
+
+                    ## Decision Traceability
+
+                    | Decision | Requirement IDs | Basis | Notes |
+                    |---|---|---|---|
+                    | SD-001 | FR-001, REQ-001 | mixed | Submission is direct; duplicate handling is inferred |
+                    """
+                ),
+                encoding="utf-8",
+            )
+
+            complete = validation_module._rule_solution_decisions_traceability_complete(
+                workspace_root / "architecture" / "solution-decisions.md",
+                workspace_root,
+                {},
+                "architecture/solution-decisions.md",
+                [],
+            )
+            visible = validation_module._rule_solution_decisions_inferred_requirements_visible(
+                workspace_root / "architecture" / "solution-decisions.md",
+                workspace_root,
+                {},
+                "architecture/solution-decisions.md",
+                [],
+            )
+
+            self.assertEqual(complete["result"], "pass")
+            self.assertEqual(visible["result"], "pass")
+
+    def test_solution_decisions_inferred_visibility_rule_fails_when_inferred_is_marked_direct(self) -> None:
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp)
+            (workspace_root / "requirements").mkdir(parents=True, exist_ok=True)
+            (workspace_root / "architecture").mkdir(parents=True, exist_ok=True)
+            (workspace_root / "requirements" / "atomic-requirements.md").write_text(
+                textwrap.dedent(
+                    """\
+                    # Atomic Requirements
+
+                    ## Requirement Catalogue
+
+                    ### REQ-001 - Validate duplicate intake
+
+                    **Source:** FR-001 | **Actor:** System | **Deps:** FR-001
+
+                    > **Derivation:** Inferred from FR-001 because duplicate prevention is implied
+
+                    IF a duplicate intake is detected,
+                    THEN THE SYSTEM SHALL reject the request.
+                    """
+                ),
+                encoding="utf-8",
+            )
+            (workspace_root / "architecture" / "solution-decisions.md").write_text(
+                textwrap.dedent(
+                    """\
+                    # Solution Decisions
+
+                    ## Service Decisions
+
+                    | ID | Component | Decision | Target Repository | Technology | Rationale | AR Constraints |
+                    |---|---|---|---|---|---|---|
+                    | SD-001 | Intake API | modify-existing | repo-a | Python | Supports duplicate handling | AR-001 |
+
+                    ## Decision Traceability
+
+                    | Decision | Requirement IDs | Basis | Notes |
+                    |---|---|---|---|
+                    | SD-001 | REQ-001 | direct | Should fail because the linked requirement is inferred |
+                    """
+                ),
+                encoding="utf-8",
+            )
+
+            result = validation_module._rule_solution_decisions_inferred_requirements_visible(
+                workspace_root / "architecture" / "solution-decisions.md",
+                workspace_root,
+                {},
+                "architecture/solution-decisions.md",
+                [],
+            )
+            self.assertEqual(result["result"], "fail")
+            self.assertIn("SD-001", result["detail"])
+            self.assertIn("basis=direct", result["detail"])
+
+    def test_epic_traceability_basis_visible_fails_when_inferred_requirement_is_marked_direct(self) -> None:
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp)
+            (workspace_root / "requirements").mkdir(parents=True, exist_ok=True)
+            (workspace_root / "epics" / "E-001-submit-request").mkdir(parents=True, exist_ok=True)
+            (workspace_root / "requirements" / "atomic-requirements.md").write_text(
+                textwrap.dedent(
+                    """\
+                    # Atomic Requirements
+
+                    ## Requirement Catalogue
+
+                    ### REQ-001 - Validate duplicate intake
+
+                    **Source:** FR-001 | **Actor:** System | **Deps:** FR-001
+
+                    > **Derivation:** Inferred from FR-001 because duplicate prevention is implied
+
+                    IF a duplicate intake is detected,
+                    THEN THE SYSTEM SHALL reject the request.
+                    """
+                ),
+                encoding="utf-8",
+            )
+            (workspace_root / "epics" / "E-001-submit-request" / "epic.md").write_text(
+                textwrap.dedent(
+                    """\
+                    # E-001 - Submit request
+
+                    ## Source Traceability
+
+                    | Source | Reference | Basis | Notes |
+                    |---|---|---|---|
+                    | Requirement | REQ-001 | direct | Should fail because canonical requirement is inferred |
+                    """
+                ),
+                encoding="utf-8",
+            )
+
+            result = validation_module._rule_epic_traceability_basis_visible(
+                workspace_root / "epics",
+                workspace_root,
+                {},
+                "epics/",
+                [],
+            )
+            self.assertEqual(result["result"], "fail")
+            self.assertIn("REQ-001", result["detail"])
+            self.assertIn("expected=inferred", result["detail"])
+
+    def test_story_linked_requirements_basis_visible_passes_for_matching_basis(self) -> None:
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp)
+            (workspace_root / "requirements").mkdir(parents=True, exist_ok=True)
+            (workspace_root / "epics" / "E-001-submit-request" / "stories").mkdir(parents=True, exist_ok=True)
+            (workspace_root / "requirements" / "atomic-requirements.md").write_text(
+                textwrap.dedent(
+                    """\
+                    # Atomic Requirements
+
+                    ## Requirement Catalogue
+
+                    ### FR-001 - Submit intake
+
+                    **Source:** Functional requirements | **Actor:** Analyst | **Deps:** None
+
+                    > **Derivation:** Direct
+
+                    WHEN an analyst submits an intake request,
+                    THE SYSTEM SHALL store the request.
+
+                    ### REQ-001 - Validate duplicate intake
+
+                    **Source:** FR-001 | **Actor:** System | **Deps:** FR-001
+
+                    > **Derivation:** Inferred from FR-001 because duplicate prevention is implied
+
+                    IF a duplicate intake is detected,
+                    THEN THE SYSTEM SHALL reject the request.
+                    """
+                ),
+                encoding="utf-8",
+            )
+            (workspace_root / "epics" / "E-001-submit-request" / "stories" / "S-001.1-submit.md").write_text(
+                textwrap.dedent(
+                    """\
+                    # S-001.1 - Submit request
+
+                    ## Linked Requirements
+
+                    | ID | Requirement | Basis |
+                    |---|---|---|
+                    | FR-001 | Submit intake | direct |
+                    | REQ-001 | Validate duplicate intake | inferred |
+                    """
+                ),
+                encoding="utf-8",
+            )
+
+            result = validation_module._rule_story_linked_requirements_basis_visible(
+                workspace_root / "epics",
+                workspace_root,
+                {},
+                "epics/",
+                [],
+            )
+            self.assertEqual(result["result"], "pass")
+
+    def test_solution_design_clarification_request_blocker_taxonomy_complete_fails_for_missing_fields(self) -> None:
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp)
+            (workspace_root / "architecture").mkdir(parents=True, exist_ok=True)
+            (workspace_root / "architecture" / "solution-design-clarification-request.md").write_text(
+                textwrap.dedent(
+                    """\
+                    # Solution Design Clarification Request
+
+                    ## Blocking Questions
+
+                    | ID | Component / Boundary | Decision Area | Blocker Type | Question | Why It Matters Now | Blocks Next Artifact | Required For |
+                    |---|---|---|---|---|---|---|---|
+                    | SDQ-001 | Intake API | ownership | wrong-type | Who owns the adapter? |  | delivery-skeleton.md | delivery planning |
+                    """
+                ),
+                encoding="utf-8",
+            )
+
+            result = validation_module._rule_solution_design_clarification_request_blocker_taxonomy_complete(
+                workspace_root / "architecture" / "solution-design-clarification-request.md",
+                workspace_root,
+                {},
+                "architecture/solution-design-clarification-request.md",
+                [],
+            )
+            self.assertEqual(result["result"], "fail")
+            self.assertIn("invalid blocker type", result["detail"])
+            self.assertIn("missing 'Why It Matters Now'", result["detail"])
+
+    def test_epic_clarification_request_blocker_taxonomy_complete_passes(self) -> None:
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp)
+            (workspace_root / ".b2s" / "state").mkdir(parents=True, exist_ok=True)
+            (workspace_root / ".b2s" / "state" / "workflow-state.json").write_text(
+                json.dumps({"current_item": "E-001"}),
+                encoding="utf-8",
+            )
+            epic_dir = workspace_root / "epics" / "E-001-submit-request"
+            epic_dir.mkdir(parents=True, exist_ok=True)
+            (epic_dir / "clarification-request.md").write_text(
+                textwrap.dedent(
+                    """\
+                    # Epic Clarification Request - E-001
+
+                    ## Blocking Questions
+
+                    | ID | Route | Page | Blocker Type | Question | Why It Matters Now | Blocks Next Artifact | Required For |
+                    |---|---|---|---|---|---|---|---|
+                    | UIQ-001 | /submit | Submit Request | missing-user-intent | Should duplicate submissions show inline error or banner? | The story AC would be ambiguous without a UI error expectation. | S-001.1 story generation | story generation |
+                    """
+                ),
+                encoding="utf-8",
+            )
+
+            result = validation_module._rule_epic_clarification_request_blocker_taxonomy_complete(
+                workspace_root / "epics",
+                workspace_root,
+                {},
+                "epics/",
+                [],
+            )
+            self.assertEqual(result["result"], "pass")
+
 
 if __name__ == "__main__":
     unittest.main()

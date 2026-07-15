@@ -63,6 +63,7 @@ nav:
           - Quality Gates Summary: initiatives/I004-it-portal/quality-gates-summary.md
   - Comparison:
       - vs BMAD-style Methods: comparison-bmad.md
+      - Improvement Roadmap: 28-framework-improvement-roadmap.md
   - Reference:
       - Template Quality Guidelines: 11-template-quality-guidelines.md
       - Prompt Quality Guidelines: 12-prompt-quality-guidelines.md

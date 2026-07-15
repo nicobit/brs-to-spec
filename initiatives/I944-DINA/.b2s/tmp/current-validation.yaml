@@ -1,0 +1,63 @@
+overall: pass
+action_id: resolve-solution-design-open-questions
+artifact_path: architecture/solution-design-clarification-request.md
+checks:
+- name: file_exists
+  target: architecture/solution-design-clarification-request.md
+  result: pass
+  detail: artifact exists
+- name: validation_dispatch
+  target: solution-design-clarification-request.md
+  result: pass
+  detail: 'template: architecture/solution-design-clarification-request.md'
+- name: non_empty_file
+  target: solution-design-clarification-request.md
+  result: pass
+  detail: artifact has content
+- name: tmpl_section_summary
+  target: solution-design-clarification-request.md
+  result: pass
+  detail: '## Summary section present'
+- name: tmpl_section_blocking_questions
+  target: solution-design-clarification-request.md
+  result: pass
+  detail: '## Blocking Questions section present'
+- name: tmpl_section_answer_instructions
+  target: solution-design-clarification-request.md
+  result: pass
+  detail: '## Answer Instructions section present'
+- name: tmpl_section_resolution_rule
+  target: solution-design-clarification-request.md
+  result: pass
+  detail: '## Resolution Rule section present'
+- name: tmpl_has_tables
+  target: solution-design-clarification-request.md
+  result: pass
+  detail: artifact contains at least one table
+- name: tmpl_table_populated_blocking_questions
+  target: solution-design-clarification-request.md
+  result: pass
+  detail: '''## Blocking Questions'' has content (table rows: 2, prose lines: 0)'
+- name: tmpl_content_depth
+  target: solution-design-clarification-request.md
+  result: pass
+  detail: artifact has 20 lines (minimum 20)
+- name: tmpl_placeholders_absent
+  target: solution-design-clarification-request.md
+  result: pass
+  detail: no known placeholder markers found
+- name: validation_audit
+  target: architecture/solution-design-clarification-request.md
+  result: pass
+  detail: validation coverage is acceptable (dispatch=template, downstream_consumers=0)
+- &id001
+  name: named_validation_rule
+  rule_name: solution_design_clarification_request_has_questions_or_explicit_no_blockers
+  severity: required
+  target: architecture/solution-design-clarification-request.md
+  result: pass
+  detail: clarification request lists 1 blocking solution design question(s)
+named_rule_results:
+- *id001
+failures: []
+advisories: []

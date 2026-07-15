@@ -75,6 +75,9 @@ actions:
       required:
         - "requirement_has_id"
         - "source_brs_ids_preserved"
+        - "atomic_requirements_derivation_visible"
+        - "atomic_requirements_decomposition_traceable"
+        - "atomic_requirements_direct_inferred_summary_matches"
       optional:
         - "atomic_requirements_summary_matches_catalog"
     validation_profile: catalog
@@ -317,6 +320,7 @@ actions:
         - "ui_spec_no_confirmed_when_blockers_exist"
         - "ui_spec_data_binding_contract_mode_present"
         - "ui_spec_every_inferred_has_open_question"
+        - "ui_spec_open_questions_have_required_before"
         - "ui_spec_no_encoding_mojibake"
       optional:
         - "ui_spec_shared_components_match_page_fields"
@@ -363,6 +367,8 @@ actions:
     validation_rules:
       required:
         - "all_impacted_components_have_decisions"
+        - "solution_decisions_traceability_complete"
+        - "solution_decisions_inferred_requirements_visible"
       optional: []
     validation_profile: analytical-review
     artifact_criticality: critical
@@ -405,6 +411,7 @@ actions:
     validation_rules:
       required:
         - "solution_design_clarification_request_has_questions_or_explicit_no_blockers"
+        - "solution_design_clarification_request_blocker_taxonomy_complete"
       optional: []
     validation_profile: structured-document
     artifact_criticality: high
@@ -492,6 +499,7 @@ actions:
       required:
         - "all_source_requirements_present"
         - "no_unknown_requirement_references"
+        - "delivery_skeleton_requirement_basis_visible"
       optional: []
     validation_profile: structured-document
     artifact_criticality: critical
@@ -626,6 +634,7 @@ actions:
       required:
         - "no_unknown_requirement_references"
         - "requirement_title_consistency"
+        - "epic_traceability_basis_visible"
         - "epic_identity_matches_skeleton"
       optional: []
     validation_profile: artifact-package
@@ -675,6 +684,7 @@ actions:
     validation_rules:
       required:
         - "epic_clarification_request_has_questions_or_explicit_no_blockers"
+        - "epic_clarification_request_blocker_taxonomy_complete"
       optional: []
     validation_profile: artifact-package
     artifact_criticality: high
@@ -767,6 +777,7 @@ actions:
         - "no_unknown_requirement_references"
         - "requirement_title_consistency"
         - "requirement_semantics_preserved"
+        - "story_linked_requirements_basis_visible"
         - "open_questions_propagated"
         - "story_agent_contract_semantic_equivalence"
       optional:

@@ -81,6 +81,14 @@
 
 ---
 
+## Decision Traceability
+
+| Decision | Requirement IDs | Basis | Notes |
+|---|---|---|---|
+| SD-NNN | FR-NNN, REQ-NNN | direct / inferred / mixed / architectural-context | {{Why this decision is justified and whether any inferred requirement is involved}} |
+
+---
+
 ## Architecture Rule Compliance
 
 | Decision | AR Rule | Status | Notes |
@@ -95,7 +103,7 @@
 
 | ID | Question | Affects Decision(s) | Blocking? | Required Before | Status |
 |---|---|---|---|---|---|
-| SDQ-NNN | | SD-NNN | Yes / No | delivery-planning / epic-elaboration | open / answered-by-clarification |
+| SDQ-NNN | | SD-NNN | Yes / No | delivery-planning / epic-elaboration / coding-handoff / n/a | open / answered-by-clarification |
 
 ---
 

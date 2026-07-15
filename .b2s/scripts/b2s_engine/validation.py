@@ -430,6 +430,33 @@ def _catalog_heading_ids(text: str) -> set[str]:
     return set(re.findall(r"^###\s+((?:OBJ|FR|REQ|NFR|C)-\d{3})\b", text, flags=re.MULTILINE))
 
 
+def _catalog_entry_blocks(text: str) -> list[tuple[str, str, str]]:
+    pattern = re.compile(
+        r"^###\s+((?:OBJ|FR|REQ|NFR|C)-\d{3})\s+[â€”-]\s+(.+?)\n(.*?)(?=^###\s+(?:OBJ|FR|REQ|NFR|C)-\d{3}\s+[â€”-]\s+|\Z)",
+        flags=re.MULTILINE | re.DOTALL,
+    )
+    return [
+        (match.group(1).strip(), match.group(2).strip(), match.group(3))
+        for match in pattern.finditer(text)
+    ]
+
+
+def _canonical_requirement_derivations(workspace_root: Path) -> dict[str, str]:
+    req_path = workspace_root / "requirements" / "atomic-requirements.md"
+    if not req_path.exists():
+        return {}
+
+    text = _read_text(req_path)
+    derivations: dict[str, str] = {}
+    for req_id, _title, block in _catalog_entry_blocks(text):
+        match = re.search(r"^>\s*\*\*Derivation:\*\*\s*(.+)$", block, flags=re.MULTILINE)
+        if not match:
+            continue
+        derivation = match.group(1).strip()
+        derivations[req_id] = "inferred" if re.search(r"(?i)\binferred\b", derivation) else "direct"
+    return derivations
+
+
 def _catalog_entries_by_type(text: str) -> dict[str, list[str]]:
     """Parse catalogue entries and classify by their ``| Type | ... |`` field.
 
@@ -1624,6 +1651,34 @@ def _validate_atomic_requirements(path: Path, workspace_root: Path) -> list[dict
                 f"extracted {artifact_req_count} requirements from {source_fr_count} BRS FRs",
             )
         )
+    else:
+        # Narrative BRS sources (architecture docs, PRDs, meeting notes) carry no
+        # explicit FR-NNN markers, so source_fr_count is 0 and the checks above
+        # never fire. Fall back to a content-agnostic structural proxy — heading
+        # count and bullet-list item count — so a thin extraction from a large
+        # narrative source still gets flagged instead of passing unchecked.
+        source_heading_count = _count_pattern(source, r"^#{2,4}\s+\S")
+        source_bullet_count = _count_pattern(source, r"^\s*[-*]\s+\S")
+        structural_size = source_heading_count + (source_bullet_count // 4)
+
+        if structural_size >= 15:
+            min_expected = max(4, structural_size // 8)
+            checks.append(
+                _result(
+                    "req_count_proportional_to_narrative_source",
+                    path.name,
+                    artifact_req_count >= min_expected,
+                    f"extracted {artifact_req_count} requirements from a narrative BRS with "
+                    f"{source_heading_count} headings / {source_bullet_count} bullet items "
+                    f"(minimum {min_expected})"
+                    if artifact_req_count >= min_expected
+                    else f"only {artifact_req_count} requirements extracted from a narrative BRS with "
+                         f"{source_heading_count} headings / {source_bullet_count} bullet items — "
+                         f"expected at least {min_expected}; likely incomplete extraction. Re-run "
+                         f"create-atomic-requirements with attention to every BRS section, not just "
+                         f"sections that use FR-/NFR- style labels",
+                )
+            )
 
     checks.append(
         _result(
@@ -2892,6 +2947,180 @@ def _rule_atomic_requirements_summary_matches_catalog(
     )
 
 
+def _rule_atomic_requirements_derivation_visible(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    text = _read_text(path)
+    entries = _catalog_entry_blocks(text)
+    if not entries:
+        return _named_rule_result(
+            "atomic_requirements_derivation_visible",
+            artifact_path,
+            False,
+            "no requirement catalogue entries found",
+            severity="required",
+        )
+
+    missing_derivation: list[str] = []
+    inferred_without_source: list[str] = []
+    direct_count = 0
+    inferred_count = 0
+
+    for req_id, _title, block in entries:
+        match = re.search(r"^>\s*\*\*Derivation:\*\*\s*(.+)$", block, flags=re.MULTILINE)
+        if not match:
+            missing_derivation.append(req_id)
+            continue
+
+        derivation = match.group(1).strip()
+        if re.search(r"(?i)\binferred\b", derivation):
+            inferred_count += 1
+            if not re.search(r"(?<![A-Za-z])(?:OBJ|FR|REQ|NFR|C)-\d{3}", derivation):
+                inferred_without_source.append(req_id)
+        else:
+            direct_count += 1
+
+    passed = not missing_derivation and not inferred_without_source
+    detail_parts: list[str] = [
+        f"direct={direct_count}",
+        f"inferred={inferred_count}",
+    ]
+    if missing_derivation:
+        detail_parts.append(f"missing derivation for {missing_derivation[:5]}")
+    if inferred_without_source:
+        detail_parts.append(f"inferred entries missing source IDs: {inferred_without_source[:5]}")
+
+    return _named_rule_result(
+        "atomic_requirements_derivation_visible",
+        artifact_path,
+        passed,
+        "; ".join(detail_parts),
+        severity="required",
+    )
+
+
+def _rule_atomic_requirements_decomposition_traceable(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    text = _read_text(path)
+    entries = _catalog_entry_blocks(text)
+    req_entries = [(req_id, block) for req_id, _title, block in entries if req_id.startswith("REQ-")]
+
+    if not req_entries:
+        return _named_rule_result(
+            "atomic_requirements_decomposition_traceable",
+            artifact_path,
+            True,
+            "no decomposed REQ entries present",
+            severity="required",
+        )
+
+    mapping_block = _section_block(text, "## Source ID Mapping")
+    if not mapping_block.strip():
+        return _named_rule_result(
+            "atomic_requirements_decomposition_traceable",
+            artifact_path,
+            False,
+            "REQ entries exist but '## Source ID Mapping' is missing",
+            severity="required",
+        )
+
+    missing_source_metadata: list[str] = []
+    missing_mapping_rows: list[str] = []
+
+    for req_id, block in req_entries:
+        source_match = re.search(r"^\*\*Source:\*\*\s*(.+?)\s*\|\s*\*\*Actor:\*\*", block, flags=re.MULTILINE)
+        source_value = source_match.group(1).strip() if source_match else ""
+        source_ids = sorted(set(re.findall(r"(?<![A-Za-z])(?:OBJ|FR|REQ|NFR|C)-\d{3}", source_value)))
+        if not source_ids:
+            missing_source_metadata.append(req_id)
+            continue
+
+        if req_id not in mapping_block:
+            missing_mapping_rows.append(req_id)
+            continue
+
+        missing_sources_for_req = [source_id for source_id in source_ids if source_id not in mapping_block]
+        if missing_sources_for_req:
+            missing_mapping_rows.append(f"{req_id}<-{','.join(missing_sources_for_req)}")
+
+    passed = not missing_source_metadata and not missing_mapping_rows
+    detail_parts: list[str] = [f"req_children={len(req_entries)}"]
+    if missing_source_metadata:
+        detail_parts.append(f"REQ entries missing source metadata: {missing_source_metadata[:5]}")
+    if missing_mapping_rows:
+        detail_parts.append(f"missing source mapping coverage: {missing_mapping_rows[:5]}")
+
+    return _named_rule_result(
+        "atomic_requirements_decomposition_traceable",
+        artifact_path,
+        passed,
+        "; ".join(detail_parts),
+        severity="required",
+    )
+
+
+def _rule_atomic_requirements_direct_inferred_summary_matches(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    text = _read_text(path)
+    entries = _catalog_entry_blocks(text)
+
+    actual_direct = 0
+    actual_inferred = 0
+    missing_derivation: list[str] = []
+
+    for req_id, _title, block in entries:
+        match = re.search(r"^>\s*\*\*Derivation:\*\*\s*(.+)$", block, flags=re.MULTILINE)
+        if not match:
+            missing_derivation.append(req_id)
+            continue
+        derivation = match.group(1).strip()
+        if re.search(r"(?i)\binferred\b", derivation):
+            actual_inferred += 1
+        else:
+            actual_direct += 1
+
+    summary_direct = _summary_metric_value(text, "Direct requirements")
+    summary_inferred = _summary_metric_value(text, "Inferred requirements")
+
+    mismatches: list[str] = []
+    if summary_direct is None:
+        mismatches.append("summary metric missing: Direct requirements")
+    elif summary_direct != actual_direct:
+        mismatches.append(f"summary direct={summary_direct} actual={actual_direct}")
+
+    if summary_inferred is None:
+        mismatches.append("summary metric missing: Inferred requirements")
+    elif summary_inferred != actual_inferred:
+        mismatches.append(f"summary inferred={summary_inferred} actual={actual_inferred}")
+
+    if missing_derivation:
+        mismatches.append(f"entries missing derivation: {missing_derivation[:5]}")
+
+    return _named_rule_result(
+        "atomic_requirements_direct_inferred_summary_matches",
+        artifact_path,
+        len(mismatches) == 0,
+        "direct/inferred summary metrics match derivation labels"
+        if len(mismatches) == 0
+        else "; ".join(mismatches),
+        severity="required",
+    )
+
+
 def _rule_requirement_is_testable(
     path: Path,
     workspace_root: Path,
@@ -3106,6 +3335,60 @@ def _rule_all_source_requirements_present(
     )
 
 
+def _rule_delivery_skeleton_requirement_basis_visible(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    text = _read_text(path)
+    derivations = _canonical_requirement_derivations(workspace_root)
+    coverage_rows = _section_table_rows(text, "## Requirement Coverage")
+    if not coverage_rows:
+        return _named_rule_result(
+            "delivery_skeleton_requirement_basis_visible",
+            artifact_path,
+            False,
+            "Requirement Coverage table not found or empty",
+            severity="required",
+        )
+
+    missing_basis: list[str] = []
+    mismatches: list[str] = []
+    checked = 0
+
+    for row in coverage_rows:
+        if len(row) < 4:
+            continue
+        req_id = row[0].strip()
+        if not re.fullmatch(r"(?:FR|REQ|NFR|C)-\d{3}", req_id):
+            continue
+        checked += 1
+        basis = row[3].strip().lower() if len(row) >= 4 else ""
+        if basis not in {"direct", "inferred"}:
+            missing_basis.append(req_id)
+            continue
+        expected = derivations.get(req_id)
+        if expected and basis != expected:
+            mismatches.append(f"{req_id} basis={basis} expected={expected}")
+
+    passed = checked > 0 and not missing_basis and not mismatches
+    details: list[str] = [f"checked={checked}"]
+    if missing_basis:
+        details.append(f"missing/invalid basis for {missing_basis[:5]}")
+    if mismatches:
+        details.append(f"basis mismatches: {mismatches[:5]}")
+
+    return _named_rule_result(
+        "delivery_skeleton_requirement_basis_visible",
+        artifact_path,
+        passed,
+        "; ".join(details),
+        severity="required",
+    )
+
+
 def _rule_no_unknown_requirement_references(
     path: Path,
     workspace_root: Path,
@@ -3221,6 +3504,112 @@ def _rule_requirement_semantics_preserved(
         "story behavior preserves linked requirement semantics"
         if len(failures) == 0
         else "; ".join(failures[:5]),
+        severity="required",
+    )
+
+
+def _rule_epic_traceability_basis_visible(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    if not path.is_dir():
+        return _named_rule_result(
+            "epic_traceability_basis_visible",
+            artifact_path,
+            True,
+            "epic traceability basis check applies to epic directories only",
+            severity="required",
+        )
+
+    derivations = _canonical_requirement_derivations(workspace_root)
+    failures: list[str] = []
+    checked = 0
+
+    for epic_dir in sorted([d for d in path.iterdir() if d.is_dir() and d.name.startswith("E-")]):
+        epic_md = epic_dir / "epic.md"
+        if not epic_md.exists():
+            continue
+        rows = _section_table_rows(_read_text(epic_md), "## Source Traceability")
+        for row in rows:
+            if len(row) < 4:
+                continue
+            source_type = row[0].strip().lower()
+            reference = row[1].strip()
+            basis = row[2].strip().lower()
+            if source_type != "requirement":
+                continue
+            if not re.fullmatch(r"(?:FR|REQ|NFR|C)-\d{3}", reference):
+                continue
+            checked += 1
+            expected = derivations.get(reference)
+            if basis not in {"direct", "inferred"}:
+                failures.append(f"{epic_dir.name}: {reference} missing valid basis")
+            elif expected and basis != expected:
+                failures.append(f"{epic_dir.name}: {reference} basis={basis} expected={expected}")
+
+    return _named_rule_result(
+        "epic_traceability_basis_visible",
+        artifact_path,
+        checked > 0 and len(failures) == 0,
+        f"epic traceability basis is visible for {checked} requirement rows"
+        if checked > 0 and len(failures) == 0
+        else "; ".join(failures[:6]) if failures else "no epic requirement traceability rows checked",
+        severity="required",
+    )
+
+
+def _rule_story_linked_requirements_basis_visible(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    if not path.is_dir():
+        return _named_rule_result(
+            "story_linked_requirements_basis_visible",
+            artifact_path,
+            True,
+            "story linked requirement basis check applies to epic directories only",
+            severity="required",
+        )
+
+    derivations = _canonical_requirement_derivations(workspace_root)
+    failures: list[str] = []
+    checked = 0
+
+    for epic_dir in sorted([d for d in path.iterdir() if d.is_dir() and d.name.startswith("E-")]):
+        stories_dir = epic_dir / "stories"
+        if not stories_dir.exists():
+            continue
+        for story_file in sorted(stories_dir.glob("S-*.md")):
+            if story_file.name.endswith(".prompt.md"):
+                continue
+            rows = _section_table_rows(_read_text(story_file), "## Linked Requirements")
+            for row in rows:
+                if len(row) < 3:
+                    continue
+                req_id = row[0].strip()
+                basis = row[2].strip().lower()
+                if not re.fullmatch(r"(?:FR|REQ|NFR|C)-\d{3}", req_id):
+                    continue
+                checked += 1
+                expected = derivations.get(req_id)
+                if basis not in {"direct", "inferred"}:
+                    failures.append(f"{story_file.name}: {req_id} missing valid basis")
+                elif expected and basis != expected:
+                    failures.append(f"{story_file.name}: {req_id} basis={basis} expected={expected}")
+
+    return _named_rule_result(
+        "story_linked_requirements_basis_visible",
+        artifact_path,
+        checked > 0 and len(failures) == 0,
+        f"story linked requirement basis is visible for {checked} requirement rows"
+        if checked > 0 and len(failures) == 0
+        else "; ".join(failures[:6]) if failures else "no story linked requirement rows checked",
         severity="required",
     )
 
@@ -3798,6 +4187,96 @@ def _rule_all_impacted_components_have_decisions(
     )
 
 
+def _rule_solution_decisions_traceability_complete(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    text = _read_text(path)
+    decision_ids = set(re.findall(r"^\|\s*(SD-\d{3})\s*\|", text, flags=re.MULTILINE))
+    traceability_rows = _section_table_rows(text, "## Decision Traceability")
+    traced_ids = {
+        row[0].strip()
+        for row in traceability_rows
+        if len(row) >= 1 and re.fullmatch(r"SD-\d{3}", row[0].strip())
+    }
+
+    if not decision_ids:
+        return _named_rule_result(
+            "solution_decisions_traceability_complete",
+            artifact_path,
+            True,
+            "no solution decisions found - skipping traceability completeness check",
+            severity="required",
+        )
+
+    missing = sorted(decision_ids - traced_ids)
+    return _named_rule_result(
+        "solution_decisions_traceability_complete",
+        artifact_path,
+        len(missing) == 0,
+        f"traceability covers all {len(decision_ids)} solution decisions"
+        if len(missing) == 0
+        else f"decisions missing traceability rows: {missing[:10]}",
+        severity="required",
+    )
+
+
+def _rule_solution_decisions_inferred_requirements_visible(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    text = _read_text(path)
+    derivations = _canonical_requirement_derivations(workspace_root)
+    traceability_rows = _section_table_rows(text, "## Decision Traceability")
+    if not traceability_rows:
+        return _named_rule_result(
+            "solution_decisions_inferred_requirements_visible",
+            artifact_path,
+            False,
+            "Decision Traceability table not found or empty",
+            severity="required",
+        )
+
+    failures: list[str] = []
+    checked = 0
+    for row in traceability_rows:
+        if len(row) < 3:
+            continue
+        decision_id = row[0].strip()
+        req_cell = row[1].strip()
+        basis = row[2].strip().lower()
+        if not re.fullmatch(r"SD-\d{3}", decision_id):
+            continue
+        checked += 1
+        req_ids = re.findall(r"(?<![A-Za-z])(?:FR|REQ|NFR|C)-\d{3}", req_cell)
+        if not req_ids:
+            if basis != "architectural-context":
+                failures.append(f"{decision_id} has no requirement IDs but basis={basis}")
+            continue
+
+        expected_types = {derivations.get(req_id) for req_id in req_ids if derivations.get(req_id)}
+        if "inferred" in expected_types and basis not in {"inferred", "mixed"}:
+            failures.append(f"{decision_id} links inferred requirements {req_ids} but basis={basis}")
+        elif expected_types == {"direct"} and basis not in {"direct", "mixed"}:
+            failures.append(f"{decision_id} links direct requirements {req_ids} but basis={basis}")
+
+    return _named_rule_result(
+        "solution_decisions_inferred_requirements_visible",
+        artifact_path,
+        checked > 0 and len(failures) == 0,
+        f"traceability basis is visible for {checked} solution decisions"
+        if checked > 0 and len(failures) == 0
+        else "; ".join(failures[:6]) if failures else "no decision traceability rows checked",
+        severity="required",
+    )
+
+
 def _rule_ui_spec_confirmed_pages_have_page_sections(
     path: Path,
     workspace_root: Path,
@@ -4069,6 +4548,70 @@ def _rule_ui_spec_every_inferred_has_open_question(
     )
 
 
+def _rule_ui_spec_open_questions_have_required_before(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    text = _read_text(path)
+    questions_match = re.search(
+        r"## Open UI Questions\s*\n((?:\|.*\n)+)", text
+    )
+    if not questions_match:
+        return _named_rule_result(
+            "ui_spec_open_questions_have_required_before",
+            artifact_path,
+            True,
+            "no open UI questions section found - check not applicable",
+            severity="required",
+        )
+
+    valid_required_before = {
+        "delivery-planning",
+        "epic-elaboration",
+        "coding-handoff",
+        "n/a",
+        "—",
+        "-",
+        "na",
+    }
+    issues: list[str] = []
+
+    for row in questions_match.group(1).splitlines():
+        cells = [c.strip() for c in row.split("|") if c.strip()]
+        if len(cells) < 8:
+            continue
+        if cells[0].lower() == "id" or cells[0].startswith("---"):
+            continue
+        if not re.match(r"UIQ-\d+", cells[0]):
+            continue
+
+        question_id = cells[0]
+        blocking = cells[5].strip().lower()
+        required_before = cells[6].strip().lower() if len(cells) >= 7 else ""
+
+        if required_before not in valid_required_before:
+            issues.append(f"{question_id}: invalid Required Before '{cells[6]}'")
+            continue
+
+        if blocking == "yes" and required_before in {"n/a", "—", "-", "na"}:
+            issues.append(f"{question_id}: blocking question cannot use Required Before '{cells[6]}'")
+        if blocking == "no" and required_before not in {"n/a", "—", "-", "na"}:
+            issues.append(f"{question_id}: non-blocking question should use Required Before 'n/a'")
+
+    return _named_rule_result(
+        "ui_spec_open_questions_have_required_before",
+        artifact_path,
+        len(issues) == 0,
+        "all open UI questions classify Required Before consistently"
+        if len(issues) == 0
+        else f"open UI question classification issues: {', '.join(issues[:5])}",
+        severity="required",
+    )
+
+
 def _rule_ui_spec_shared_components_match_page_fields(
     path: Path,
     workspace_root: Path,
@@ -4242,6 +4785,90 @@ def _rule_epic_clarification_request_has_questions_or_explicit_no_blockers(
     )
 
 
+_ALLOWED_BLOCKER_TYPES = {
+    "missing-evidence",
+    "missing-decision",
+    "missing-ownership",
+    "missing-user-intent",
+}
+
+
+def _rule_epic_clarification_request_blocker_taxonomy_complete(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    state = workspace.load_state(workspace_root)
+    current_item = state.get("current_item")
+    if not current_item:
+        return _named_rule_result(
+            "epic_clarification_request_blocker_taxonomy_complete",
+            artifact_path,
+            False,
+            "current_item not set for clarification validation",
+            severity="required",
+        )
+
+    epic_dirs = sorted([d for d in path.iterdir() if d.is_dir() and d.name.startswith(current_item)]) if path.exists() else []
+    if not epic_dirs:
+        return _named_rule_result(
+            "epic_clarification_request_blocker_taxonomy_complete",
+            artifact_path,
+            False,
+            f"no epic directory found for {current_item}",
+            severity="required",
+        )
+
+    request_path = epic_dirs[0] / "clarification-request.md"
+    if not request_path.exists():
+        return _named_rule_result(
+            "epic_clarification_request_blocker_taxonomy_complete",
+            artifact_path,
+            False,
+            f"{epic_dirs[0].name}/clarification-request.md missing",
+            severity="required",
+        )
+
+    text = _read_text(request_path)
+    if "No blocking questions require clarification for this epic." in text:
+        return _named_rule_result(
+            "epic_clarification_request_blocker_taxonomy_complete",
+            artifact_path,
+            True,
+            "no blockers text present - taxonomy not required",
+            severity="required",
+        )
+
+    rows = _section_table_rows(text, "## Blocking Questions")
+    failures: list[str] = []
+    checked = 0
+    for row in rows:
+        if len(row) < 8 or not row[0].startswith(("UIQ-", "OQ-", "SDQ-")):
+            continue
+        checked += 1
+        blocker_type = row[3].strip().lower()
+        why_now = row[5].strip()
+        blocks_artifact = row[6].strip()
+        if blocker_type not in _ALLOWED_BLOCKER_TYPES:
+            failures.append(f"{row[0]} invalid blocker type '{row[3].strip()}'")
+        if not _cell_is_populated(why_now):
+            failures.append(f"{row[0]} missing 'Why It Matters Now'")
+        if not _cell_is_populated(blocks_artifact):
+            failures.append(f"{row[0]} missing 'Blocks Next Artifact'")
+
+    return _named_rule_result(
+        "epic_clarification_request_blocker_taxonomy_complete",
+        artifact_path,
+        checked > 0 and len(failures) == 0,
+        f"epic clarification blocker taxonomy is complete for {checked} question(s)"
+        if checked > 0 and len(failures) == 0
+        else "; ".join(failures[:6]) if failures else "no blocker rows found to validate",
+        severity="required",
+    )
+
+
 def _rule_solution_design_clarification_request_has_questions_or_explicit_no_blockers(
     path: Path,
     workspace_root: Path,
@@ -4291,6 +4918,60 @@ def _rule_solution_design_clarification_request_has_questions_or_explicit_no_blo
         f"clarification request lists {row_count} blocking solution design question(s)"
         if row_count > 0
         else "blocking questions table is present but contains no question rows",
+        severity="required",
+    )
+
+
+def _rule_solution_design_clarification_request_blocker_taxonomy_complete(
+    path: Path,
+    workspace_root: Path,
+    action: dict[str, Any],
+    artifact_path: str,
+    base_checks: list[dict[str, str]],
+) -> dict[str, str]:
+    if not path.exists():
+        return _named_rule_result(
+            "solution_design_clarification_request_blocker_taxonomy_complete",
+            artifact_path,
+            False,
+            "solution design clarification request artifact missing",
+            severity="required",
+        )
+
+    text = _read_text(path)
+    if "No blocking solution design questions require clarification." in text:
+        return _named_rule_result(
+            "solution_design_clarification_request_blocker_taxonomy_complete",
+            artifact_path,
+            True,
+            "no blockers text present - taxonomy not required",
+            severity="required",
+        )
+
+    rows = _section_table_rows(text, "## Blocking Questions")
+    failures: list[str] = []
+    checked = 0
+    for row in rows:
+        if len(row) < 8 or not row[0].startswith("SDQ-"):
+            continue
+        checked += 1
+        blocker_type = row[3].strip().lower()
+        why_now = row[5].strip()
+        blocks_artifact = row[6].strip()
+        if blocker_type not in _ALLOWED_BLOCKER_TYPES:
+            failures.append(f"{row[0]} invalid blocker type '{row[3].strip()}'")
+        if not _cell_is_populated(why_now):
+            failures.append(f"{row[0]} missing 'Why It Matters Now'")
+        if not _cell_is_populated(blocks_artifact):
+            failures.append(f"{row[0]} missing 'Blocks Next Artifact'")
+
+    return _named_rule_result(
+        "solution_design_clarification_request_blocker_taxonomy_complete",
+        artifact_path,
+        checked > 0 and len(failures) == 0,
+        f"solution design blocker taxonomy is complete for {checked} question(s)"
+        if checked > 0 and len(failures) == 0
+        else "; ".join(failures[:6]) if failures else "no blocker rows found to validate",
         severity="required",
     )
 
@@ -4766,11 +5447,16 @@ NAMED_RULES: dict[str, NamedRuleValidator] = {
     "requirement_has_id": _rule_requirement_has_id,
     "source_brs_ids_preserved": _rule_source_brs_ids_preserved,
     "atomic_requirements_summary_matches_catalog": _rule_atomic_requirements_summary_matches_catalog,
+    "atomic_requirements_derivation_visible": _rule_atomic_requirements_derivation_visible,
+    "atomic_requirements_decomposition_traceable": _rule_atomic_requirements_decomposition_traceable,
+    "atomic_requirements_direct_inferred_summary_matches": _rule_atomic_requirements_direct_inferred_summary_matches,
     "requirement_is_testable": _rule_requirement_is_testable,
     "all_source_requirements_present": _rule_all_source_requirements_present,
     "no_unknown_requirement_references": _rule_no_unknown_requirement_references,
     "requirement_title_consistency": _rule_requirement_title_consistency,
     "requirement_semantics_preserved": _rule_requirement_semantics_preserved,
+    "epic_traceability_basis_visible": _rule_epic_traceability_basis_visible,
+    "story_linked_requirements_basis_visible": _rule_story_linked_requirements_basis_visible,
     "open_questions_propagated": _rule_open_questions_propagated,
     "coverage_claim_matches_evidence": _rule_coverage_claim_matches_evidence,
     "coverage_classifications_acceptable": _rule_coverage_classifications_acceptable,
@@ -4784,18 +5470,24 @@ NAMED_RULES: dict[str, NamedRuleValidator] = {
     "nfr_assessment_has_decision": _rule_nfr_assessment_has_decision,
     "selected_epics_have_implementation_contracts": _rule_selected_epics_have_implementation_contracts,
     "selected_epics_have_coding_handoffs": _rule_selected_epics_have_coding_handoffs,
+    "delivery_skeleton_requirement_basis_visible": _rule_delivery_skeleton_requirement_basis_visible,
     "all_components_from_architecture_review_present": _rule_all_components_from_architecture_review_present,
     "all_functional_requirements_mapped": _rule_all_functional_requirements_mapped,
     "all_impacted_components_have_decisions": _rule_all_impacted_components_have_decisions,
+    "solution_decisions_traceability_complete": _rule_solution_decisions_traceability_complete,
+    "solution_decisions_inferred_requirements_visible": _rule_solution_decisions_inferred_requirements_visible,
     "ui_spec_confirmed_pages_have_page_sections": _rule_ui_spec_confirmed_pages_have_page_sections,
     "ui_spec_confirmed_pages_have_required_subsections": _rule_ui_spec_confirmed_pages_have_required_subsections,
     "ui_spec_no_confirmed_when_blockers_exist": _rule_ui_spec_no_confirmed_when_blockers_exist,
     "ui_spec_data_binding_contract_mode_present": _rule_ui_spec_data_binding_contract_mode_present,
     "ui_spec_every_inferred_has_open_question": _rule_ui_spec_every_inferred_has_open_question,
+    "ui_spec_open_questions_have_required_before": _rule_ui_spec_open_questions_have_required_before,
     "ui_spec_shared_components_match_page_fields": _rule_ui_spec_shared_components_match_page_fields,
     "ui_spec_no_encoding_mojibake": _rule_ui_spec_no_encoding_mojibake,
     "epic_clarification_request_has_questions_or_explicit_no_blockers": _rule_epic_clarification_request_has_questions_or_explicit_no_blockers,
+    "epic_clarification_request_blocker_taxonomy_complete": _rule_epic_clarification_request_blocker_taxonomy_complete,
     "solution_design_clarification_request_has_questions_or_explicit_no_blockers": _rule_solution_design_clarification_request_has_questions_or_explicit_no_blockers,
+    "solution_design_clarification_request_blocker_taxonomy_complete": _rule_solution_design_clarification_request_blocker_taxonomy_complete,
     "epic_identity_matches_skeleton": _rule_epic_identity_matches_skeleton,
     "story_agent_contract_semantic_equivalence": _rule_story_agent_contract_semantic_equivalence,
     "agent_yaml_operations_match_contract": _rule_agent_yaml_operations_match_contract,

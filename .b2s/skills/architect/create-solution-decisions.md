@@ -34,7 +34,7 @@ If `computed_inputs` is present, read every path listed there in full. When clar
 - Do not create decisions for table structure elements such as column headers, section headers, rationale text, impact descriptions, or open question prose
 - Do not duplicate decisions; if a component already has a decision, do not create another one with different wording
 - Cross-cutting concerns (audit logging, observability, authentication) are handled as `extend-existing` decisions on the platform or shared-library level, one decision per concern
-- If a planning-blocking architecture question remains unresolved, carry it into `## Open Solution Design Questions` instead of pretending the decision is settled
+- If an architecture question remains unresolved, carry it into `## Open Solution Design Questions` instead of pretending the decision is settled
 
 ## Decision categories
 
@@ -97,10 +97,33 @@ For each unique component identified in Step 2:
 3. Write a concise rationale
 4. Note any architecture rule constraints (AR-NNN)
 5. Flag any conflicts or open questions
+6. Add one matching row in `## Decision Traceability`
 
 Apply answered clarifications from computed inputs directly to the relevant decisions. If a clarification resolves repository ownership, component ownership, boundary placement, or contract approach, reflect that resolution explicitly.
 
-If a question is still unresolved and it blocks safe delivery planning, record it in `## Open Solution Design Questions` with `Blocking?` = `Yes`.
+Keep inference visibility explicit in this artifact. Do not rely on rationale
+text alone to imply whether a decision is grounded in direct requirements,
+inferred requirements, both, or architecture/platform context.
+
+In `## Decision Traceability`, use:
+
+- `direct` - all linked requirements are direct source requirements
+- `inferred` - all linked requirements are inferred decomposition children
+- `mixed` - the decision is justified by both direct and inferred requirements
+- `architectural-context` - the decision is driven by architecture or platform
+  obligations rather than a specific requirement ID
+
+If a question is still unresolved:
+
+- record it in `## Open Solution Design Questions`
+- set `Blocking? = Yes` only when some downstream stage would be unsafe without the answer
+- classify `Required Before` carefully:
+  - `delivery-planning` for initiative-blocking questions that make delivery structure or ownership unsafe
+  - `epic-elaboration` for questions that can wait until the affected epic is detailed
+  - `coding-handoff` for questions that can wait until implementation preparation
+  - `n/a` when the question is advisory and not blocking
+
+Do not over-classify. If planning can still proceed safely, prefer `epic-elaboration` over `delivery-planning`.
 
 Verify before proceeding: count your decisions. If you have more decisions than there are unique components (services, data stores, integrations, and UIs), you have duplicates or noise; go back and deduplicate.
 
@@ -112,6 +135,19 @@ Group all decisions by target repository. For each repository, list:
 - the technology stack
 - the deployment target
 
+### Step 3b - Write decision traceability
+
+For every `SD-NNN` decision, add exactly one row to `## Decision Traceability`.
+
+Rules:
+
+- if the decision is justified by named requirements, list every relevant
+  `FR-*`, `REQ-*`, `NFR-*`, or `C-*` ID
+- if any linked requirement is inferred, do NOT label the row `direct`
+- do not hide inferred requirement usage inside rationale prose only
+- if the decision is driven only by architecture/platform obligations, use
+  `architectural-context` and explain that briefly in `Notes`
+
 ### Step 4 - Write the artifact
 
 Write `architecture/solution-decisions.md` using the artifact template at `.b2s/artifact-templates/solution-decisions.md`.
@@ -120,7 +156,7 @@ Include an explicit `## Open Solution Design Questions` section using this table
 
 | ID | Question | Affects Decision(s) | Blocking? | Required Before | Status |
 |---|---|---|---|---|---|
-| SDQ-NNN | | SD-NNN | Yes / No | delivery-planning / epic-elaboration | open / answered-by-clarification |
+| SDQ-NNN | | SD-NNN | Yes / No | delivery-planning / epic-elaboration / coding-handoff / n/a | open / answered-by-clarification |
 
 ## Output requirements
 
@@ -132,11 +168,13 @@ Write `architecture/solution-decisions.md` following the artifact template struc
 - [ ] No decisions exist for table headers, column labels, rationale text, or metadata
 - [ ] The number of decisions roughly matches the number of unique components in the technical landscape
 - [ ] Every decision has a type, target repository, and rationale
+- [ ] Every decision has one matching `## Decision Traceability` row
+- [ ] Any decision linked to inferred requirements is labeled `inferred` or `mixed`, not `direct`
 - [ ] Decisions are grouped by category (service, API, UI, data, integration, infrastructure)
 - [ ] Repository summary shows all new and modified repositories
 - [ ] No decision conflicts with architecture rules without explicit flagging
 - [ ] Open questions from impacted-systems are carried forward
-- [ ] Blocking architecture questions are listed explicitly in `## Open Solution Design Questions`
+- [ ] Initiative-blocking vs epic-blocking solution-design questions are classified explicitly in `## Open Solution Design Questions`
 
 ## Stop conditions
 

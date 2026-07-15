@@ -23,9 +23,9 @@ As a {{named actor}}, I want {{capability}}, so that {{business outcome}}.
 
 ## Linked Requirements
 
-| ID | Requirement |
-|---|---|
-| FR-NNN | {{canonical requirement title from atomic-requirements.md}} |
+| ID | Requirement | Basis |
+|---|---|---|
+| FR-NNN | {{canonical requirement title from atomic-requirements.md}} | direct / inferred |
 
 ## Requirements Implemented
 

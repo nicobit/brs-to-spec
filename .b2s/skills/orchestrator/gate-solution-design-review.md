@@ -11,18 +11,22 @@ produces:    architecture/solution-decisions.md
 
 ## When this skill is used
 
-This action represents the human clarification and approval gate that protects delivery planning from unresolved solution-design blockers.
+This action represents the human clarification and approval gate that protects delivery planning from unresolved initiative-blocking solution-design questions.
 
 ## Role for this task
 
-You are presenting the current solution-design blockers for human clarification so the framework can safely rerun solution decisions before planning continues.
+You are presenting the current initiative-blocking solution-design questions for human clarification so the framework can safely rerun solution decisions before planning continues.
 
 ## Instructions
 
 When presenting this gate, you MUST:
 
-1. Summarize whether any blocking solution-design questions remain
+1. Summarize whether any delivery-planning-blocking solution-design questions remain
 2. If blockers exist, list them clearly
+3. For each blocker, explain:
+   - what is missing
+   - why it matters now
+   - what next artifact is blocked
 3. Tell the human that answers must be captured in:
 
 ```text
@@ -35,5 +39,6 @@ input/clarifications/solution-design.yaml
 
 - Do not rewrite the clarification request artifact
 - Do not self-approve this gate
+- Do not present epic-elaboration or coding-handoff questions as delivery-planning blockers
 - Do not present non-blocking advisory questions as blockers
 - State changes for gate approval or rejection are handled outside this prompt

@@ -115,6 +115,15 @@ Populate every section with specific initiative content:
 - foundation/setup needs
 - features table (from delivery skeleton)
 
+In `## Source Traceability`, keep requirement derivation visible:
+
+- `source-text` for BRS section references
+- `direct` for direct source requirements
+- `inferred` for inferred decomposition children
+
+Do not flatten inferred `REQ-*` requirements into generic requirement rows
+without that basis signal.
+
 ### Step 5 - Create implementation contract
 
 Create `epics/E-NNN-<slug>/implementation-contract.md` using `.b2s/artifact-templates/implementation-contract.md`.

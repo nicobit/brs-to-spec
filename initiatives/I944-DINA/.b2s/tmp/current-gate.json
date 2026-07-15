@@ -1,0 +1,7 @@
+{
+  "overall": "pass",
+  "gate_id": "architecture-review",
+  "artifact_path": "architecture/architecture-review.md",
+  "decision": "approved",
+  "blocking_reason": null
+}

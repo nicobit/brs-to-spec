@@ -77,10 +77,10 @@
 
 ## Requirement Coverage
 
-| REQ / FR | Feature | Epic | Status |
-|---|---|---|---|
-| FR-001 | F-001 | E-001 | Covered |
-| FR-002 | F-001 | E-001 | Covered |
+| REQ / FR | Feature | Epic | Basis | Status |
+|---|---|---|---|---|
+| FR-001 | F-001 | E-001 | direct | Covered |
+| FR-002 | F-001 | E-001 | direct | Covered |
 
 ---
 *This is a lightweight skeleton. Stories are produced later during epic elaboration. Set Status: Confirmed only after review. Never self-accept.*

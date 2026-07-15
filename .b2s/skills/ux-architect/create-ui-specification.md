@@ -207,6 +207,7 @@ Every page must list its blocking dependencies explicitly:
 
 * Reference open UI question IDs (UIQ-NNN) and/or gap IDs (GAP-NNN).
 * Write "none" if no blocking dependencies exist.
+* A dependency may still be acceptable for initiative-level design if its open question is classified as `Required Before = epic-elaboration`. Only `Required Before = delivery-planning` should block the solution-design stage itself.
 
 ### Consistency checks
 
@@ -891,8 +892,8 @@ Create:
 
 Use this table:
 
-| ID | Type | Question | Affected Routes | Affected FRs | Blocking? | Owner | Suggested Resolution |
-| -- | ---- | -------- | --------------- | ------------ | --------- | ----- | -------------------- |
+| ID | Type | Question | Affected Routes | Affected FRs | Blocking? | Required Before | Owner | Suggested Resolution |
+| -- | ---- | -------- | --------------- | ------------ | --------- | --------------- | ----- | -------------------- |
 
 Question types:
 
@@ -913,7 +914,12 @@ Question types:
 Rules:
 
 * Every `needs-clarification` item should create or reference an open UI question.
-* Mark `Blocking?` as `Yes` if story generation or coding handoff would be unsafe without the answer.
+* Mark `Blocking?` as `Yes` if some downstream stage would be unsafe without the answer.
+* Use `Required Before` to classify the blocker:
+  - `delivery-planning` — initiative-blocking; solution design should not pass the clarification gate without an answer
+  - `epic-elaboration` — not initiative-blocking; delivery planning may continue, but the affected epic must not be elaborated as implementation-ready until answered
+  - `coding-handoff` — acceptable through epic/story design, but must be resolved before coding handoff
+* If `Blocking?` is `No`, set `Required Before` to `n/a`.
 * Do not leave unresolved ambiguity hidden in prose.
 
 ---

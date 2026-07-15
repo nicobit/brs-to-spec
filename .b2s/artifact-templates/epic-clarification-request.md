@@ -6,9 +6,9 @@
 
 ## Blocking Questions
 
-| ID | Route | Page | Question | Why It Matters | Required For |
-|---|---|---|---|---|---|
-| {{UIQ-NNN}} | {{/route}} | {{Page Name}} | {{question}} | {{impact}} | {{story generation / contract refresh}} |
+| ID | Route | Page | Blocker Type | Question | Why It Matters Now | Blocks Next Artifact | Required For |
+|---|---|---|---|---|---|---|---|
+| {{UIQ-NNN}} | {{/route}} | {{Page Name}} | {{missing-evidence / missing-decision / missing-ownership / missing-user-intent}} | {{question}} | {{why story generation is unsafe without the answer now}} | {{implementation-contract refresh / S-NNN.N story generation}} | {{story generation / contract refresh}} |
 
 If no blocking questions remain, write:
 

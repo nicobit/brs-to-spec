@@ -1,0 +1,100 @@
+version: 1
+framework: b2s
+description: >
+  B2S flow: lean progressive decomposition with mandatory technical landscape
+  analysis and solution decisions before backlog generation. Extends
+  agile-delivery-light-flow with a Solution Design stage that maps requirements
+  to existing systems and produces explicit create-vs-modify decisions.
+
+constraints:
+  single_active_action: true
+  max_active_actions: 1
+  state_files_orchestrator_only: true
+
+stages:
+  - id: "0-governance"
+    name: "Governance"
+    description: "Create the delivery constitution that governs all later phases."
+    execution_mode: serial
+    actions:
+      - create-delivery-constitution
+    next_stages:
+      - id: "1-requirements-and-architecture"
+        condition: always
+
+  - id: "1-requirements-and-architecture"
+    name: "Requirements and architecture"
+    description: "Extract atomic requirements, review architecture, and create architecture rules in a single gated stage."
+    execution_mode: serial
+    actions:
+      - create-atomic-requirements
+      - review-initial-architecture
+      - gate-architecture-review
+      - create-architecture-rules
+    next_stages:
+      - id: "2-solution-design"
+        condition: gate-architecture-review accepted
+
+  - id: "2-solution-design"
+    name: "Solution design"
+    description: "Analyze the technical landscape, map requirements to systems, produce UI specification, resolve blocking solution-design clarifications, and finalize solution decisions."
+    execution_mode: serial
+    actions:
+      - analyze-technical-landscape
+      - map-requirements-to-systems
+      - create-ui-specification
+      - create-solution-decisions
+      - resolve-solution-design-open-questions
+      - gate-solution-design-review
+    next_stages:
+      - id: "3-delivery-planning"
+        condition: gate-solution-design-review accepted
+
+  - id: "3-delivery-planning"
+    name: "Delivery planning"
+    description: "Create delivery skeleton and elaboration plan informed by solution decisions."
+    execution_mode: serial
+    actions:
+      - create-delivery-skeleton
+      - create-elaboration-plan
+      - gate-elaboration-plan-review
+    next_stages:
+      - id: "4-epic-elaboration"
+        condition: gate-elaboration-plan-review accepted
+
+  - id: "4-epic-elaboration"
+    name: "Epic elaboration"
+    description: "Generate epic shells, resolve current-epic blockers through clarification when needed, then generate stories, validate coverage, and review."
+    execution_mode: serial
+    actions:
+      - create-epic-shells
+      - resolve-epic-open-questions
+      - gate-epic-clarification
+      - create-epic-stories
+      - validate-fr-coverage
+      - gate-epic-review
+    next_stages:
+      - id: "5-coding-handoff"
+        condition: gate-epic-review accepted
+
+  - id: "5-coding-handoff"
+    name: "Coding handoff"
+    description: "Generate self-contained coding handoff documents for the epics selected for implementation."
+    execution_mode: serial
+    actions:
+      - create-epic-coding-handoffs
+    next_stages:
+      - id: "6-readiness-review"
+        condition: always
+
+  - id: "6-readiness-review"
+    name: "Readiness review"
+    description: "Produce a final implementation-readiness assessment before AI coding begins."
+    execution_mode: serial
+    actions:
+      - create-implementation-readiness
+    next_stages: []
+
+human_triggered_actions:
+  - create-brs
+  - spec-correction

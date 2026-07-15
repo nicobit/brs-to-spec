@@ -1,0 +1,48 @@
+{
+  "overall": "pass",
+  "action_id": "resolve-solution-design-open-questions",
+  "previous_state_summary": {
+    "current_stage": "2-solution-design",
+    "next_action": "resolve-solution-design-open-questions"
+  },
+  "applied_changes": {
+    "current_stage": "2-solution-design",
+    "artifact_status": {
+      "governance/delivery-constitution.md": "ai_validated",
+      "requirements/atomic-requirements.md": "ai_validated",
+      "architecture/architecture-review.md": "accepted",
+      "architecture/architecture-rules.md": "ai_validated",
+      "architecture/technical-landscape.md": "ai_validated",
+      "architecture/impacted-systems.md": "ai_validated",
+      "architecture/solution-decisions.md": "ai_validated",
+      "architecture/solution-design-clarification-request.md": "ai_validated"
+    }
+  },
+  "next_action": null,
+  "gate_state": {
+    "gate_id": "solution-design-review",
+    "action_id": "gate-solution-design-review",
+    "source_action_id": "resolve-solution-design-open-questions",
+    "artifact_path": "architecture/solution-design-clarification-request.md",
+    "status": "waiting_human",
+    "owner": "architect",
+    "interaction_mode": "collect_answers",
+    "rerun_action": "create-solution-decisions",
+    "clarification_file": "input/clarifications/solution-design.yaml",
+    "review_summary": {
+      "question_count": 1,
+      "clarification_file": "input/clarifications/solution-design.yaml",
+      "questions": [
+        {
+          "question_id": "SDQ-001",
+          "component": "Investor Registry / Onchain registry",
+          "decision_area": "Source-of-truth",
+          "prompt": "Does the onchain registry ever become the legal source-of-truth?",
+          "impact": "If onchain becomes legal source, data residency, ownership, reconciliation, and legal controls change significantly; contracts and evidence strategies must be adapted.",
+          "required_for": "delivery-planning"
+        }
+      ],
+      "no_blockers": false
+    }
+  }
+}
